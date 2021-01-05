@@ -180,16 +180,19 @@ Now we need to **quantify each of these 4 statements** to express "how far" we a
 with respect the purely theoretical decentralization.
 
 1. `ALGO DYNAMICS = circulating supply / total supply`
+
     * 0 = no ALGO circulation 
     * 1 = complete ALGO circulation
     
 
-2. `ALGO ONLINE STAKE = total online stake / circulating supply` 
+2. `ALGO ONLINE STAKE = total online stake / circulating supply`
+
    * 0 = no PPoS participation
    * 1 = complete PPoS participation
    
 
 3. `ONLINE ACCOUNTS = online accounts / existing accounts`
+
     * 0 = no PPoS participation
     * 1 = complete PPoS participation
     
@@ -204,6 +207,7 @@ respect the previous 3 statements **we will consider Gini's Index complement
 rather than its original form**, so that:
 
 4. `PPoS GINI INDEX = 1 - gini index`
+
     * 0 = complete PPoS inequality
     * 1 = complete PPoS equality
    
@@ -232,6 +236,7 @@ theoretical decentralization.
 So we will measure this distance form ideality as:
 
 - `PPoS DEX INDEX = ALGO DYNAMICS * ALGO ONLINE STAKE * ONLINE ACCOUNTS * PPoS GINI`
+
     * 0 = complete PPoS centralization
     * 1 = complete PPoS decentralization
     
@@ -377,9 +382,9 @@ $ python3 ppos_dex.py plot <your-api-token>
 6. `[--ending-block=<eb>]` plot data until this block;
 
 **Output**
-```
-![image]
-```
+![](images/timeseries_ppos_dynamics.png)
+
+![](images/timeseries_ppos_distribution.png)
 
 ### Plot PPoS Dex snapshot
 Take a snapshot of PPoS Dex Index data published by PPoS Dex Oracle (or by
@@ -397,9 +402,9 @@ $ python3 ppos_dex.py snapshot <your-api-token>
 5. `[--starting-block=<sb>]` plot data from this block (if availables);
 
 **Output**
-```
-![image]
-```
+![](images/snapshot_ppos_dynamics.png)
+
+![](images/snapshot_ppos_distribution.png)
 
 ### Export Plot PPoS Dex data
 Export PPoS Dex Index data published by PPoS Dex Oracle (or by yourself) to csv file.
@@ -425,6 +430,6 @@ ppos_dex_data.csv
 If you think that PPoS Dex Index represents a good and useful tool please consider
 tipping the PPoS Dex Oracle account:
 
-WIPE4JSUWLXKZZK6GJ6VI32PX6ZWPKBRH5YFRJCHWOVC73P5RI4DGUQUWQ
+`WIPE4JSUWLXKZZK6GJ6VI32PX6ZWPKBRH5YFRJCHWOVC73P5RI4DGUQUWQ`
 
 to cover the transactions fee.
