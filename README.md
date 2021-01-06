@@ -329,13 +329,13 @@ Options:
   --local-host                      Use your Algorand Node (default: PureStake)
 
   -c <ca> --algod-address=<ca>      Algod Client address
-        [default: https://testnet-algorand.api.purestake.io/ps2].
+        [default: https://mainnet-algorand.api.purestake.io/ps2].
   -i <ia> --indexer-address=<ia>    Indexer Client address
-        [default: https://testnet-algorand.api.purestake.io/idx2].
+        [default: https://mainnet-algorand.api.purestake.io/idx2].
   -t <at> --algo-threshold=<ta>     Algo minimum balance to query
         [default: 1000].
   -a <da> --data-address=<da>       Algorand address data source
-        [default: 2EJ4FCM5XVVNTRCP44GQIJIFG2O2MI3C3R47VZZSNVZZKZE3GVPJCDY4MA].
+        [default: WIPE4JSUWLXKZZK6GJ6VI32PX6ZWPKBRH5YFRJCHWOVC73P5RI4DGUQUWQ].
   -s <sb> --starting-block=<sb>     Data starting block (int)
         [default: 11476070].
   -e <eb> --ending-block=<eb>       Data ending block (int)
