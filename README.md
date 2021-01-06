@@ -105,7 +105,7 @@ Quantify security is not that simple and out of the scope of this README.
 
 ### Decentralization
 Users participating in Algorand Consensus do not delegate their votes, do not
-need a minimum stakte to take part in the PPoS and do not need to bond their
+need a minimum stake to take part in the PPoS and do not need to bond their
 ALGO stake.
 
 In fact, anyone willing to take part in Pure Proof of Stake consensus protocol
@@ -160,7 +160,7 @@ implies that any system undergoing any kind of thermodinamic cycle can only
 tend to the efficiency of a Carnot engine operating under the same conditions,
 but **will never reach it**, no matter how cleverly that system has been designed.
 
-In the same way we will try to define an equivalent of a Caront engine for the
+In the same way we will try to define an equivalent of a Carnot engine for the
 PPoS consensus.
 
 **Does such theoretical decentralization upper bound exsist?**
@@ -177,8 +177,8 @@ committee of validator is **directly proportional to user's ALGO online stake**,
 the distribution of ALGOs into the ecosystem has a foundamental role on PPoS
 decentralization.
 
-Let's try first to define an **ideal theoretical conditions of 
-decetralisation**. Then, everything deviating from those conditions will make
+Let's try first to define an **ideal theoretical conditions of decentralization**.
+Then, everything deviating from those conditions will make
 PPoS more real and far from platonic ideality.
 
 ### Definitions
