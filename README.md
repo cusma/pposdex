@@ -16,7 +16,10 @@ Proof of Stake Decentralization Index. The application is ment to be
 fully trustless, so you can autonomulsy read Algorand blockchain, do
 your math and publish your indexes evaluation on-chain if you want.
 
-PPoS Dex plots nice data analytics too.
+Otherwise, if you prefer, you can simply use the data provided by
+[PPoS Dex Oracle](https://algoexplorer.io/address/WIPE4JSUWLXKZZK6GJ6VI32PX6ZWPKBRH5YFRJCHWOVC73P5RI4DGUQUWQ).
+
+PPoS Dex plots nice data analytics too (some examples later in this README).
 
 So what **"Decentralization Index"** actually means?
 
