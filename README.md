@@ -337,7 +337,7 @@ Options:
   -a <da> --data-address=<da>       Algorand address data source
         [default: WIPE4JSUWLXKZZK6GJ6VI32PX6ZWPKBRH5YFRJCHWOVC73P5RI4DGUQUWQ].
   -s <sb> --starting-block=<sb>     Data starting block (int)
-        [default: 11476070].
+        [default: 11283636].
   -e <eb> --ending-block=<eb>       Data ending block (int)
 
   -h --help
