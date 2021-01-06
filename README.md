@@ -117,8 +117,8 @@ Algorand is both a digital and physical infrastructure made of:
   representing the power that each member of the ecosystem may have over 
   the PPoS consenusm mechanism
     
-- Hardware: in the form of a global network composed by Relay Nodes 
-  and Participation Nodes
+- Hardware: in the form of a global network composed by [Relay Nodes 
+  and Participation Nodes](https://developer.algorand.org/docs/run-a-node/setup/types/)
 
 We will adopt the following hypotesis:
 
