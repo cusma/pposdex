@@ -20,9 +20,17 @@ PPoS Dex plots nice data analytics too.
 
 So what **"Decentralization Index"** actually means?
 
+##### Disclaimer
+PPoS Dex has not been audited nor officially approved by the Algorand Foundation.
+This tool is ment to be only a personal attempt to provide to Algorand community
+some stats on the evolution of their ecosystem. **Algorand's decentralization is a
+common good**, but it will not happen by itself: the community as a whole should
+embrace the path towards the decentalization jointly with the Algorand Foundation,
+commiting to preserve it.
+
 ## Introduction
 Blockchain technology arose to fulfil the promise of the genesis and transfer of
-digital native value in disintermediated, safe, decentralised and scalable way.
+digital native value in disintermediated, safe, decentralized and scalable way.
 Billions of people on the planet would have the possibility of transacting
 without borders or barriers within a unique global distributed computational
 infrastructure that cancel out the needing of third trusted parties in between.
@@ -111,11 +119,13 @@ Algorand is both a digital and physical infrastructure made of:
 
 We will adopt the following hypotesis:
 
-#### Assumption 1
+**Assumption 1**
+
 We will not consider here the degree of geo-delocalization of the physical
 infrastrucutre. More insights on this topic can be found [here](https://databricks.com/blog/2020/10/08/analyzing-algorand-blockchain-data-with-databricks-delta.html).
 
-#### Assumption 2
+**Assumption 2**
+
 Since a permissionless and public network is pseudonymous by design is there no
 way to know if differents public keys belong to the same user. So, we will make
 the assumption than **each public key belongs to a different participants in the
@@ -202,14 +212,15 @@ the [Gini's Index](https://en.wikipedia.org/wiki/Gini_coefficient) and
 [Theil's Index](https://en.wikipedia.org/wiki/Theil_index).
 
 **Gini's Index** can theoretically range from 0 (complete equality) to 1
-(complete inequality). In order to express our measure homogeneously with
-respect the previous 3 statements **we will consider Gini's Index complement
-rather than its original form**, so that:
+(complete inequality).
 
-4. `PPoS GINI INDEX = 1 - gini index`
+4. `PPoS GINI INDEX
 
-    * 0 = complete PPoS inequality
-    * 1 = complete PPoS equality
+    * 1 = complete PPoS inequality
+    * 0 = complete PPoS equality
+    
+In order to express our measure homogeneously **we will consider Gini's
+Index complement rather than its original form** in letter calculations.
    
 Theil's Indexs are called Theil's L and Theil's T, they also measure the
 inequality of a distribution among a set of peoples but with different
@@ -230,12 +241,12 @@ small ones.
 For sake of completenss we will evaluate them both.
 
 ### PPoS Dex Index
-Comniing all the 4 statements we will know "how far" PPoS is from its purely
+Combining all the 4 statements we will know "how far" PPoS is from its purely
 theoretical decentralization.
 
 So we will measure this distance form ideality as:
 
-- `PPoS DEX INDEX = ALGO DYNAMICS * ALGO ONLINE STAKE * ONLINE ACCOUNTS * PPoS GINI`
+- `PPoS DEX INDEX = ALGO DYNAMICS * ALGO ONLINE STAKE * ONLINE ACCOUNTS * (1 - PPoS GINI)`
 
     * 0 = complete PPoS centralization
     * 1 = complete PPoS decentralization
@@ -433,9 +444,3 @@ tipping the PPoS Dex Oracle account:
 `WIPE4JSUWLXKZZK6GJ6VI32PX6ZWPKBRH5YFRJCHWOVC73P5RI4DGUQUWQ`
 
 to cover the transactions fee.
-
-#### Disclaimer
-PPoS Dex has not been audited nor officially approved by the Algorand Foundation.
-This tool is ment to be only a personal attempt to provide to the Algorand community
-some stats on the evolution of their ecosystem.
-
