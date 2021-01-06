@@ -433,3 +433,9 @@ tipping the PPoS Dex Oracle account:
 `WIPE4JSUWLXKZZK6GJ6VI32PX6ZWPKBRH5YFRJCHWOVC73P5RI4DGUQUWQ`
 
 to cover the transactions fee.
+
+#### Disclaimer
+PPoS Dex has not been audited nor officially approved by the Algorand Foundation.
+This tool is ment to be only a personal attempt to provide to the Algorand community
+some stats on the evolution of their ecosystem.
+
