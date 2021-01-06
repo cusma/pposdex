@@ -217,7 +217,7 @@ the [Gini's Index](https://en.wikipedia.org/wiki/Gini_coefficient) and
 **Gini's Index** can theoretically range from 0 (complete equality) to 1
 (complete inequality).
 
-4. `PPoS GINI INDEX
+4. `PPoS GINI INDEX`
 
     * 1 = complete PPoS inequality
     * 0 = complete PPoS equality
@@ -225,14 +225,14 @@ the [Gini's Index](https://en.wikipedia.org/wiki/Gini_coefficient) and
 In order to express our measure homogeneously **we will consider Gini's
 Index complement rather than its original form** in letter calculations.
    
-Theil's Indexs are called Theil's L and Theil's T, they also measure the
+**Theil's Indexs** are called **Theil's L** and **Theil's T**, they also measure the
 inequality of a distribution among a set of peoples but with different
 sensitivity:
 
-- **Theil's L Index** is sensitive to differences at the lower end of the 
+- `Theil's L Index` is sensitive to differences at the lower end of the 
   distribution (small ALGO amounts)
   
-- **Theil's T Index** is more sensitive to differences at the top of the 
+- `Theil's T Index` is more sensitive to differences at the top of the 
   distribution (large ALGO amounts)
   
 they can theoretically range from 0 (complete equality) to +inf (complete
