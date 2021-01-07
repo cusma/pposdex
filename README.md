@@ -23,7 +23,7 @@ PPoS Dex plots nice data analytics too (some examples later in this README).
 
 So what **"Decentralization Index"** actually means?
 
-##### Disclaimer
+#### Disclaimer
 PPoS Dex has not been audited nor officially approved by the Algorand Foundation.
 This tool is ment to be only a personal attempt to provide to Algorand community
 some stats on the evolution of their ecosystem. **Algorand's decentralization is a
@@ -131,14 +131,14 @@ infrastrucutre. More insights on this topic can be found [here](https://databric
 
 Since a permissionless and public network is pseudonymous by design is there no
 way to know if differents public keys belong to the same user. So, we will make
-the assumption than **each public key belongs to a different participants in the
+the assumption that **each public key belongs to a different participants in the
 Algorand PPoS consensus**, with their own skin in the game.
 
 So how can we quantify PPoS Decentralization? Here is a proposal.
 
 ## Pure Proof of Stake Decentralization Index
 When mathematicians do not know equations' solutions or when physicists do
-not how to measure physical properties, they usually start investigating if
+not know how to measure physical properties, they usually start investigating if
 that solutions or that properties have upper or lower bounds.
 
 In order to reach a common understanding of what measuring decentralization
@@ -170,7 +170,7 @@ PPoS consensus.
 The ALGO has a **total supply of 10B**, hardcoded in the genesis block, that will
 flow into the ecosystem according to the
 [Algorand Dynamics](https://algorand.foundation/the-algo/algo-dynamics) and
-spread across participants according their economical choices.
+spread across participants according to their economical choices.
 
 Since the probability of being elecetd as block proposer or as member of the
 committee of validator is **directly proportional to user's ALGO online stake**,
@@ -209,7 +209,7 @@ with respect the purely theoretical decentralization.
     * 0 = no PPoS participation
     * 1 = complete PPoS participation
     
-The statement 4. essentialy implies a measurement of accounts' inequality. So,
+The statement 4. essentialy implies a measurement of participating accounts' inequality. So,
 we will adopt well knows wealth inequality indexes from Macroeconomics field:
 the [Gini's Index](https://en.wikipedia.org/wiki/Gini_coefficient) and
 [Theil's Index](https://en.wikipedia.org/wiki/Theil_index).
@@ -284,7 +284,7 @@ You may want to choose:
 
 PPoS Dex by default uses PureStake API as a service, so if you want
 to avoid running your own Node and Indexer all you need to do is creating an
-account on [PureStake](https://developer.purestake.io/) and get yout API token.
+account on [PureStake](https://developer.purestake.io/) and get your API token.
 
 ### Step 3 - PPoS files
 Copy following PPoS Dex files on your machine:
@@ -421,7 +421,7 @@ $ python3 ppos_dex.py snapshot <your-api-token>
 ![](images/snapshot_ppos_distribution.png)
 
 ### Export Plot PPoS Dex data
-Export PPoS Dex Index data published by PPoS Dex Oracle (or by yourself) to csv file.
+Export PPoS Dex Index data published by PPoS Dex Oracle (or by yourself) to `csv` file.
 
 **Input**
 ```bash
@@ -440,7 +440,7 @@ $ python3 ppos_dex.py export <your-api-token>
 ppos_dex_data.csv
 ```
 
-### Conclusion
+## Conclusion
 If you think that PPoS Dex Index represents a good and useful tool please consider
 tipping the PPoS Dex Oracle account:
 
