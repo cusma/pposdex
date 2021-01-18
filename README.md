@@ -74,7 +74,7 @@ through a [Verifiable Random Function](https://developer.algorand.org/docs/algor
 provable cryptographic sortition, in which users are free to take part as long
 as they own any amount of Algorand's native cryptocurrency, named ALGO, registered
 online as "participating". Each online ALGO could be seen as a ticket of
-this cryptographic lottery, that runs secretely in parallel on Algorand network's
+this cryptographic lottery, that runs secretly in parallel on Algorand network's
 nodes, with minimal hardware requirements and neglectable energy consumption.
 
 Algorand permissionless Consensus protocol solves blockchains' trilemma
@@ -115,7 +115,7 @@ Algorand is both a digital and physical infrastructure made of:
 
 - Software: in the form of Algorand native cryptocurrency (the ALGO), 
   representing the power that each member of the ecosystem may have over 
-  the PPoS consenusm mechanism
+  the PPoS consensus mechanism
     
 - Hardware: in the form of a global network composed by [Relay Nodes 
   and Participation Nodes](https://developer.algorand.org/docs/run-a-node/setup/types/)
