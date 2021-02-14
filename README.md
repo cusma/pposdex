@@ -209,42 +209,56 @@ with respect the purely theoretical decentralization.
     * 0 = no PPoS participation
     * 1 = complete PPoS participation
     
-The statement 4. essentialy implies a measurement of participating accounts' inequality. So,
-we will adopt well knows wealth inequality indexes from Macroeconomics field:
-the [Gini's Index](https://en.wikipedia.org/wiki/Gini_coefficient) and
-[Theil's Index](https://en.wikipedia.org/wiki/Theil_index).
 
-**Gini's Index** can theoretically range from 0 (complete equality) to 1
-(complete inequality).
+The statement 4. essentialy implies a measurement of participating accounts'
+inequality. So, we will adopt well-know wealth inequality or concentration
+indexes from Macroeconomics field: the [Gini's Index](https://en.wikipedia.org/wiki/Gini_coefficient),
+the [Theil's Index](https://en.wikipedia.org/wiki/Theil_index) and the
+[Herfindahl–Hirschman Index](https://en.wikipedia.org/wiki/Herfindahl%E2%80%93Hirschman_Index).
+
+**Gini's Index** is a measure of statistical dispersion intended to represent
+the wealth inequality within a nation or any other group of people. It can
+theoretically range from 0 (complete equality) to 1 (complete inequality).
 
 4. `PPoS GINI INDEX`
 
     * 1 = complete PPoS inequality
     * 0 = complete PPoS equality
-    
-In order to express our measure homogeneously **we will consider Gini's
-Index complement rather than its original form** in letter calculations.
-   
-**Theil's Indexs** are called **Theil's L** and **Theil's T**, they also measure the
-inequality of a distribution among a set of peoples but with different
-sensitivity:
 
-- `Theil's L Index` is sensitive to differences at the lower end of the 
-  distribution (small ALGO amounts)
+In order to express our PPoS Decentralization Index homogeneously **we will
+consider Gini's Index complement** (rather than its original form) in letter
+calculations.
+    
+**Theil's Indexs** are called **Theil's L** and **Theil's T**, they also
+measure the inequality of a distribution among a set of peoples but with
+different sensitivity:
+
+- `THEIL's L INDEX` is sensitive to differences at the lower end of the 
+  distribution (small ALGO amounts);
   
-- `Theil's T Index` is more sensitive to differences at the top of the 
-  distribution (large ALGO amounts)
+- `THEIL's T INDEX` is more sensitive to differences at the top of the 
+  distribution (large ALGO amounts);
   
-they can theoretically range from 0 (complete equality) to +inf (complete
+both can theoretically range from 0 (complete equality) to +inf (complete
 inequality) and represent two different evaluations of inequality, based on
 what we tend to consider worse: having even a few small ALGO amounts among
 many large ones or having even only a very few large ALGO amounts among many
 small ones.
 
-For sake of completenss we will evaluate them both.
+**Herfindahl–Hirschman Index (HHI)** is another indicator of concentration, used
+mainly to measure the degree of competition in a given market. It can
+theoretically range from 0 (perfectly competitive market) to 1 (monopoly).
+
+- `ALGO HHI INDEX` considers all ALGO stakes, whether they participate in
+  the PPoS or not;
+  
+- `PPoS HHI INDEX` considers only ALGO stakes that are participatinf in the 
+  PPoS;
+
+For sake of completenss we will evaluate them all.
 
 ### PPoS Dex Index
-Combining all the 4 statements we will know "how far" PPoS is from its purely
+Combining all the 4 statements, we know "how far" PPoS is from its purely
 theoretical decentralization.
 
 So we will measure this distance form ideality as:

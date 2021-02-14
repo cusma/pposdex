@@ -98,3 +98,19 @@ def theil_t_index(distribution):
     for amount in distribution:
         epsilon += (amount / mean_amount) * math.log(amount / mean_amount)
     return epsilon / n
+
+
+def herfindahl_hirschman_index(distribution):
+    """Herfindahl–Hirschman Index
+
+    Args:
+        distribution (list): wealth distribution in the market
+
+    Returns:
+        (float): Herfindahl–Hirschman Index (HHI), market concentration degree
+            0 <= HHI < 1,
+            HHI = 0, perfectly competitive
+    """
+    market_size = sum(distribution)
+    market_shares = [share / market_size for share in distribution]
+    return sum([share ** 2 for share in market_shares])

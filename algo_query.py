@@ -62,7 +62,7 @@ def get_asa_owners(indexer_client, asset_id, asa_min_balance=0):
 
 
 def get_address_txns_note(indexer_client, address, start_block=None,
-                          end_block=None):
+                              end_block=None):
     nexttoken = ""
     numtx = 1
     address_txns = []
@@ -72,12 +72,13 @@ def get_address_txns_note(indexer_client, address, start_block=None,
             limit=1000,
             next_page=nexttoken,
             min_round=start_block,
-            max_round=end_block)
+            max_round=end_block
+        )
         txns = result['transactions']
         address_txns += txns
         numtx = len(txns)
         if numtx > 0:
             # pointer to the next chunk of requests
             nexttoken = result['next-token']
-    txns_note = [txn['note'] for txn in address_txns]
+    txns_note = [txn.get('note') for txn in address_txns]
     return txns_note

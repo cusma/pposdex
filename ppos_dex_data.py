@@ -3,7 +3,7 @@ import time
 import json
 import base64
 import msgpack
-from schema import Schema, And
+from schema import Schema, And, Optional
 from datetime import datetime
 from algosdk import mnemonic
 from algosdk.error import *
@@ -51,27 +51,31 @@ def post_ppos_dex_data(algod_client, indexer_client, passphrase,
     account = {'pk': mnemonic.to_public_key(passphrase),
                'sk': mnemonic.to_private_key(passphrase)}
 
-    params = algod_client.suggested_params()
-
-    CONNECTION_ATTEMPT_DELAY = 30
+    CONNECTION_ATTEMPT_DELAY_SEC = 3
     MAX_CONNECTION_ATTEMPTS = 10
     MICROALGO_TO_ALGO = 1 / 10 ** 6
     MICROALGO_TOTAL_SUPPLY = 10 ** 16
 
     attempts = 1
+    params = None
+    ledger = None
     while attempts <= MAX_CONNECTION_ATTEMPTS:
         try:
+            params = algod_client.suggested_params()
             ledger = algod_client.ledger_supply()
             break
         except AlgodHTTPError:
             print(f'Algod Client connection attempt '
                   f'{attempts}/{MAX_CONNECTION_ATTEMPTS}')
             print('Trying to contact Algod Client again...')
-            time.sleep(CONNECTION_ATTEMPT_DELAY)
+            time.sleep(CONNECTION_ATTEMPT_DELAY_SEC)
         finally:
             attempts += 1
+    if not (params and ledger):
+        quit("Unable to connect to Algod Client.")
 
     attempts = 1
+    algo_owners = None
     while attempts <= MAX_CONNECTION_ATTEMPTS:
         try:
             algo_owners = get_algo_owners(indexer_client, algo_threshold)
@@ -80,22 +84,25 @@ def post_ppos_dex_data(algod_client, indexer_client, passphrase,
             print(f'Indexer Client connection attempt '
                   f'{attempts}/{MAX_CONNECTION_ATTEMPTS}')
             print('Trying to contact Indexer Client again...')
-            time.sleep(CONNECTION_ATTEMPT_DELAY)
+            time.sleep(CONNECTION_ATTEMPT_DELAY_SEC)
         finally:
             attempts += 1
-    # TODO: fare un (try) per vedere se si ha davvero algo_owners se no
-    #   ritorinare un'ecceione da cattuare fuori
+    if not algo_owners:
+        quit("Unable to connect to Indexer Client.")
+
+    stakes = [account['amount'] * MICROALGO_TO_ALGO for
+              account in algo_owners]
     online_stakes = [account['amount'] * MICROALGO_TO_ALGO
                      for account in algo_owners
                      if account['status'] == 'Online']
-    # TODO: fare un (try) per vedere se si ha davvero ledger se no
-    #   ritorinare un'ecceione da cattuare fuori
     algo_dynamics = ledger['total-money'] / MICROALGO_TOTAL_SUPPLY
     ppos_online_stake = ledger['online-money'] / ledger['total-money']
     ppos_online_accounts = len(online_stakes) / len(algo_owners)
     ppos_gini = gini_index(online_stakes)
     ppos_theil_l = theil_l_index(online_stakes)
     ppos_theil_t = theil_t_index(online_stakes)
+    ppos_hhi = herfindahl_hirschman_index(online_stakes)
+    algo_hhi = herfindahl_hirschman_index(stakes)
     ppos_dex = (algo_dynamics
                 * ppos_online_stake
                 * ppos_online_accounts
@@ -103,12 +110,14 @@ def post_ppos_dex_data(algod_client, indexer_client, passphrase,
 
     note = {'algo_threshold': algo_threshold,
             'accounts': len(algo_owners),
+            'algo_hhi': algo_hhi,
             'algo_dynamics': algo_dynamics,
             'ppos_online_stake': ppos_online_stake,
             'ppos_online_accounts': ppos_online_accounts,
             'ppos_gini': ppos_gini,
             'ppos_theil_l': ppos_theil_l,
             'ppos_theil_t': ppos_theil_t,
+            'ppos_hhi': ppos_hhi,
             'ppos_dex': ppos_dex,
             'timestamp': str(datetime.now())}
 
@@ -139,10 +148,11 @@ def post_ppos_dex_data(algod_client, indexer_client, passphrase,
 def get_ppos_dex_data(indexer_client, ppos_dex_address, algo_threshold,
                       start_block=11476070, end_block=None):
 
-    CONNECTION_ATTEMPT_DELAY = 30
+    CONNECTION_ATTEMPT_DELAY_SEC = 3
     MAX_CONNECTION_ATTEMPTS = 10
 
     attempts = 1
+    ppos_dex_txns_note = None
     while attempts <= MAX_CONNECTION_ATTEMPTS:
         try:
             ppos_dex_txns_note = get_address_txns_note(
@@ -152,34 +162,42 @@ def get_ppos_dex_data(indexer_client, ppos_dex_address, algo_threshold,
             print(f'Indexer Client connection attempt '
                   f'{attempts}/{MAX_CONNECTION_ATTEMPTS}')
             print('Trying to contact Indexer Client again...')
-            time.sleep(CONNECTION_ATTEMPT_DELAY)
+            time.sleep(CONNECTION_ATTEMPT_DELAY_SEC)
         finally:
             attempts += 1
+    if not ppos_dex_txns_note:
+        quit("Unable to connect to Indexer Client.")
 
-    schema = Schema({'algo_threshold': int,
-                     'accounts': And(int, lambda  n: 0 <= n),
-                     'algo_dynamics': And(float, lambda n: 0 <= n),
-                     'ppos_online_stake': And(float, lambda n: 0 <= n <= 1),
-                     'ppos_online_accounts': And(float, lambda n: 0 <= n <= 1),
-                     'ppos_gini': And(float, lambda n: 0 <= n <= 1),
-                     'ppos_theil_l': And(float, lambda n: 0 <= n),
-                     'ppos_theil_t': And(float, lambda n: 0 <= n),
-                     'ppos_dex': And(float, lambda n: 0 <= n <= 1),
-                     'timestamp': str})
+    # TODO: make 'algo_hhi' and 'ppos_hhi' mandatory fileds in the schema
+    schema = Schema({
+        'algo_threshold': int,
+        'accounts': And(int, lambda n: 0 <= n),
+        Optional('algo_hhi'): And(float, lambda n: 0 <= n <= 1),
+        'algo_dynamics': And(float, lambda n: 0 <= n),
+        'ppos_online_stake': And(float, lambda n: 0 <= n <= 1),
+        'ppos_online_accounts': And(float, lambda n: 0 <= n <= 1),
+        'ppos_gini': And(float, lambda n: 0 <= n <= 1),
+        'ppos_theil_l': And(float, lambda n: 0 <= n),
+        'ppos_theil_t': And(float, lambda n: 0 <= n),
+        Optional('ppos_hhi'): And(float, lambda n: 0 <= n <= 1),
+        'ppos_dex': And(float, lambda n: 0 <= n <= 1),
+        'timestamp': str
+    })
 
-    # TODO: fare un (try) per vedere se si ha davvero ppos_dex_txns_note se no
-    #   ritorinare un'ecceione da cattuare fuori
     ppos_dex_data = []
     for txn_note in ppos_dex_txns_note:
         try:
-            data = schema.validate(msgpack.unpackb(base64.b64decode(txn_note)))
+            data = schema.validate(
+                msgpack.unpackb(base64.b64decode(txn_note))
+            )
             if data['algo_threshold'] == algo_threshold:
                 ppos_dex_data += [data]
         except:
             pass
 
     if not ppos_dex_data:
-        raise Exception(f'Impossible to find valid PPos Dex data published by '
-                        f'{ppos_dex_address} starting from block {start_block}'
+        raise Exception(f'Impossible to find valid PPos Dex data '
+                        f'published by {ppos_dex_address} '
+                        f'starting from block {start_block}.'
                         )
     return ppos_dex_data

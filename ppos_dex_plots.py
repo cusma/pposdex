@@ -75,8 +75,6 @@ def timeseries_plot(data):
 
 
 def snapshot_plot(data):
-    y_pos = list(data[0].keys())
-    values = list(data[0].values())
 
     ppos_dynamics = plt
     ppos_dynamics.style.use('fivethirtyeight')
@@ -86,33 +84,37 @@ def snapshot_plot(data):
                            f"Accounts: {data[0]['accounts']}\n"
                            f"(1 = complete participation)")
     ppos_dynamics.subplot(3, 1, 1)
-    ppos_dynamics.barh(y_pos[2], values[2])
+    ppos_dynamics.barh('algo_dynamics', data[0]['algo_dynamics'])
     ppos_dynamics.xlim(0, 1)
     ppos_dynamics.subplot(3, 1, 2)
-    ppos_dynamics.barh(y_pos[3], values[3])
+    ppos_dynamics.barh('ppos_online_stake', data[0]['ppos_online_stake'])
     ppos_dynamics.xlim(0, 1)
     ppos_dynamics.subplot(3, 1, 3)
-    ppos_dynamics.barh(y_pos[4], values[4])
+    ppos_dynamics.barh('ppos_online_accounts', data[0]['ppos_online_accounts'])
     ppos_dynamics.xlim(0, 1)
     ppos_dynamics.tight_layout()
     ppos_dynamics.show()
 
     ppos_inequality = plt
-    x_upper_lim = round(max(values[5:8])) + 1
+    x_upper_lim = round(max(data[0]['ppos_theil_l'],
+                            data[0]['ppos_theil_t'])) + 1
     ppos_inequality.style.use('fivethirtyeight')
     ppos_inequality.suptitle(f"Algorand PPoS Distribution\n"
                              f"{data[0]['timestamp'][:10]} - "
                              f"Threshold: {data[0]['algo_threshold']} ALGO, "
                              f"Accounts: {data[0]['accounts']}\n"
                              f"(0 = perfect equality)")
-    ppos_inequality.subplot(3, 1, 1)
-    ppos_inequality.barh(y_pos[5], values[5], color='g')
+    ppos_inequality.subplot(4, 1, 1)
+    ppos_inequality.barh('ppos_gini', data[0]['ppos_gini'], color='g')
     ppos_inequality.xlim(0, 1)
-    ppos_inequality.subplot(3, 1, 2)
-    ppos_inequality.barh(y_pos[6], values[6])
+    ppos_inequality.subplot(4, 1, 2)
+    ppos_inequality.barh('ppos_hhi', data[0]['ppos_hhi'], color='g')
+    ppos_inequality.xlim(0, 1)
+    ppos_inequality.subplot(4, 1, 3)
+    ppos_inequality.barh('ppos_theil_l', data[0]['ppos_theil_l'])
     ppos_inequality.xlim(0, x_upper_lim)
-    ppos_inequality.subplot(3, 1, 3)
-    ppos_inequality.barh(y_pos[7], values[7])
+    ppos_inequality.subplot(4, 1, 4)
+    ppos_inequality.barh('ppos_theil_t', data[0]['ppos_theil_t'])
     ppos_inequality.xlim(0, x_upper_lim)
     ppos_inequality.tight_layout()
     ppos_inequality.show()
@@ -123,7 +125,7 @@ def snapshot_plot(data):
                             f"Threshold: {data[0]['algo_threshold']} ALGO, "
                             f"Accounts: {data[0]['accounts']}\n"
                             f"(1 = perfect decentralization)")
-    ppos_dex_index.barh(y_pos[8], values[8])
+    ppos_dex_index.barh('ppos_dex', data[0]['ppos_dex'])
     ppos_dex_index.xlim(0, 1)
     ppos_dex_index.tight_layout()
     ppos_dex_index.show()
