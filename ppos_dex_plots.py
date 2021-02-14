@@ -107,9 +107,10 @@ def snapshot_plot(data):
     ppos_inequality.subplot(4, 1, 1)
     ppos_inequality.barh('ppos_gini', data[0]['ppos_gini'], color='g')
     ppos_inequality.xlim(0, 1)
-    ppos_inequality.subplot(4, 1, 2)
-    ppos_inequality.barh('ppos_hhi', data[0]['ppos_hhi'], color='g')
-    ppos_inequality.xlim(0, 1)
+    if data[0].get('ppos_hhi') is not None:
+        ppos_inequality.subplot(4, 1, 2)
+        ppos_inequality.barh('ppos_hhi', data[0]['ppos_hhi'], color='g')
+        ppos_inequality.xlim(0, 1)
     ppos_inequality.subplot(4, 1, 3)
     ppos_inequality.barh('ppos_theil_l', data[0]['ppos_theil_l'])
     ppos_inequality.xlim(0, x_upper_lim)
