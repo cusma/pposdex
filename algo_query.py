@@ -62,7 +62,7 @@ def get_asa_owners(indexer_client, asset_id, asa_min_balance=0):
 
 
 def get_address_txns_note(indexer_client, address, start_block=None,
-                              end_block=None):
+                          end_block=None):
     nexttoken = ""
     numtx = 1
     address_txns = []
