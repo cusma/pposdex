@@ -6,6 +6,7 @@ import msgpack
 from schema import Schema, And, Optional
 from datetime import datetime
 from algosdk import mnemonic
+from algosdk.account import address_from_private_key
 from algosdk.error import *
 from algosdk.future.transaction import PaymentTxn
 from inequality_indexes import *
@@ -48,8 +49,10 @@ def wait_for_confirmation(algod_client, transaction_id, timeout):
 def post_ppos_dex_data(algod_client, indexer_client, passphrase,
                        algo_threshold):
 
-    account = {'pk': mnemonic.to_public_key(passphrase),
-               'sk': mnemonic.to_private_key(passphrase)}
+    private_key = mnemonic.to_private_key(passphrase)
+
+    account = {'pk': address_from_private_key(private_key),
+               'sk': private_key}
 
     CONNECTION_ATTEMPT_DELAY_SEC = 3
     MAX_CONNECTION_ATTEMPTS = 10
