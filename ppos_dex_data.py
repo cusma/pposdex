@@ -6,6 +6,7 @@ import msgpack
 from schema import Schema, And, Optional
 from datetime import datetime
 from algosdk import mnemonic
+from algosdk.account import address_from_private_key
 from algosdk.error import *
 from algosdk.future.transaction import PaymentTxn
 from inequality_indexes import *
@@ -48,8 +49,10 @@ def wait_for_confirmation(algod_client, transaction_id, timeout):
 def post_ppos_dex_data(algod_client, indexer_client, passphrase,
                        algo_threshold):
 
-    account = {'pk': mnemonic.to_public_key(passphrase),
-               'sk': mnemonic.to_private_key(passphrase)}
+    private_key = mnemonic.to_private_key(passphrase)
+
+    account = {'pk': address_from_private_key(private_key),
+               'sk': private_key}
 
     CONNECTION_ATTEMPT_DELAY_SEC = 3
     MAX_CONNECTION_ATTEMPTS = 10
@@ -65,13 +68,13 @@ def post_ppos_dex_data(algod_client, indexer_client, passphrase,
             ledger = algod_client.ledger_supply()
             break
         except AlgodHTTPError:
-            print(f'Algod Client connection attempt '
-                  f'{attempts}/{MAX_CONNECTION_ATTEMPTS}')
-            print('Trying to contact Algod Client again...')
+            print(f"Algod Client connection attempt "
+                  f"{attempts}/{MAX_CONNECTION_ATTEMPTS}")
+            print("Trying to contact Algod Client again...")
             time.sleep(CONNECTION_ATTEMPT_DELAY_SEC)
         finally:
             attempts += 1
-    if not (params and ledger):
+    if attempts > MAX_CONNECTION_ATTEMPTS:
         quit("Unable to connect to Algod Client.")
 
     attempts = 1
@@ -81,17 +84,18 @@ def post_ppos_dex_data(algod_client, indexer_client, passphrase,
             algo_owners = get_algo_owners(indexer_client, algo_threshold)
             break
         except IndexerHTTPError:
-            print(f'Indexer Client connection attempt '
-                  f'{attempts}/{MAX_CONNECTION_ATTEMPTS}')
-            print('Trying to contact Indexer Client again...')
+            print(f"Indexer Client connection attempt "
+                  f"{attempts}/{MAX_CONNECTION_ATTEMPTS}")
+            print("Trying to contact Indexer Client again...")
             time.sleep(CONNECTION_ATTEMPT_DELAY_SEC)
         finally:
             attempts += 1
-    if not algo_owners:
+    if attempts > MAX_CONNECTION_ATTEMPTS:
         quit("Unable to connect to Indexer Client.")
 
     stakes = [account['amount'] * MICROALGO_TO_ALGO for
               account in algo_owners]
+    algo_hhi = herfindahl_hirschman_index(stakes)
     online_stakes = [account['amount'] * MICROALGO_TO_ALGO
                      for account in algo_owners
                      if account['status'] == 'Online']
@@ -102,7 +106,6 @@ def post_ppos_dex_data(algod_client, indexer_client, passphrase,
     ppos_theil_l = theil_l_index(online_stakes)
     ppos_theil_t = theil_t_index(online_stakes)
     ppos_hhi = herfindahl_hirschman_index(online_stakes)
-    algo_hhi = herfindahl_hirschman_index(stakes)
     ppos_dex = (algo_dynamics
                 * ppos_online_stake
                 * ppos_online_accounts
@@ -159,13 +162,13 @@ def get_ppos_dex_data(indexer_client, ppos_dex_address, algo_threshold,
                 indexer_client, ppos_dex_address, start_block, end_block)
             break
         except IndexerHTTPError:
-            print(f'Indexer Client connection attempt '
-                  f'{attempts}/{MAX_CONNECTION_ATTEMPTS}')
-            print('Trying to contact Indexer Client again...')
+            print(f"Indexer Client connection attempt "
+                  f"{attempts}/{MAX_CONNECTION_ATTEMPTS}")
+            print("Trying to contact Indexer Client again...")
             time.sleep(CONNECTION_ATTEMPT_DELAY_SEC)
         finally:
             attempts += 1
-    if not ppos_dex_txns_note:
+    if attempts > MAX_CONNECTION_ATTEMPTS:
         quit("Unable to connect to Indexer Client.")
 
     # TODO: make 'algo_hhi' and 'ppos_hhi' mandatory fileds in the schema
@@ -196,8 +199,7 @@ def get_ppos_dex_data(indexer_client, ppos_dex_address, algo_threshold,
             pass
 
     if not ppos_dex_data:
-        raise Exception(f'Impossible to find valid PPos Dex data '
-                        f'published by {ppos_dex_address} '
-                        f'starting from block {start_block}.'
-                        )
+        quit(f"Impossible to find valid PPos Dex data published by "
+             f"{ppos_dex_address} starting from block {start_block}.")
+
     return ppos_dex_data
