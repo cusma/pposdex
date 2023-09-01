@@ -1,0 +1,39 @@
+name: Publish PPoS Dex data
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish PPoS Dex data
+    env:
+      ALGO_MNEMONIC: ${{ secrets.ALGO_MNEMONIC }}
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11.3
+
+      - name: Set up Poetry
+        uses: abatilo/actions-poetry@v2.3.0
+        with:
+          poetry-version: 1.6.1
+
+      - name: Install Python dependencies
+        run: poetry install
+
+      - name: Publish data
+        run: poetry run python3 ppos_dex.py publish

@@ -1,9 +1,9 @@
 ```
- _______  _______           ______    ______                   
-|_   __ \|_   __ \        .' ____ \  |_   _ `.                
-  | |__) | | |__) | .--.  | (___ \_|   | | `. \ .---.  _   __ 
+ _______  _______           ______    ______
+|_   __ \|_   __ \        .' ____ \  |_   _ `.
+  | |__) | | |__) | .--.  | (___ \_|   | | `. \ .---.  _   __
   |  ___/  |  ___// .'`\ \ _.____`.    | |  | |/ /__ \[ \ [  ]
- _| |_    _| |_   | \__. || \____) |  _| |_.' /| \__., > '  < 
+ _| |_    _| |_   | \__. || \____) |  _| |_.' /| \__., > '  <
 |_____|  |_____|   '.__.'  \______.' |______.'  '.__.'[__]`\_]
 
 Algorand Pure Proof of Stake Decentralization Index (by cusma)
@@ -94,7 +94,7 @@ Scalability can be quantified in serveral ways:
 - PPoS power consumption
 - PPoS node minimal hardware requirements
 
-Thanks to its unique consensus protocol Algorand brings the number of finalized 
+Thanks to its unique consensus protocol Algorand brings the number of finalized
 transactions per second from few dozen achieved by PoW up to 1000 and shrinks
 the transactions' confirmation time form PoW’s dozen of minutes to just 4.5
 seconds, with no waste of energy, neglectable transaction’s cost (0.001 ALGO)
@@ -113,11 +113,11 @@ is welcome to do it, showing the real power of Algorand’s decentralization.
 
 Algorand is both a digital and physical infrastructure made of:
 
-- Software: in the form of Algorand native cryptocurrency (the ALGO), 
-  representing the power that each member of the ecosystem may have over 
+- Software: in the form of Algorand native cryptocurrency (the ALGO),
+  representing the power that each member of the ecosystem may have over
   the PPoS consensus mechanism
-    
-- Hardware: in the form of a global network composed by [Relay Nodes 
+
+- Hardware: in the form of a global network composed by [Relay Nodes
   and Participation Nodes](https://developer.algorand.org/docs/run-a-node/setup/types/)
 
 We will adopt the following hypotesis:
@@ -194,21 +194,21 @@ with respect the purely theoretical decentralization.
 
 1. `ALGO DYNAMICS = circulating supply / total supply`
 
-    * 0 = no ALGO circulation 
+    * 0 = no ALGO circulation
     * 1 = complete ALGO circulation
-    
+
 
 2. `ALGO ONLINE STAKE = total online stake / circulating supply`
 
    * 0 = no PPoS participation
    * 1 = complete PPoS participation
-   
+
 
 3. `ONLINE ACCOUNTS = online accounts / existing accounts`
 
     * 0 = no PPoS participation
     * 1 = complete PPoS participation
-    
+
 
 The statement 4. essentialy implies a measurement of participating accounts'
 inequality. So, we will adopt well-know wealth inequality or concentration
@@ -228,17 +228,17 @@ theoretically range from 0 (complete equality) to 1 (complete inequality).
 In order to express our PPoS Decentralization Index homogeneously **we will
 consider Gini's Index complement** (rather than its original form) in letter
 calculations.
-    
+
 **Theil's Indexs** are called **Theil's L** and **Theil's T**, they also
 measure the inequality of a distribution among a set of peoples but with
 different sensitivity:
 
-- `THEIL's L INDEX` is sensitive to differences at the lower end of the 
+- `THEIL's L INDEX` is sensitive to differences at the lower end of the
   distribution (small ALGO amounts);
-  
-- `THEIL's T INDEX` is more sensitive to differences at the top of the 
+
+- `THEIL's T INDEX` is more sensitive to differences at the top of the
   distribution (large ALGO amounts);
-  
+
 both can theoretically range from 0 (complete equality) to +inf (complete
 inequality) and represent two different evaluations of inequality, based on
 what we tend to consider worse: having even a few small ALGO amounts among
@@ -251,8 +251,8 @@ theoretically range from 0 (perfectly competitive market) to 1 (monopoly).
 
 - `ALGO HHI INDEX` considers all ALGO stakes, whether they participate in
   the PPoS or not;
-  
-- `PPoS HHI INDEX` considers only ALGO stakes that are participatinf in the 
+
+- `PPoS HHI INDEX` considers only ALGO stakes that are participatinf in the
   PPoS;
 
 For sake of completenss we will evaluate them all.
@@ -267,7 +267,7 @@ So we will measure this distance form ideality as:
 
     * 0 = complete PPoS centralization
     * 1 = complete PPoS decentralization
-    
+
 Being aware that the PPoS only tends to the ideal condition, never reaching it.
 
 ## Install PPoS Dex

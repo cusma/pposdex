@@ -1,0 +1,47 @@
+repos:
+# YAML
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.4.0
+  hooks:
+    - id: check-yaml
+    - id: end-of-file-fixer
+    - id: trailing-whitespace
+
+# Python
+- repo: https://github.com/psf/black
+  rev: 23.7.0
+  hooks:
+  - id: black
+    language_version: python3.11
+
+- repo: https://github.com/myint/autoflake
+  rev: v2.2.0
+  hooks:
+    - id: autoflake
+      args:
+        - --in-place
+        - --remove-unused-variables
+        - --remove-all-unused-imports
+        - --expand-star-imports
+        - --ignore-init-module-imports
+
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: v1.5.1
+  hooks:
+    - id: mypy
+      args: [
+        "--check-untyped-defs",
+        "--ignore-missing-imports",
+        "--scripts-are-modules",
+        "--python-version=3.11",
+      ]
+      additional_dependencies: ["types-requests", "types-python-dateutil"]
+      language_version: python3.11
+
+# GitHub Actions
+- repo: https://github.com/bridgecrewio/checkov.git
+  rev: 2.4.14
+  hooks:
+    - id: checkov
+      files: .+
+      verbose: false
