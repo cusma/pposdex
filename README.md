@@ -43,7 +43,7 @@ Communication Protocols, the **exchange of digital value relies on Consensus
 Protocols**: combining distributed computation, cryptography and game theory
 into a mathematical equilibrium the **Consensus Protocols are the engines that
 power Blockchains**, keeping the history of digital value unique, consistent
-and tamper proof within a single distributed data ledger on a global scale.
+and tamper-proof within a single distributed data ledger on a global scale.
 
 Blockchains' technological performances depend on their Consensus Protocols.
 At the beginning of this technological journey the so-called Proof of Work
@@ -70,7 +70,7 @@ of Stake consensus protocol](https://developer.algorand.org/docs/algorand_consen
 Thanks to Algorand Pure Proof of Stake (PPoS) consensus mechanism, a unique
 committee of users is randomly and secretly selected to approve every block,
 through a [Verifiable Random Function](https://developer.algorand.org/docs/algorand_consensus/#verifiable-random-function)
-(VRF). This cryptographic primitive acts like a fair, tamper proof, secure and
+(VRF). This cryptographic primitive acts like a fair, tamper-proof, secure and
 provable cryptographic sortition, in which users are free to take part as long
 as they own any amount of Algorand's native cryptocurrency, named ALGO, registered
 online as "participating". Each online ALGO could be seen as a ticket of
@@ -101,7 +101,9 @@ seconds, with no waste of energy, neglectable transaction’s cost (0.001 ALGO)
 and no hardware barriers. So we have quantitative evidence of Algorand scalability.
 
 ### Security
-Quantify security is not that simple and out of the scope of this README.
+Quantify security is not that simple and out of the scope of this README. At
+the time of writing (Sep 2nd 2023) Algorand never experienced a downtime since
+the genesis block (June 2019).
 
 ### Decentralization
 Users participating in Algorand Consensus do not delegate their votes, do not
@@ -180,6 +182,9 @@ decentralization.
 Let's try first to define an **ideal theoretical conditions of decentralization**.
 Then, everything deviating from those conditions will make
 PPoS more real and far from platonic ideality.
+
+_NOTE_: Refer to this [article](https://t.co/aLVGnbgNTZ) for additional
+considerations over blockchain decentralization.
 
 ### Definitions
 We will say that PPoS is **"completely decentralized"** if and only if:
@@ -263,120 +268,99 @@ theoretical decentralization.
 
 So we will measure this distance form ideality as:
 
-- `PPoS DEX INDEX = ALGO DYNAMICS * ALGO ONLINE STAKE * ONLINE ACCOUNTS * (1 - PPoS GINI)`
+- `PPoS DEX INDEX V3 = ALGO DYNAMICS * ALGO ONLINE STAKE * ONLINE ACCOUNTS * (1 - PPoS HHI)`
 
     * 0 = complete PPoS centralization
     * 1 = complete PPoS decentralization
 
 Being aware that the PPoS only tends to the ideal condition, never reaching it.
 
-## Install PPoS Dex
-### Step 1 - Python modules
-PPoS Dex uses the following Python3 modules:
-1. `msgpack`
-2. `docopt`
-3. `py-algorand-sdk`
-4. `schema`
-5. `matplotlib`
+> ⚠️ _NOTE: PPoS Dex Index V1 and V2 were based on PPoS Gini Index instead of PPoS HHI._
 
-so you need to install them (if not already present):
+## PPoS Dex CLI
+### Step 1 - Install dependencies
+PPoS Dex uses Poetry for dependencies management.
 
-```bash
-$ pip3 install --upgrade msgpack
-$ pip3 install --upgrade docopt
-$ pip3 install --upgrade py-algorand-sdk
-$ pip3 install --upgrade schema
-$ pip3 install --upgrade matplotlib
+```shell
+$ poetry install
 ```
 
 ### Step 2 - Clients
 PPoS Dex interacts with Algorand blockchain both thorugh a Node and an Indexer.
 You may want to choose:
 
-1. Your local hosted Node and Indexer
-2. A third party Node and Indexer services
+1. Your local hosted Node and Indexer (see [AlgoKit](https://github.com/algorandfoundation/algokit-cli))
+2. A third party Node and Indexer APIs
 
-PPoS Dex by default uses PureStake API as a service, so if you want
-to avoid running your own Node and Indexer all you need to do is creating an
-account on [PureStake](https://developer.purestake.io/) and get your API token.
+PPoS Dex uses AlgoNode APIs by default.
 
-### Step 3 - PPoS files
-Copy following PPoS Dex files on your machine:
+If you prefer using your local hosted Node and Indexer or other API providers,
+the following environment variables must be set:
 
-1. `ppos_dex.py`
-2. `ppos_dex_data.py`
-3. `ppos_dex_plots.py`
-4. `algo_query.py`
-5. `inequality_indexes.py`
+```shell
+$ export ALGOD_SERVER=...
+$ export ALGOD_TOKEN=...
+$ export INDEXER_SERVER=...
+$ export INDEXER_TOKEN=...
+```
 
-## Usage
+### Step 3 - Usage
 Intreacting with PPoS Dex from your CLI is pretty easy, just ask for help:
 
 **Input**
-```bash
+```shell
 $ python3 ppos_dex.py --help
 ```
 **Output**
 ```
+Algorand PPoS Decentralization Index.
+
 Usage:
-  ppos_dex.py publish <api-token> <publisher-mnemonic> [--local-host]
-                      [--algod-address=<ca>] [--indexer-address=<ia>]
-                      [--algo-threshold=<at>]
-  ppos_dex.py plot <api-token> [--local-host] [--indexer-address=<ia>]
-                   [--data-address=<da>] [--algo-threshold=<at>]
-                   [--starting-block=<sb>] [--ending-block=<eb>]
-  ppos_dex.py snapshot <api-token> [--local-host] [--indexer-address=<ia>]
-                       [--data-address=<da>] [--algo-threshold=<at>]
-                       [--starting-block=<sb>]
-  ppos_dex.py export <api-token> [--local-host] [--indexer-address=<ia>]
-                     [--data-address=<da>] [--algo-threshold=<at>]
-                     [--starting-block=<sb>] [--ending-block=<eb>]
+  ppos_dex.py publish [--algo-threshold=<t>] [--localhost]
+  ppos_dex.py plot [--publisher=<p>] [--algo-threshold=<t>] [--start-block=<s>] [--end-block=<e>] [--localhost]
+  ppos_dex.py snapshot [--publisher=<p>] [--algo-threshold=<t>] [--start-block=<s>] [--localhost]
+  ppos_dex.py export [--publisher=<p>] [--algo-threshold=<t>] [--start-block=<s>] [--end-block=<e>] [--localhost]
+  ppos_dex.py health [--localhost]
   ppos_dex.py [--help]
 
 Commands:
-  publish   Contribute publishing PPoS Decentralization Index data on chain.
-  plot      Plots PPoS Decentralization Index evolution over time.
-  snapshot  Plots latest PPoS Decentralization Index data.
-  export    Exports PPoS Decentralization Index data to csv.
+  publish   Publish PPoS Dex data. Requires ALGO_MNEMONIC environment variable.
+  plot      Plot PPoS Dex timeseries.
+  snapshot  Plot latest PPoS Dex data point.
+  export    Export PPoS Dex data to `.csv`.
+  health    Check Algod and Indexer status.
 
 Options:
-  --local-host                      Use your Algorand Node (default: PureStake)
-
-  -c <ca> --algod-address=<ca>      Algod Client address
-        [default: https://mainnet-algorand.api.purestake.io/ps2].
-  -i <ia> --indexer-address=<ia>    Indexer Client address
-        [default: https://mainnet-algorand.api.purestake.io/idx2].
-  -t <at> --algo-threshold=<ta>     Algo minimum balance to query
-        [default: 1000].
-  -a <da> --data-address=<da>       Algorand address data source
-        [default: WIPE4JSUWLXKZZK6GJ6VI32PX6ZWPKBRH5YFRJCHWOVC73P5RI4DGUQUWQ].
-  -s <sb> --starting-block=<sb>     Data starting block (int)
-        [default: 11283636].
-  -e <eb> --ending-block=<eb>       Data ending block (int)
-
-  -h --help
+  -t, --algo-threshold=<t>  [default: 1000]
+  -p, --publisher=<p>       [default: WIPE4JSUWLXKZZK6GJ6VI32PX6ZWPKBRH5YFRJCHWOVC73P5RI4DGUQUWQ]
+  -s, --start-block=<s>     [default: 11476070]
+  -e, --end-block=<e>
+  -h, --help
 ```
 
 ### Publish PPoS Dex data
 Contribute publishing trustless reliable data on Algorand blockchain paying
 just the minimum network fee (currently 0.001 ALGO).
 
+Set your publisher mnemonic as environment variable:
+```shell
+$ export ALGO_MNEMONIC=...
+```
+
 **Input**
 ```bash
-$ python3 ppos_dex.py publish <your-api-token> <your-mnemonic>
+$ python3 ppos_dex.py publish
 ```
 **Options**
-1. `[--local-host]` select your local hosted Node and Indexer;
-2. `[--algod-address=<ca>]` address of your local Algod Client;
-3. `[--indexer-address=<ia>]` address of your local Indexer Client;
-4. `[--algo-threshold=<at>]` consider only accounts that own more than this threshold (default: 1000 ALGO);
+1. `[--algo-threshold=<at>]` consider only accounts that own more than this threshold (default: 1000 ALGO);
+2. `[--localhost]` select local hosted Node and Indexer or other API providers;
 
 Is worth noting that lower values of `[--algo-threshold=<at>]` will require more
-querying efforts, so you should avoid going under default threshold,
-expecially if you are using a third party API service.
+querying efforts, so you should avoid going under default threshold, expecially
+if you are using a third party API service.
 
 **Output**
-```bash
+```shell
 {
   "algo_threshold": 1000,
   "accounts": 13346,
@@ -398,16 +382,15 @@ Plot PPoS Dex Index timeseries data published by PPoS Dex Oracle (or by
 yourself).
 
 **Input**
-```bash
-$ python3 ppos_dex.py plot <your-api-token>
+```shell
+$ python3 ppos_dex.py plot
 ```
 **Options**
-1. `[--local-host]` select your local hosted Node and Indexer;
-2. `[--indexer-address=<ia>]` address of your local Indexer Client;
-3. `[--data-address=<da>]` publisher account address (default: PPoS Dex Oracle account);
-4. `[--algo-threshold=<at>]` plot only data of accounts that own more than this threshold (default: 1000 ALGO);
-5. `[--starting-block=<sb>]` plot data from this block (if availables);
-6. `[--ending-block=<eb>]` plot data until this block;
+1. `[--publisher=<p>]` publisher account address (default: PPoS Dex Oracle account);
+2. `[--algo-threshold=<t>]` plot only data of accounts that own more than this threshold (default: 1000 ALGO);
+3. `[--start-block=<s>]` plot data from this block (if availables);
+4. `[--end-block=<e>]` plot data until this block;
+5. `[--localhost]` select local hosted Node and Indexer or other API providers;
 
 **Output**
 ![](images/timeseries_ppos_dynamics.png)
@@ -419,15 +402,14 @@ Take a snapshot of PPoS Dex Index data published by PPoS Dex Oracle (or by
 yourself).
 
 **Input**
-```bash
-$ python3 ppos_dex.py snapshot <your-api-token>
+```shell
+$ python3 ppos_dex.py snapshot
 ```
 **Options**
-1. `[--local-host]` select your local hosted Node and Indexer;
-2. `[--indexer-address=<ia>]` address of your local Indexer Client;
-3. `[--data-address=<da>]` publisher account address (default: PPoS Dex Oracle account);
-4. `[--algo-threshold=<at>]` plot only data of accounts that own more than this threshold (default: 1000 ALGO);
-5. `[--starting-block=<sb>]` plot data from this block (if availables);
+1. `[--publisher=<p>]` publisher account address (default: PPoS Dex Oracle account);
+2. `[--algo-threshold=<t>]` plot only data of accounts that own more than this threshold (default: 1000 ALGO);
+3. `[--start-block=<s>]` plot data from this block (if availables);
+4. `[--localhost]` select local hosted Node and Indexer or other API providers;
 
 **Output**
 ![](images/snapshot_ppos_dynamics.png)
@@ -438,19 +420,18 @@ $ python3 ppos_dex.py snapshot <your-api-token>
 Export PPoS Dex Index data published by PPoS Dex Oracle (or by yourself) to `csv` file.
 
 **Input**
-```bash
-$ python3 ppos_dex.py export <your-api-token>
+```shell
+$ python3 ppos_dex.py export
 ```
 **Options**
-1. `[--local-host]` select your local hosted Node and Indexer;
-2. `[--indexer-address=<ia>]` address of your local Indexer Client;
-3. `[--data-address=<da>]` publisher account address (default: PPoS Dex Oracle account);
-4. `[--algo-threshold=<at>]` plot only data of accounts that own more than this threshold (default: 1000 ALGO);
-5. `[--starting-block=<sb>]` plot data from this block (if availables);
-6. `[--ending-block=<eb>]` plot data until this block;
+1. `[--publisher=<p>]` publisher account address (default: PPoS Dex Oracle account);
+2. `[--algo-threshold=<t>]` plot only data of accounts that own more than this threshold (default: 1000 ALGO);
+3. `[--start-block=<s>]` plot data from this block (if availables);
+4. `[--end-block=<e>]` plot data until this block;
+5. `[--localhost]` select local hosted Node and Indexer or other API providers;
 
 **Output**
-```bash
+```shell
 ppos_dex_data.csv
 ```
 
