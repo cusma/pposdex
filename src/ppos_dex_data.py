@@ -73,9 +73,7 @@ def post_ppos_dex_data(
     ppos_theil_l = idx.theil_l(online_stakes)
     ppos_theil_t = idx.theil_t(online_stakes)
     ppos_hhi = idx.herfindahl_hirschman(online_stakes)
-    ppos_dex = (
-        algo_dynamics * ppos_online_stake * ppos_online_accounts * (1 - ppos_gini)
-    )
+    ppos_dex = algo_dynamics * ppos_online_stake * ppos_online_accounts * (1 - ppos_hhi)
 
     ppos_dex_data = {
         "algo_threshold": algo_threshold,

@@ -183,8 +183,8 @@ Let's try first to define an **ideal theoretical conditions of decentralization*
 Then, everything deviating from those conditions will make
 PPoS more real and far from platonic ideality.
 
-_NOTE_: Refer to this [article](https://t.co/aLVGnbgNTZ) for additional
-considerations over blockchain decentralization.
+> 💡 _NOTE: Refer to this [article](https://t.co/aLVGnbgNTZ) for additional
+considerations over blockchain decentralization._
 
 ### Definitions
 We will say that PPoS is **"completely decentralized"** if and only if:
