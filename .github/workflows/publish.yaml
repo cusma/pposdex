@@ -1,8 +1,9 @@
 name: Publish PPoS Dex data
 
 on:
-  schedule:
-    - cron: "0 0 * * *"
+  push:
+#  schedule:
+#    - cron: "0 0 * * *"
 
 permissions:
   contents: read
