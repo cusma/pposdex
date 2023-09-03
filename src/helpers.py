@@ -37,13 +37,14 @@ def indexer_request(request: Callable) -> Callable:
         while attempts <= MAX_ATTEMPTS:
             try:
                 return request(*args, **kwargs)
-            except IndexerHTTPError:
+            except IndexerHTTPError as err:
+                print(err)
                 print(f"Indexer request attempt {attempts}/{MAX_ATTEMPTS}")
                 print("Trying submit request again...")
                 time.sleep(ATTEMPT_DELAY_SEC)
             finally:
                 attempts += 1
-        quit("Unable to connect to the Algorand Indexer.")
+        quit("Algorand Indexer request failed.")
 
     return wrapper
 
@@ -68,23 +69,29 @@ def get_algo_holders(
         microalgo_min_balance: microALGO minimum balance
 
     Returns:
-        Accounts holding a balance greater than `algo_min_balance`
+        Accounts holding a balance greater than `microalgo_min_balance`
     """
     nexttoken = ""
-    num_acc = 1
+    has_result = True
+
     holders: list[dict] = []
-    while num_acc > 0:
-        response = indexer_client.accounts(
-            min_balance=microalgo_min_balance, next_page=nexttoken, limit=1000
+    while has_result:
+        result = indexer_client.accounts(
+            next_page=nexttoken,
+            min_balance=microalgo_min_balance,
+            exclude="all",
         )
-        accounts = response["accounts"]
+
+        accounts = result["accounts"]
+        has_result = len(accounts) > 0
         holders += accounts
-        num_acc = len(accounts)
-        if num_acc > 0:
-            # Pointer to the next chunk of requests
-            nexttoken = response["next-token"]
+
+        if has_result:
+            nexttoken = result["next-token"]
+
     if not holders:
-        quit(f"No account with minimum balance {microalgo_min_balance} microAlgo.")
+        quit(f"No account with {microalgo_min_balance} microAlgo balance found.")
+
     return holders
 
 
@@ -108,27 +115,32 @@ def get_address_txns_note(
         Notes published by `address`
     """
     nexttoken = ""
-    num_tx = 1
+    has_result = True
+
     address_txns: list[dict] = []
-    while num_tx > 0:
+    while has_result:
         result = indexer_client.search_transactions_by_address(
             address=address,
-            limit=1000,
             next_page=nexttoken,
             min_round=start_block,
             max_round=end_block,
         )
         txns = result["transactions"]
+        has_result = len(txns) > 0
         address_txns += txns
-        num_tx = len(txns)
-        if num_tx > 0:
-            # Pointer to the next chunk of requests
+
+        if has_result:
             nexttoken = result["next-token"]
+
     txns_note: list[str] = []
     for txn in address_txns:
         note = txn.get("note")
         if note is not None:
             txns_note.append(note)
+
+    if not txns_note:
+        quit(f"No published note found for account {address}.")
+
     return txns_note
 
 

@@ -2,11 +2,11 @@
 Algorand PPoS Decentralization Index.
 
 Usage:
-  ppos_dex.py publish [--algo-threshold=<t>] [--localhost]
-  ppos_dex.py plot [--publisher=<p>] [--algo-threshold=<t>] [--start-block=<s>] [--end-block=<e>] [--localhost]
-  ppos_dex.py snapshot [--publisher=<p>] [--algo-threshold=<t>] [--start-block=<s>] [--localhost]
-  ppos_dex.py export [--publisher=<p>] [--algo-threshold=<t>] [--start-block=<s>] [--end-block=<e>] [--localhost]
-  ppos_dex.py health [--localhost]
+  ppos_dex.py publish [--algo-threshold=<a>] [--localhost | --test]
+  ppos_dex.py plot [--publisher=<p>] [--algo-threshold=<a>] [--start-block=<s>] [--end-block=<e>] [--localhost | --test]
+  ppos_dex.py snapshot [--publisher=<p>] [--algo-threshold=<a>] [--start-block=<s>] [--localhost | --test]
+  ppos_dex.py export [--publisher=<p>] [--algo-threshold=<a>] [--start-block=<s>] [--end-block=<e>] [--localhost | --test]
+  ppos_dex.py health [--localhost | --test]
   ppos_dex.py [--help]
 
 Commands:
@@ -17,10 +17,12 @@ Commands:
   health    Check Algod and Indexer status.
 
 Options:
-  -t, --algo-threshold=<t>  [default: 1000]
+  -a, --algo-threshold=<a>  [default: 1000]
   -p, --publisher=<p>       [default: WIPE4JSUWLXKZZK6GJ6VI32PX6ZWPKBRH5YFRJCHWOVC73P5RI4DGUQUWQ]
   -s, --start-block=<s>     [default: 11476070]
   -e, --end-block=<e>
+  -l, --localhost
+  -t, --test
   -h, --help
 """
 
@@ -79,6 +81,9 @@ def main():
     if args["--localhost"]:
         algod_config = get_default_localnet_config("algod")
         indexer_config = get_default_localnet_config("indexer")
+    elif args["--test"]:
+        algod_config = get_algonode_config("testnet", "algod", "")
+        indexer_config = get_algonode_config("testnet", "indexer", "")
     else:
         algod_config = get_algonode_config("mainnet", "algod", "")
         indexer_config = get_algonode_config("mainnet", "indexer", "")
