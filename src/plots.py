@@ -26,7 +26,7 @@ def timeseries(ppos_dex_data: list[dict]) -> None:
     ppos_dex = [d["ppos_dex"] for d in ppos_dex_data]
 
     ppos_dynamics = plt
-    ppos_dynamics.suptitle("Algorand PPoS Dynamics")
+    ppos_dynamics.suptitle("ALGO Dynamics")
     ppos_dynamics.title("(1 = complete participation)")
     ppos_dynamics.plot(x_axsis, algo_dynamics, label="Algo Dynamics")
     ppos_dynamics.plot(x_axsis, online_stake, label="PPoS Online Stake")
@@ -40,7 +40,7 @@ def timeseries(ppos_dex_data: list[dict]) -> None:
     ppos_dynamics.show()
 
     ppos_inequality = plt
-    ppos_inequality.suptitle("Algorand PPoS Distribution")
+    ppos_inequality.suptitle("ALGO Distribution")
     ppos_inequality.title("(0 = perfect equality)")
     ppos_inequality.plot(x_axsis, ppos_gini, label="PPoS Gini Index")
     ppos_inequality.plot(x_axsis, ppos_hhi, label="PPoS HH Index")
@@ -71,7 +71,7 @@ def snapshot(ppos_dex_data: list[dict]) -> None:
     ppos_dynamics = plt
     ppos_dynamics.style.use("fivethirtyeight")
     ppos_dynamics.suptitle(
-        f"Algorand PPoS Dynamics\n"
+        f"ALGO Dynamics\n"
         f"{ppos_dex_data[0]['timestamp'][:10]} - "
         f"Threshold: {ppos_dex_data[0]['algo_threshold']} ALGO, "
         f"Accounts: {ppos_dex_data[0]['accounts']}\n"
@@ -96,7 +96,7 @@ def snapshot(ppos_dex_data: list[dict]) -> None:
     )
     ppos_inequality.style.use("fivethirtyeight")
     ppos_inequality.suptitle(
-        f"Algorand PPoS Distribution\n"
+        f"ALGO Distribution\n"
         f"{ppos_dex_data[0]['timestamp'][:10]} - "
         f"Threshold: {ppos_dex_data[0]['algo_threshold']} ALGO, "
         f"Accounts: {ppos_dex_data[0]['accounts']}\n"
