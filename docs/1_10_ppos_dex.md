@@ -7,11 +7,6 @@ flow into the ecosystem according to the
 [Algorand Dynamics](https://algorand.foundation/the-algo/algo-dynamics) and
 spread across participants according to their economical choices.
 
-Since the probability of being elecetd as block proposer or as member of the
-committee of validator is **directly proportional to user's ALGO online stake**,
-the distribution of ALGOs into the ecosystem has a foundamental role on PPoS
-decentralization.
-
 Let's try first to define an **ideal theoretical conditions of decentralization**.
 Then, everything deviating from those conditions will make
 PPoS more real and far from platonic ideality.
@@ -43,52 +38,15 @@ with respect the purely theoretical decentralization.
     * 0 = no PPoS participation
     * 1 = complete PPoS participation
 
-The statement 4. essentialy implies a measurement of participating accounts'
-inequality. So, we will adopt well-know wealth inequality or concentration
-indexes from Macroeconomics field: the [Gini's Index](https://en.wikipedia.org/wiki/Gini_coefficient),
-the [Theil's Index](https://en.wikipedia.org/wiki/Theil_index) and the
-[Herfindahl–Hirschman Index](https://en.wikipedia.org/wiki/Herfindahl%E2%80%93Hirschman_Index).
-
-**Gini's Index** is a measure of statistical dispersion intended to represent
-the wealth inequality within a nation or any other group of people. It can
-theoretically range from 0 (complete equality) to 1 (complete inequality).
-
-4. `PPoS GINI INDEX`
-
-    * 1 = complete PPoS inequality
-    * 0 = complete PPoS equality
-
-In order to express our PPoS Decentralization Index homogeneously **we will
-consider Gini's Index complement** (rather than its original form) in letter
-calculations.
-
-**Theil's Indexs** are called **Theil's L** and **Theil's T**, they also
-measure the inequality of a distribution among a set of peoples but with
-different sensitivity:
-
-* `THEIL's L INDEX` is sensitive to differences at the lower end of the
-  distribution (small ALGO amounts);
-
-* `THEIL's T INDEX` is more sensitive to differences at the top of the
-  distribution (large ALGO amounts);
-
-both can theoretically range from 0 (complete equality) to +inf (complete
-inequality) and represent two different evaluations of inequality, based on
-what we tend to consider worse: having even a few small ALGO amounts among
-many large ones or having even only a very few large ALGO amounts among many
-small ones.
-
-**Herfindahl–Hirschman Index (HHI)** is another indicator of concentration, used
-mainly to measure the degree of competition in a given market. It can
-theoretically range from 0 (perfectly competitive market) to 1 (monopoly).
-
 * `ALGO HHI INDEX` considers all ALGO stakes, whether they participate in
   the PPoS or not;
 
 * `PPoS HHI INDEX` considers only ALGO stakes that are participatinf in the
   PPoS;
 
-For sake of completenss we will evaluate them all.
+In order to express our PPoS Decentralization Index homogeneously **we will
+consider Gini's Index complement** (rather than its original form) in letter
+calculations.
 
 ### PPoS Dex Index
 

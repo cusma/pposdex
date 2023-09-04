@@ -4,11 +4,11 @@
 
 ## ALGO Dynamics
 
-![Snapshot PPoS Dynamics](images/snapshot_ppos_dynamics.png)
+![Snapshot PPoS Dynamics](images/snapshot_algo_dynamics.png)
 
 ## Stake Distribution
 
-![Snapshot PPoS Distribution](images/snapshot_ppos_distribution.png)
+![Snapshot PPoS Distribution](images/snapshot_algo_distribution.png)
 
 ## PPoS Dex
 

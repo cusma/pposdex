@@ -4,11 +4,11 @@
 
 ## ALGO Dynamics
 
-![Timeseries PPoS Dynamics](images/timeseries_ppos_dynamics.png)
+![Timeseries PPoS Dynamics](images/timeseries_algo_dynamics.png)
 
 ## Stake Distribution
 
-![Timeseries PPoS Distribution](images/timeseries_ppos_distribution.png)
+![Timeseries PPoS Distribution](images/timeseries_algo_distribution.png)
 
 ## PPoS Dex
 
