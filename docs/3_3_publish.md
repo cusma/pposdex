@@ -1,32 +1,23 @@
-# Publish PPoS Dex data
+# Publish PPoS Dex data points
 
-Contribute publishing trustless reliable data on Algorand blockchain paying
-just the minimum network fee (currently 0.001 ALGO).
+---
 
-Set your publisher mnemonic as environment variable:
+Contribute publishing trustless PPos Dex data points on Algorand blockchain paying
+just the minimum transaction fee (currently 0.001 ALGO).
 
-```shell
+Set your publisher _mnemonic_ as environment variable:
+
+```bash
 export ALGO_MNEMONIC=...
 ```
 
-**Input**
+and use the `publish` command:
 
 ```bash
-python3 ppos_dex.py publish
-```
+$ poetry run python3 ppos_dex.py publish [--algo-threshold=<a>] [--localhost | --test]
 
-**Options**
+📈 PPoS Dex published data:
 
-1. `[--algo-threshold=<at>]` consider only accounts that own more than this threshold (default: 1000 ALGO);
-2. `[--localhost]` select local hosted Node and Indexer or other API providers;
-
-Is worth noting that lower values of `[--algo-threshold=<at>]` will require more
-querying efforts, so you should avoid going under default threshold, expecially
-if you are using a third party API service.
-
-**Output**
-
-```shell
 {
   "algo_threshold": 1000,
   "accounts": 13346,
@@ -41,4 +32,15 @@ if you are using a third party API service.
 }
 ```
 
-You can then find your result published on-chain ([example](https://algoexplorer.io/tx/NPAAMBUEAIIYJJDFZWMYAHJBBSXDO2PV5TTSCD3SKWNBCLOU2AYA)).
+## Options
+
+1. `[--algo-threshold=<at>]` consider only accounts that own more than this threshold
+(default: 1000 ALGO);
+1. `[--localhost | test]` select local hosted Node and Indexer / other API providers,
+or default TestNet end-points.
+
+Is worth noting that lower values of `[--algo-threshold=<at>]` will require more
+querying efforts. You should avoid lowering the default threshold, expecially if
+you are using third party API services.
+
+---

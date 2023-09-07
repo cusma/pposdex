@@ -1,23 +1,19 @@
 # Export Plot PPoS Dex data
 
-Export PPoS Dex Index data published by PPoS Dex Oracle (or by yourself) to `csv` file.
+---
 
-**Input**
+Export PPoS Dex data to `csv` file for external analysis.
 
 ```shell
-python3 ppos_dex.py export
+poetry run ppos_dex.py export [--publisher=<p>] [--algo-threshold=<a>] [--start-block=<s>] [--end-block=<e>] [--localhost | --test]
 ```
 
-**Options**
+## Options
 
 1. `[--publisher=<p>]` publisher account address (default: PPoS Dex Oracle account);
-2. `[--algo-threshold=<t>]` plot only data of accounts that own more than this threshold (default: 1000 ALGO);
-3. `[--start-block=<s>]` plot data from this block (if availables);
-4. `[--end-block=<e>]` plot data until this block;
-5. `[--localhost]` select local hosted Node and Indexer or other API providers;
-
-**Output**
-
-```shell
-ppos_dex_data.csv
-```
+1. `[--algo-threshold=<t>]` export only data of accounts that own more than this
+threshold (default: 1000 ALGO);
+1. `[--start-block=<s>]` export data from this block (if availables);
+1. `[--end-block=<e>]` export data until this block;
+1. `[--localhost | test]` select local hosted Node and Indexer / other API providers,
+or default TestNet end-points.

@@ -55,3 +55,13 @@ ideal condition, _never reaching it_.
 | PPoS Theil’T           | \\(TT(S)\\)      | PPoS staking inequality, sensitive to differences at the high end of the distribution (large stakes)  |
 
 ---
+
+> **Minimum balance filter**
+>
+> Due to the huge number of accounts already existing on Algorand (more than
+> 30M at the time of writing, Sep 2023), fetching and processing all of them
+> would be computationally heavy and resource demaning for this project.
+> Therefore, PPoS Dex CLI applies an optional _"minimum balance filter"_, to ignore
+> accounts with balances lower than a threshold (default 1000 ALGO). Such a filtering
+> operation has a _noise-canceling_ effect that makes the data retrieval and procces
+> lighter, **without compromising data statistical significancy of the indexes**.

@@ -13,3 +13,5 @@
 ## PPoS Dex
 
 ![Timeseries PPoS Dex](images/chapter_2/timeseries/ppos_dex.png)
+
+---

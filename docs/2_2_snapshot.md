@@ -13,3 +13,5 @@
 ## PPoS Dex
 
 ![Snapshot PPoS Dex](images/chapter_2/snapshot/ppos_dex.png)
+
+---
