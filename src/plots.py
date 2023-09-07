@@ -12,18 +12,17 @@ def ts_algo_prt(
     x_ticks_rotation: int = XTICKS_ROTATION,
     x_ticks_number: int = N_XTICKS,
 ) -> None:
-    plot = plt
-    plot.suptitle("ALGO Participation in PPoS")
-    plot.title("(1 = complete participation)")
-    plot.plot(x_axsis, algo_dynamics, label="ALGO Dynamics")
-    plot.plot(x_axsis, online_stake, label="ALGO Participation")
-    plot.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
-    plot.locator_params(nbins=x_ticks_number)
-    plot.legend()
-    plot.ylim(0, 1)
-    plot.grid(True)
-    plot.tight_layout()
-    plot.show()
+    plt.suptitle("ALGO Participation in PPoS")
+    plt.title("(1 = complete participation)")
+    plt.plot(x_axsis, algo_dynamics, label="ALGO Dynamics")
+    plt.plot(x_axsis, online_stake, label="ALGO Participation")
+    plt.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
+    plt.locator_params(nbins=x_ticks_number)
+    plt.legend()
+    plt.ylim(0, 1)
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
 
 
 def ts_accounts_prt(
@@ -33,17 +32,16 @@ def ts_accounts_prt(
     x_ticks_rotation: int = XTICKS_ROTATION,
     x_ticks_number: int = N_XTICKS,
 ) -> None:
-    plot = plt
-    plot.suptitle("Accounts Participation in PPoS")
-    plot.title("(1 = complete participation)")
-    plot.plot(x_axsis, online_accounts, label="Accounts Participation")
-    plot.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
-    plot.locator_params(nbins=x_ticks_number)
-    plot.legend()
-    plot.ylim(0)
-    plot.grid(True)
-    plot.tight_layout()
-    plot.show()
+    plt.suptitle("Accounts Participation in PPoS")
+    plt.title("(1 = complete participation)")
+    plt.plot(x_axsis, online_accounts, label="Accounts Participation")
+    plt.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
+    plt.locator_params(nbins=x_ticks_number)
+    plt.legend()
+    plt.ylim(0)
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
 
 
 def ts_algo_inequality(
@@ -53,17 +51,16 @@ def ts_algo_inequality(
     x_ticks_rotation: int = XTICKS_ROTATION,
     x_ticks_number: int = N_XTICKS,
 ) -> None:
-    plot = plt
-    plot.suptitle("ALGO Inequality")
-    plot.title("(0 = complete equality)")
-    plot.plot(x_axsis, algo_hhi, label="HHI")
-    plot.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
-    plot.locator_params(nbins=x_ticks_number)
-    plot.legend()
-    plot.ylim(0)
-    plot.grid(True)
-    plot.tight_layout()
-    plot.show()
+    plt.suptitle("ALGO Inequality")
+    plt.title("(0 = complete equality)")
+    plt.plot(x_axsis, algo_hhi, label="HHI")
+    plt.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
+    plt.locator_params(nbins=x_ticks_number)
+    plt.legend()
+    plt.ylim(0)
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
 
 
 def ts_ppos_inequality_b(
@@ -74,18 +71,17 @@ def ts_ppos_inequality_b(
     x_ticks_rotation: int = XTICKS_ROTATION,
     x_ticks_number: int = N_XTICKS,
 ) -> None:
-    plot = plt
-    plot.suptitle("Validators Stake Inequality (Bounded)")
-    plot.title("(0 = complete equality)")
-    plot.plot(x_axsis, ppos_gini, label="Gini Index")
-    plot.plot(x_axsis, ppos_hhi, label="HHI")
-    plot.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
-    plot.locator_params(nbins=x_ticks_number)
-    plot.legend()
-    plot.ylim(0)
-    plot.grid(True)
-    plot.tight_layout()
-    plot.show()
+    plt.suptitle("Validators Stake Inequality (Bounded)")
+    plt.title("(0 = complete equality)")
+    plt.plot(x_axsis, ppos_gini, label="Gini Index")
+    plt.plot(x_axsis, ppos_hhi, label="HHI")
+    plt.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
+    plt.locator_params(nbins=x_ticks_number)
+    plt.legend()
+    plt.ylim(0)
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
 
 
 def ts_ppos_inequality_unb(
@@ -96,18 +92,17 @@ def ts_ppos_inequality_unb(
     x_ticks_rotation: int = XTICKS_ROTATION,
     x_ticks_number: int = N_XTICKS,
 ) -> None:
-    plot = plt
-    plot.suptitle("Validators Stake Inequality (Unbounded)")
-    plot.title("(0 = complete equality)")
-    plot.plot(x_axsis, ppos_theil_l, label="Theil L Index")
-    plot.plot(x_axsis, ppos_theil_t, label="Theil T Index")
-    plot.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
-    plot.locator_params(nbins=x_ticks_number)
-    plot.legend()
-    plot.ylim(0)
-    plot.grid(True)
-    plot.tight_layout()
-    plot.show()
+    plt.suptitle("Validators Stake Inequality (Unbounded)")
+    plt.title("(0 = complete equality)")
+    plt.plot(x_axsis, ppos_theil_l, label="Theil L Index")
+    plt.plot(x_axsis, ppos_theil_t, label="Theil T Index")
+    plt.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
+    plt.locator_params(nbins=x_ticks_number)
+    plt.legend()
+    plt.ylim(0)
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
 
 
 def ts_ppos_dex(
@@ -118,18 +113,17 @@ def ts_ppos_dex(
     x_ticks_rotation: int = XTICKS_ROTATION,
     x_ticks_number: int = N_XTICKS,
 ) -> None:
-    plot = plt
-    plot.suptitle("PPoS Dex")
-    plot.title("(1 = perfect decentralization)")
-    plot.plot(x_axsis, ppos_dex_v1, label="PPoS Dex V1")
-    plot.plot(x_axsis, ppos_dex_v2, label="PPoS Dex V2")
-    plot.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
-    plot.locator_params(nbins=x_ticks_number)
-    plot.legend()
-    plot.ylim(0)
-    plot.grid(True)
-    plot.tight_layout()
-    plot.show()
+    plt.suptitle("PPoS Dex")
+    plt.title("(1 = perfect decentralization)")
+    plt.plot(x_axsis, ppos_dex_v1, label="PPoS Dex V1")
+    plt.plot(x_axsis, ppos_dex_v2, label="PPoS Dex V2")
+    plt.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
+    plt.locator_params(nbins=x_ticks_number)
+    plt.legend()
+    plt.ylim(0)
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
 
 
 def timeseries(ppos_dex_data: list[dict]) -> None:
