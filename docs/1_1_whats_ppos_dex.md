@@ -1,4 +1,4 @@
-# Algorand PPoS Decentralization Index monitoring
+# Algorand PPoS Decentralization Index
 
 ---
 

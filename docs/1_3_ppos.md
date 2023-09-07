@@ -14,7 +14,7 @@ The VRF is used to create a fair, tamper-proof, secure and provable
 _cryptographic sortition_, in which people are free to take part as long as
 they own any amount of Algorand's native cryptocurrency, named **ALGO**.
 
-Each "participating" ALGO acts as a ticket of a cryptographic sortition
+Each _"participating"_ ALGO acts as a ticket of a cryptographic lottery
 that secretly runs in parallel on Algorand network's nodes, for each new block,
 with minimal hardware requirements and neglectable energy consumption.
 

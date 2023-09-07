@@ -7,7 +7,7 @@ Scalability can be quantified in serveral ways:
 - Block's finalization latency;
 - Transactions per second;
 - Transactions cost;
-- Power consumption;
+- Network power consumption;
 - Node hardware requirements.
 
 Algorand PPoS brings the number of finalized transactions per second from few
@@ -17,3 +17,5 @@ of energy, neglectable transaction’s cost (0.001 ALGO), and no hardware
 barriers.
 
 So we have quantitative evidences of Algorand's _scalability_.
+
+---
