@@ -49,19 +49,19 @@ ideal condition, _never reaching it_.
 | ALGO Participation     | \\(S_{prt}\\)    | 0 = no PPoS participation, 1 = complete PPoS participation                                            |
 | Accounts Participation | \\(A_{prt}\\)    | 0 = no PPoS accounts participation, 1 = complete PPoS accounts participation                          |
 | ALGO HHI               | \\(1 - HHI(A)\\) | Considers all ALGO stakes, whether they participate in the PPoS or not                                |
-| PPoS HHI               | \\(1 - HHI(S)\\) | PPoS staking inequality, takes the number of participating accounts in consideration                  |
 | PPoS Gini              | \\(1 - GI(S)\\)  | PPoS staking inequality, regardless the number of participating accounts                              |
 | PPoS Theil’L           | \\(TL(S)\\)      | PPoS staking inequality, sensitive to differences at the lower end of the distribution (small stakes) |
 | PPoS Theil’T           | \\(TT(S)\\)      | PPoS staking inequality, sensitive to differences at the high end of the distribution (large stakes)  |
+| PPoS HHI               | \\(1 - HHI(S)\\) | PPoS staking inequality, takes the number of participating accounts in consideration                  |
 
 ---
 
 > **Minimum balance filter**
 >
-> Due to the huge number of accounts already existing on Algorand (more than
-> 30M at the time of writing, Sep 2023), fetching and processing all of them
-> would be computationally heavy and resource demaning for this project.
-> Therefore, PPoS Dex CLI applies an optional _"minimum balance filter"_, to ignore
-> accounts with balances lower than a threshold (default 1000 ALGO). Such a filtering
-> operation has a _noise-canceling_ effect that makes the data retrieval and procces
-> lighter, **without compromising data statistical significancy of the indexes**.
+> Due to the huge number of accounts already existing on Algorand (more than 30M
+> at the time of writing, Sep 2023), fetching and processing all of them would
+> be computationally heavy and resource demaning for this project. Therefore, PPoS
+> Dex CLI applies an optional _"minimum balance filter"_, to ignore accounts with
+> balances lower than a threshold (default 1000 ALGO). Such a filtering operation
+> has a _noise-canceling_ effect that makes the data retrieval and procces lighter,
+> **without compromising data statistical significancy of the indexes**.
