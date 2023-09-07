@@ -56,7 +56,7 @@ reasonable to set:
 
 \\[ d_{N} = 1 - e^{-\left(\frac{N}{10^4}\right)^2} \\]
 
-![Cumulative Distribution](images/cumulative_distribution.png)
+![Cumulative Distribution](images/chapter_1/cumulative_distribution.png)
 
 ---
 
