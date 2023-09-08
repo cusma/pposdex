@@ -1,3 +1,3 @@
 # PPoS Dex
 
-[Documentation](./docs/SUMMARY.md)
+[Documentation](https://cusma.github.io/pposdex/)
