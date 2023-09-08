@@ -38,15 +38,16 @@ jobs:
       - name: Install Python dependencies
         run: poetry install
 
+      - name: Install AlgoKit
+        run: pipx install algokit
+
       - name: Run LocalNet
-        run: |
-          pipx install algokit
-          algokit localnet start
+        run: algokit localnet start
 
       - name: Sleep to allow the LocalNet to start
         run: |
-          sleep 5
-          algokit localnet status
+          sleep 10
+#          algokit localnet status
 
       - name: Test
         run: poetry run pytest --verbose

@@ -13,20 +13,23 @@ from algosdk.v2client.indexer import IndexerClient
 import src.inequality_idx as idx
 import src.helpers as helpers
 
+d_N = 1
+d_T = 1
 MICROALGO_TOTAL_SUPPLY = 10**16
 SCHEMA = schema.Schema(
     {
         "algo_threshold": int,
         "accounts": schema.And(int, lambda n: 0 <= n),
-        schema.Optional("algo_hhi"): schema.And(float, lambda n: 0 <= n <= 1),
         "algo_dynamics": schema.And(float, lambda n: 0 <= n),
         "ppos_online_stake": schema.And(float, lambda n: 0 <= n <= 1),
         "ppos_online_accounts": schema.And(float, lambda n: 0 <= n <= 1),
+        schema.Optional("algo_hhi"): schema.And(float, lambda n: 0 <= n <= 1),
         "ppos_gini": schema.And(float, lambda n: 0 <= n <= 1),
         "ppos_theil_l": schema.And(float, lambda n: 0 <= n),
         "ppos_theil_t": schema.And(float, lambda n: 0 <= n),
         schema.Optional("ppos_hhi"): schema.And(float, lambda n: 0 <= n <= 1),
         "ppos_dex": schema.And(float, lambda n: 0 <= n <= 1),
+        schema.Optional("ppos_dex_v2"): schema.And(float, lambda n: 0 <= n <= 1),
         "timestamp": str,
     }
 )
@@ -65,28 +68,30 @@ def post_ppos_dex_data(
     ledger = algod_client.ledger_supply()
 
     # Data Processing
+    algo_dyn = ledger["total-money"] / MICROALGO_TOTAL_SUPPLY
+    algo_prt = ledger["online-money"] / ledger["total-money"]
+    accounts_prt = len(online_stakes) / len(stakes)
     algo_hhi = idx.herfindahl_hirschman(stakes)
-    algo_dynamics = ledger["total-money"] / MICROALGO_TOTAL_SUPPLY
-    ppos_online_stake = ledger["online-money"] / ledger["total-money"]
-    ppos_online_accounts = len(online_stakes) / len(stakes)
     ppos_gini = idx.gini(online_stakes)
     ppos_theil_l = idx.theil_l(online_stakes)
     ppos_theil_t = idx.theil_t(online_stakes)
     ppos_hhi = idx.herfindahl_hirschman(online_stakes)
-    ppos_dex = algo_dynamics * ppos_online_stake * ppos_online_accounts * (1 - ppos_hhi)
+    ppos_dex_v1 = d_N * d_T * algo_dyn * algo_prt * accounts_prt * (1 - ppos_gini)
+    ppos_dex_v2 = d_N * d_T * algo_dyn * algo_prt * (1 - ppos_hhi)
 
     ppos_dex_data = {
         "algo_threshold": algo_threshold,
         "accounts": len(stakes),
+        "algo_dynamics": algo_dyn,
+        "ppos_online_stake": algo_prt,
+        "ppos_online_accounts": accounts_prt,
         "algo_hhi": algo_hhi,
-        "algo_dynamics": algo_dynamics,
-        "ppos_online_stake": ppos_online_stake,
-        "ppos_online_accounts": ppos_online_accounts,
         "ppos_gini": ppos_gini,
         "ppos_theil_l": ppos_theil_l,
         "ppos_theil_t": ppos_theil_t,
         "ppos_hhi": ppos_hhi,
-        "ppos_dex": ppos_dex,
+        "ppos_dex": ppos_dex_v1,
+        "ppos_dex_v2": ppos_dex_v2,
         "timestamp": str(datetime.now()),
     }
     ppos_dex_data = data_schema.validate(ppos_dex_data)
