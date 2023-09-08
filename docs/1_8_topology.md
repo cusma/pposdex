@@ -31,7 +31,7 @@ Let’s try to visualize some communication paths examples between two generic n
 \\(N_1\\) and \\(N_2\\) connected through graphs that are intuitively different
 from each other:
 
-![Topology examples](images/chapter_1/topologies.png)
+![Topology examples](images/info/topologies.png)
 
 We can intuitively glimpse the difference between networks \\(A\\), \\(B\\), \\(C\\)
 and \\(D\\) with respect to the concept of “topology decentralization”. Graph \\(D\\)

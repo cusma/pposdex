@@ -52,7 +52,7 @@ given the context of the analysis, we think adequate and reasonable to set:
 
 \\[ d_{N} = 1 - e^{-\left(\frac{N}{10^4}\right)^2} \\]
 
-![Cumulative Distribution](images/chapter_1/cumulative_distribution.png)
+![Cumulative Distribution](images/info/cumulative_distribution.png)
 
 ---
 

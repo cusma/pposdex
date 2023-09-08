@@ -4,14 +4,18 @@
 
 ## ALGO Dynamics
 
-![Snapshot PPoS Dynamics](images/chapter_2/snapshot/algo_dynamics.png)
+![Snapshot ALGO Dynamics](images/snapshot/algo_dynamics.png)
 
-## Stake Distribution
+## Accounts Participation
 
-![Snapshot PPoS Distribution](images/chapter_2/snapshot/algo_distribution.png)
+![Snapshot Accounts Participation](images/snapshot/accounts_prt.png)
+
+## PPoS Inequality
+
+![Snapshot PPoS Inequality](images/snapshot/ppos_inequality.png)
 
 ## PPoS Dex
 
-![Snapshot PPoS Dex](images/chapter_2/snapshot/ppos_dex.png)
+![Snapshot PPoS Dex](images/snapshot/ppos_dex.png)
 
 ---

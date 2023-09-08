@@ -12,10 +12,10 @@ def ts_algo_prt(
     x_ticks_rotation: int = XTICKS_ROTATION,
     x_ticks_number: int = N_XTICKS,
 ) -> None:
-    plt.suptitle("ALGO Participation in PPoS")
-    plt.title("(1 = complete participation)", fontsize="medium")
-    plt.plot(x_axsis, algo_dynamics, label="ALGO Dynamics")
-    plt.plot(x_axsis, online_stake, label="ALGO Participation")
+    plt.suptitle("ALGO Dynamics")
+    plt.title("(1 = full circulation or complete participation)", fontsize="medium")
+    plt.plot(x_axsis, algo_dynamics, label="ALGO Supply")
+    plt.plot(x_axsis, online_stake, label="ALGO Participation in PPoS")
     plt.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
     plt.locator_params(nbins=x_ticks_number)
     plt.legend()
