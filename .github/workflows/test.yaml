@@ -1,4 +1,4 @@
-name: PPoS Dex Test
+name: Test
 
 on:
   pull_request:
