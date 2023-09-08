@@ -61,5 +61,4 @@ given the context of the analysis, we think adequate and reasonable to set:
 > Hardware Decentralization (\\( d_N = 1 \\)), leaving the refinement of the calculation
 > of this decentralization factor to future works.
 >
-> Community contribution to Nodes Hardware Decentralization monitoring are welcome!
-> [PPos Dex GitHub](https://github.com/cusma/pposdex).
+> [Community contribution are welcome!](https://github.com/cusma/pposdex)

@@ -47,7 +47,7 @@ In order to reach a common understanding of what measuring decentralization even
 means, we should agree on some definitions.
 
 We consider three different factors of decentralization that concur to define a
-_Decentralization Index_ \\(DEX\\) of PoS networks:
+_Decentralization Index_ (\\(DEX\\)) of PoS networks:
 
 1. Nodes Hardware Decentralization (\\(d_N\\))
 1. Network Topology Decentralization (\\(d_T\\))

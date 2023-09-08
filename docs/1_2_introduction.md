@@ -3,8 +3,7 @@
 ---
 
 Blockchain technology arose to fulfil the promise of genesis and exchange of digital
-native value in a disintermediated, censorship resistant, safe, decentralized,
-and scalable way.
+native value in a disintermediated, censorship resistant, safe and scalable way.
 
 Billions of people on the Earth (and maybe the Moon or Mars) would have the possibility
 of transacting without borders, barriers or discrimination within a distributed
@@ -29,7 +28,7 @@ in the system, through the allocation of computational and energetic resources,
 is the core of this consensus mechanism.
 
 However, Blockchains that run on PoW fail in fulfilling the promise of scalability,
-decentralisation, transaction speed and costs ending up relying on energey-intensive
+decentralisation, transaction speed, and costs, ending up relying on energey-intensive
 centralised computational farms.
 
 The ultimate output of a Blockchain infrastrucuture is: reaching consensus to finalize

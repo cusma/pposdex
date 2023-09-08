@@ -34,12 +34,13 @@ PoS validation. It can be quantified as:
 Where:
 
 * _Stake Dynamics_ \\(S_{dyn}\\): is the fraction of _ciruclating supply_ (\\(S_c\\))
-over the _genesis supply_ (\\( S_g\\)) (only applies to fixed genesis supply Blockchains);
+over the _genesis supply_ (\\( S_g\\)).  It only applies to fixed genesis supply
+Blockchains;
 * _Stake Participation_ \\(S_{p}\\): is the fraction of _validation supply_ (\\(S_v\\))
 over the _circulating supply_ (\\( S_c\\)).
 
-It can theoretically range from 0 (no participation in PoS validation) to 1 (complete
-participation in PoS validation).
+\\(S_P\\) can theoretically range from 0 (no participation in PoS validation)
+to 1 (complete participation in PoS validation).
 
 ## Stake Inequality Index
 
@@ -64,14 +65,14 @@ Gini Index_ \\(GI\\) can be calculated as:
 
 where \\( y_1 \le y_2 \le ... \le y_N\\) are the sorted validators' stake.
 
-It can theoretically range from 0 (_complete equality_) to 1 (_complete inequality_),
-therefore it _one’s complement_ \\(1 - GI(S)\\) is a good candidate for the \\(DEX\\)
+\\(GI\\) can theoretically range from 0 (_complete equality_) to 1 (_complete inequality_),
+therefore it _one’s complement_ \\((1 - GI)\\) is a good candidate for the \\(DEX\\)
 index.
 
 ### Theil Indexes
 
 _Theil's Indexs_, called _Theil's L_ and _Theil's T_, measure the inequality of
-a wealth distribution \\(S\\) over a population of \\(N\\) agents, with different
+a stake distribution \\(S\\) over a set of \\(N\\) validators, with different
 sensitivities:
 
 * _Theil's L_ is more sensitive to differences at the lower end of the distribution
@@ -89,12 +90,13 @@ where \\(y_i\\) is the validator's stake and \\(\mu\\) is the mean stake:
 
 \\[ \mu = \frac{1}{N} \sum_{i=1}^{N} y_i\\]
 
-Both can theoretically range from 0 (_complete equality_) to \\( +\infty \\) (_complete
-inequality_) and represent two different evaluations of inequality, based on what
-we tend to consider worse: having even a few small stakes among many large ones
-or having even a few large stakes among many small ones.
+Both \\(T_L\\) and \\(T_T\\) can theoretically range from 0 (_complete equality_)
+to \\( +\infty \\) (_complete inequality_) and represent two different evaluations
+of inequality, depending on what we tend to consider worse: having even a few small
+stakes among many large ones or having even a few large stakes among many small
+ones.
 
-> _Theil’s Indexes_ are not upper bounded they are not good candidate for the \\(DEX\\)
+> _Theil’s Indexes_ are not upper bounded, so are not good candidates for the \\(DEX\\)
 > index. For sake of completeness we will evaluate them separately.
 
 ### Herfindahl–Hirschman Index
@@ -102,17 +104,17 @@ or having even a few large stakes among many small ones.
 _Herfindahl–Hirschman Index_ is another indicator of concentration, mainly used
 to measure the degree of competition in a given market.
 
-Given a wealth stake \\(S\\) over a set of \\(N\\) validators, the \\(HHI\\) index
-can be calculated as:
+Given a stake distribution \\(S\\) over a set of \\(N\\) validators, the \\(HHI\\)
+index can be calculated as:
 
 \\[ HHI(S) = \sum_{i=1}^{N} {s_i}^2 \\]
 
-where \\(s\\) is the stake share of validator \\(i\\) in the total validating stake
-\\(S\\).
+where \\(s_i\\) is the stake share of validator \\(i\\) in the total validating
+stake \\(S\\).
 
-It can theoretically range from 0 (_perfectly competitive market_) to 1 (_monopoly_),
-therefore it _one’s complement_ \\(1 - GI(S)\\) is a good candidate for the \\(DEX\\)
-index.
+\\(HHI\\) can theoretically range from 0 (_perfectly competitive market_) to 1
+(_monopoly_), therefore it _one’s complement_ \\((1 - HHI)\\) is a good candidate
+for the \\(DEX\\) index.
 
 > The \\(HHI\\) implicitly considers both the stake distribution among the validators
 > accounts and the _absolute number of validators accounts_. Therefore, in order

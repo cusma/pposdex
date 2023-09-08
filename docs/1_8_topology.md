@@ -10,18 +10,18 @@ In order to keep the state of such a distributed system unique, coherent and syn
 the information must flow across the network, ensuring efficient paths of communication
 between the nodes.
 
-So, _how_ nodes are connected to each other, forming a network, is another relevant
+So, _how_ nodes are connected to each other, forming a network, is the second relevant
 factor of decentralization, commonly known as _Network Topology_.
 
 The message passing through the network can be achieved by routing the traffic
 with different techniques. In Algorand, at the time of writing (Sep 2023), information
-is spread across the network through “message gossiping” handled by the Relay Nodes,
-which route blocks to all connected nodes finding highly efficient communication
+is spread across the network through “message gossiping” handled by the Relay Nodes.
+Relay Nodes route blocks to all connected nodes, finding highly efficient communication
 paths and reducing communication hops. Complementary fully P2P communications paths
 are under active research.
 
 Paths of communication are therefore essential to ensure that no one is excluded
-from the communication: everybody should be able to talk and listen to each other
+from the communication: everybody should be able to _talk_ and _listen_ to each other
 without relying on a few dominant paths.
 
 **The more communication paths between nodes the more robust and decentralized
@@ -60,8 +60,9 @@ ranges from 0 to 1:
 have to pass through it;
 - 1 means all routes have to pass through that node.
 
-Network C in the examples above, for instance, is a graph with _Central Point Dominance_
-equal to 1, since any message must pass through the central node to reach others.
+Network \\(C\\) in the examples above, for instance, is a graph with _Central Point
+Dominance_ equal to 1, since any message must pass through the central node to
+reach others.
 
 In order to stay compliant with the rest of decentralization metrics used in this
 project (1 meaning maximum decentralization), we will consider the _one's complement_
@@ -77,5 +78,4 @@ of the _Central Point Dominance_ so:
 > (\\( d_T = 1 \\)), leaving the refinement of the calculation of this decentralization
 > factor to future works.
 >
-> Community contribution to Nodes Hardware Decentralization monitoring are welcome!
-> [PPos Dex GitHub](https://github.com/cusma/pposdex).
+> [Community contribution are welcome!](https://github.com/cusma/pposdex)
