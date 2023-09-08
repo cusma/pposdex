@@ -1,3 +1,5 @@
+import time
+
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 from algokit_utils import Account
@@ -15,5 +17,6 @@ def test_ppos_dex_data(
     post_note(algod_client, faucet, b"noise")
     post_note(algod_client, faucet, b"more noise")
     post_note(algod_client, faucet, b"even more noise")
+    time.sleep(5)
     get_data = get_ppos_dex_data(indexer_client, faucet.address, 0, SCHEMA, 0)
     assert get_data[0] == post_data

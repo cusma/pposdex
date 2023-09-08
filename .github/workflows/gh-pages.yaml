@@ -1,0 +1,46 @@
+name: Publish to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "docs/**"
+      - ".github/worklows/gh-pages.yaml"
+
+  pull_request:
+    paths:
+      - "docs/**"
+      - ".github/worklows/gh-pages.yaml"
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    name: Publish PPoS Dex
+    runs-on: ubuntu-22.04
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v1.2.0
+        with:
+          mdbook-version: "0.4.30"
+
+      - name: Test mdBook
+        run: mdbook test
+
+      - name: Build mdBook
+        run: mdbook build
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3.9.3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./book
