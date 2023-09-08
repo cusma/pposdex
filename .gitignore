@@ -1,6 +1,9 @@
+# Python
+__pycache__/
+
 # IDE
 .idea/
 
 # Artifacts
-/book
+book/
 *.csv
