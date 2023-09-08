@@ -47,7 +47,7 @@ jobs:
       - name: Sleep to allow the LocalNet to start
         run: |
           sleep 10
-          algokit localnet status
+#          algokit localnet status
 
       - name: Test
         run: poetry run pytest --verbose
