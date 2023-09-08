@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   plots:
+    name: PPoS Dex Plots
     runs-on: ubuntu-latest
 
     steps:
