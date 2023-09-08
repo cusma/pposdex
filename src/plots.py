@@ -13,7 +13,7 @@ def ts_algo_prt(
     x_ticks_number: int = N_XTICKS,
 ) -> None:
     plt.suptitle("ALGO Participation in PPoS")
-    plt.title("(1 = complete participation)")
+    plt.title("(1 = complete participation)", fontsize="medium")
     plt.plot(x_axsis, algo_dynamics, label="ALGO Dynamics")
     plt.plot(x_axsis, online_stake, label="ALGO Participation")
     plt.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
@@ -33,7 +33,7 @@ def ts_accounts_prt(
     x_ticks_number: int = N_XTICKS,
 ) -> None:
     plt.suptitle("Accounts Participation in PPoS")
-    plt.title("(1 = complete participation)")
+    plt.title("(1 = complete participation)", fontsize="medium")
     plt.plot(x_axsis, online_accounts, label="Accounts Participation")
     plt.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
     plt.locator_params(nbins=x_ticks_number)
@@ -52,7 +52,7 @@ def ts_algo_inequality(
     x_ticks_number: int = N_XTICKS,
 ) -> None:
     plt.suptitle("ALGO Inequality")
-    plt.title("(0 = complete equality)")
+    plt.title("(0 = complete equality)", fontsize="medium")
     plt.plot(x_axsis, algo_hhi, label="HHI")
     plt.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
     plt.locator_params(nbins=x_ticks_number)
@@ -72,7 +72,7 @@ def ts_ppos_inequality_b(
     x_ticks_number: int = N_XTICKS,
 ) -> None:
     plt.suptitle("Validators Stake Inequality (Bounded)")
-    plt.title("(0 = complete equality)")
+    plt.title("(0 = complete equality)", fontsize="medium")
     plt.plot(x_axsis, ppos_gini, label="Gini Index")
     plt.plot(x_axsis, ppos_hhi, label="HHI")
     plt.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
@@ -93,7 +93,7 @@ def ts_ppos_inequality_unb(
     x_ticks_number: int = N_XTICKS,
 ) -> None:
     plt.suptitle("Validators Stake Inequality (Unbounded)")
-    plt.title("(0 = complete equality)")
+    plt.title("(0 = complete equality)", fontsize="medium")
     plt.plot(x_axsis, ppos_theil_l, label="Theil L Index")
     plt.plot(x_axsis, ppos_theil_t, label="Theil T Index")
     plt.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
@@ -114,7 +114,7 @@ def ts_ppos_dex(
     x_ticks_number: int = N_XTICKS,
 ) -> None:
     plt.suptitle("PPoS Dex")
-    plt.title("(1 = perfect decentralization)")
+    plt.title("(1 = perfect decentralization)", fontsize="medium")
     plt.plot(x_axsis, ppos_dex_v1, label="PPoS Dex V1")
     plt.plot(x_axsis, ppos_dex_v2, label="PPoS Dex V2")
     plt.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
@@ -126,41 +126,131 @@ def ts_ppos_dex(
     plt.show()
 
 
+def snap_suptitle(timestamp: str, algo_threshold: int, accounts: int) -> str:
+    return f"{timestamp}\nThreshold: {algo_threshold} ALGO\nAccounts: {accounts}"
+
+
 def snap_algo_prt(
+    algo_dynamics: float | None,
+    online_stake: float | None,
     timestamp: str,
     algo_threshold: int,
     accounts: int,
-    algo_dynamics: float | None,
-    online_stake: float | None,
 ) -> None:
     plt.style.use("fivethirtyeight")
     plt.suptitle(
-        f"ALGO Dynamics\n{timestamp} - Threshold: {algo_threshold} ALGO, "
-        f"Accounts: {accounts}\n(1 = complete participation)"
+        f"ALGO Dynamics\n(1 = full circulation or complete participation)\n"
+        + snap_suptitle(timestamp, algo_threshold, accounts),
+        fontsize="medium",
     )
-    plt.subplot(2, 1, 1)
-    plt.barh("ALGO Dynamics", algo_dynamics)
-    plt.xlim(0, 1)
-    plt.subplot(2, 1, 2)
-    plt.barh("ALGO Participation", online_stake)
-    plt.xlim(0, 1)
+    if algo_dynamics is not None:
+        plt.subplot(2, 1, 1)
+        plt.barh("ALGO Supply", algo_dynamics)
+        plt.xlim(0, 1)
+    if online_stake is not None:
+        plt.subplot(2, 1, 2)
+        plt.barh("ALGO Participation", online_stake)
+        plt.xlim(0, 1)
     plt.tight_layout()
     plt.show()
 
 
 def snap_accounts_prt(
+    online_accounts: float | None,
     timestamp: str,
     algo_threshold: int,
     accounts: int,
-    online_accounts: float | None,
 ) -> None:
     plt.style.use("fivethirtyeight")
     plt.suptitle(
-        f"ALGO Dynamics\n{timestamp} - Threshold: {algo_threshold} ALGO, "
-        f"Accounts: {accounts}\n(1 = complete participation)"
+        f"Accounts Participation\n(1 = complete participation)\n"
+        + snap_suptitle(timestamp, algo_threshold, accounts),
+        fontsize="medium",
     )
-    plt.barh("Accounts Participation", online_accounts)
-    plt.xlim(0, 1)
+    if online_accounts is not None:
+        plt.barh("Accounts Participation", online_accounts)
+        plt.xlim(0, min([1, 10 * online_accounts]))
+    plt.tight_layout()
+    plt.show()
+
+
+def snap_algo_inequality(
+    algo_hhi: float | None,
+    timestamp: str,
+    algo_threshold: int,
+    accounts: int,
+) -> None:
+    plt.style.use("fivethirtyeight")
+    plt.suptitle(
+        f"ALGO Inequality\n(0 = complete equality)\n"
+        + snap_suptitle(timestamp, algo_threshold, accounts),
+        fontsize="medium",
+    )
+    if algo_hhi is not None:
+        plt.barh("ALGO Inequality", algo_hhi)
+        plt.xlim(0, 1)
+    plt.tight_layout()
+    plt.show()
+
+
+def snap_ppos_inequality(
+    ppos_gini: float | None,
+    ppos_theil_l: float | None,
+    ppos_theil_t: float | None,
+    ppos_hhi: float | None,
+    timestamp: str,
+    algo_threshold: int,
+    accounts: int,
+) -> None:
+    plt.style.use("fivethirtyeight")
+    plt.suptitle(
+        f"Validators Stake Inequality\n(0 = complete equality)\n"
+        + snap_suptitle(timestamp, algo_threshold, accounts),
+        fontsize="medium",
+    )
+    # Boundend
+    if ppos_gini is not None:
+        plt.subplot(4, 1, 1)
+        plt.barh("Gini Index", ppos_gini, color="g")
+        plt.xlim(0, 1)
+    if ppos_hhi is not None:
+        plt.subplot(4, 1, 2)
+        plt.barh("HHI", ppos_hhi, color="g")
+        plt.xlim(0, 1)
+    # Unbounded
+    if ppos_theil_l is not None and ppos_theil_t is not None:
+        x_upper_lim = round(max(ppos_theil_l, ppos_theil_t)) + 1
+        plt.subplot(4, 1, 3)
+        plt.barh("Theil L Index", ppos_theil_l)
+        plt.xlim(0, x_upper_lim)
+        plt.subplot(4, 1, 4)
+        plt.barh("Theil T Index", ppos_theil_t)
+        plt.xlim(0, x_upper_lim)
+    plt.tight_layout()
+    plt.show()
+
+
+def snap_ppos_dex(
+    ppos_dex_v1: float | None,
+    ppos_dex_v2: float | None,
+    timestamp: str,
+    algo_threshold: int,
+    accounts: int,
+) -> None:
+    plt.style.use("fivethirtyeight")
+    plt.suptitle(
+        f"PPoS Dex\n(1 = perfect decentralization)\n"
+        + snap_suptitle(timestamp, algo_threshold, accounts),
+        fontsize="medium",
+    )
+    if ppos_dex_v1 is not None:
+        plt.subplot(2, 1, 1)
+        plt.barh("PPoS Dex v1", ppos_dex_v1)
+        plt.xlim(0, min([1, 10 * ppos_dex_v1]))
+    if ppos_dex_v2 is not None:
+        plt.subplot(2, 1, 2)
+        plt.barh("PPoS Dex v2", ppos_dex_v2)
+        plt.xlim(0, min([1, 10 * ppos_dex_v2]))
     plt.tight_layout()
     plt.show()
 
@@ -207,54 +297,28 @@ def snapshot(ppos_dex_data: list[dict]) -> None:
     # Stake Participation
     algo_dynamics = ppos_dex_data[0].get("algo_dynamics")
     online_stake = ppos_dex_data[0].get("ppos_online_stake")
-    snap_algo_prt(timestamp, algo_threshold, accounts, algo_dynamics, online_stake)
+    snap_algo_prt(algo_dynamics, online_stake, timestamp, algo_threshold, accounts)
 
     # Accounts Participation
     online_accounts = ppos_dex_data[0].get("ppos_online_accounts")
-    snap_accounts_prt(timestamp, algo_threshold, accounts, online_accounts)
-
-    # Stake Inequality
+    snap_accounts_prt(online_accounts, timestamp, algo_threshold, accounts)
 
     # PPoS Inequality
-    ppos_inequality = plt
-    x_upper_lim = (
-        round(max(ppos_dex_data[0]["ppos_theil_l"], ppos_dex_data[0]["ppos_theil_t"]))
-        + 1
+    ppos_gini = ppos_dex_data[0].get("ppos_gini")
+    ppos_theil_l = ppos_dex_data[0].get("ppos_theil_l")
+    ppos_theil_t = ppos_dex_data[0].get("ppos_theil_t")
+    ppos_hhi = ppos_dex_data[0].get("ppos_hhi")
+    snap_ppos_inequality(
+        ppos_gini,
+        ppos_theil_l,
+        ppos_theil_t,
+        ppos_hhi,
+        timestamp,
+        algo_threshold,
+        accounts,
     )
-    ppos_inequality.style.use("fivethirtyeight")
-    ppos_inequality.suptitle(
-        f"ALGO Distribution\n"
-        f"{ppos_dex_data[0]['timestamp'][:10]} - "
-        f"Threshold: {ppos_dex_data[0]['algo_threshold']} ALGO, "
-        f"Accounts: {ppos_dex_data[0]['accounts']}\n"
-        f"(0 = perfect equality)"
-    )
-    ppos_inequality.subplot(4, 1, 1)
-    ppos_inequality.barh("ppos_gini", ppos_dex_data[0]["ppos_gini"], color="g")
-    ppos_inequality.xlim(0, 1)
-    if ppos_dex_data[0].get("ppos_hhi") is not None:
-        ppos_inequality.subplot(4, 1, 2)
-        ppos_inequality.barh("ppos_hhi", ppos_dex_data[0]["ppos_hhi"], color="g")
-        ppos_inequality.xlim(0, 1)
-    ppos_inequality.subplot(4, 1, 3)
-    ppos_inequality.barh("ppos_theil_l", ppos_dex_data[0]["ppos_theil_l"])
-    ppos_inequality.xlim(0, x_upper_lim)
-    ppos_inequality.subplot(4, 1, 4)
-    ppos_inequality.barh("ppos_theil_t", ppos_dex_data[0]["ppos_theil_t"])
-    ppos_inequality.xlim(0, x_upper_lim)
-    ppos_inequality.tight_layout()
-    ppos_inequality.show()
 
     # PPoS Dex
-    ppos_dex_index = plt
-    ppos_dex_index.style.use("fivethirtyeight")
-    ppos_dex_index.suptitle(
-        f"Algorand PPoS Decentralization Index\n"
-        f"Threshold: {ppos_dex_data[0]['algo_threshold']} ALGO, "
-        f"Accounts: {ppos_dex_data[0]['accounts']}\n"
-        f"(1 = perfect decentralization)"
-    )
-    ppos_dex_index.barh("ppos_dex", ppos_dex_data[0]["ppos_dex"])
-    ppos_dex_index.xlim(0, 1)
-    ppos_dex_index.tight_layout()
-    ppos_dex_index.show()
+    ppos_dex_v1 = ppos_dex_data[0].get("ppos_dex")
+    ppos_dex_v2 = ppos_dex_data[0].get("ppos_dex_v2")
+    snap_ppos_dex(ppos_dex_v1, ppos_dex_v2, timestamp, algo_threshold, accounts)
