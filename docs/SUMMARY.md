@@ -2,7 +2,7 @@
 
 [Cover](./0_cover.md)
 
-## The Project
+# The Project
 
 - [What's _PPoS Dex_?](./1_1_whats_ppos_dex.md)
 - [Introduction](./1_2_introduction.md)
@@ -15,18 +15,20 @@
     - [Stake](1_9_stakes.md)
 - [PPoS Dex](1_10_ppos_dex.md)
 
-## Data
+# Data
 
 - [Timeseries](2_1_timeseries.md)
 - [Snapshot](2_2_snapshot.md)
 
-## CLI
+# CLI
 
 - [Install](3_1_install.md)
 - [Usage](3_2_usage.md)
   - [Publish](3_3_publish.md)
-  - [Plot](3_4_plot.md)
+  - [Timeseries](3_4_timeseries.md)
   - [Snapshot](3_5_snapshot.md)
   - [Export](3_6_export.md)
+
+---
 
 [Contribute](CONTRIBUTE.md)
