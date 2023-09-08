@@ -3,8 +3,8 @@ Algorand PPoS Decentralization Index.
 
 Usage:
   ppos_dex.py publish [--algo-threshold=<a>] [--localhost | --test]
-  ppos_dex.py timeseries [--publisher=<p>] [--algo-threshold=<a>] [--start-block=<s>] [--end-block=<e>] [--localhost | --test]
-  ppos_dex.py snapshot [--publisher=<p>] [--algo-threshold=<a>] [--start-block=<s>] [--end-block=<e>] [--localhost | --test]
+  ppos_dex.py timeseries [--publisher=<p>] [--algo-threshold=<a>] [--start-block=<s>] [--end-block=<e>] [--localhost | --test] [--save]
+  ppos_dex.py snapshot [--publisher=<p>] [--algo-threshold=<a>] [--start-block=<s>] [--end-block=<e>] [--localhost | --test] [--save]
   ppos_dex.py export [--publisher=<p>] [--algo-threshold=<a>] [--start-block=<s>] [--end-block=<e>] [--localhost | --test]
   ppos_dex.py health [--localhost | --test]
   ppos_dex.py [--help]
@@ -120,10 +120,13 @@ def main():
             end_block=args["--end-block"],
         )
         if args["timeseries"]:
-            plots.timeseries(ppos_dex_data)
+            print("💾 Saving timeseries in './docs/images/timeseries'...\n")
+            plots.timeseries(ppos_dex_data, args["--save"])
         elif args["snapshot"]:
-            plots.snapshot(ppos_dex_data)
+            print("💾 Saving snapshots in './docs/images/snapshot'...\n")
+            plots.snapshot(ppos_dex_data, args["--save"])
         elif args["export"]:
+            print("💾 Exporting PPoS Dex data to 'ppos_dex_data.csv'...\n")
             with open("ppos_dex_data.csv", "w", encoding="utf8", newline="") as f:
                 fc = csv.DictWriter(f, fieldnames=ppos_dex_data[0].keys())
                 fc.writeheader()

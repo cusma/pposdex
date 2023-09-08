@@ -11,18 +11,18 @@ Algorand PPoS Decentralization Index.
 
 Usage:
   ppos_dex.py publish [--algo-threshold=<a>] [--localhost | --test]
-  ppos_dex.py plot [--publisher=<p>] [--algo-threshold=<a>] [--start-block=<s>] [--end-block=<e>] [--localhost | --test]
-  ppos_dex.py snapshot [--publisher=<p>] [--algo-threshold=<a>] [--start-block=<s>] [--localhost | --test]
+  ppos_dex.py timeseries [--publisher=<p>] [--algo-threshold=<a>] [--start-block=<s>] [--end-block=<e>] [--localhost | --test] [--save]
+  ppos_dex.py snapshot [--publisher=<p>] [--algo-threshold=<a>] [--start-block=<s>] [--end-block=<e>] [--localhost | --test] [--save]
   ppos_dex.py export [--publisher=<p>] [--algo-threshold=<a>] [--start-block=<s>] [--end-block=<e>] [--localhost | --test]
   ppos_dex.py health [--localhost | --test]
   ppos_dex.py [--help]
 
 Commands:
-  publish   Publish PPoS Dex data. Requires ALGO_MNEMONIC environment variable.
-  plot      Plot PPoS Dex timeseries.
-  snapshot  Plot latest PPoS Dex data point.
-  export    Export PPoS Dex data to `.csv`.
-  health    Check Algod and Indexer status.
+  publish     Publish PPoS Dex data. Requires ALGO_MNEMONIC environment variable.
+  timeseries  Plot PPoS Dex timeseries.
+  snapshot    Plot latest PPoS Dex data point.
+  export      Export PPoS Dex data to `.csv`.
+  health      Check Algod and Indexer status.
 
 Options:
   -a, --algo-threshold=<a>  [default: 1000]

@@ -1,0 +1,42 @@
+name: Update plots
+
+on:
+  schedule:
+    - cron: "42 0 * * *"
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  plots:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11.3
+
+      - name: Set up Poetry
+        uses: abatilo/actions-poetry@v2.3.0
+        with:
+          poetry-version: 1.6.1
+
+      - name: Install Python dependencies
+        run: poetry install
+
+      - name: Save timeseries
+        run: poetry run python3 ppos_dex.py timeseries --save
+
+      - name: Save snapshots
+        run: poetry run python3 ppos_dex.py snapshot --save
+
+      - name: Auto-commit and push
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          branch: images
