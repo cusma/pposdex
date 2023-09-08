@@ -1,16 +1,13 @@
 name: Publish to GitHub Pages
 
 on:
+  pull_request:
+
   push:
     branches: [ main ]
-    paths:
-      - "docs/**"
-      - ".github/worklows/gh-pages.yaml"
 
-  pull_request:
-    paths:
-      - "docs/**"
-      - ".github/worklows/gh-pages.yaml"
+  release:
+    types: [ published ]
 
 permissions:
   contents: write
