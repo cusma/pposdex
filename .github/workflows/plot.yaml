@@ -31,6 +31,10 @@ jobs:
       - name: Install Python dependencies
         run: poetry install
 
+      - name: Pull
+        run: |
+          git pull
+
       - name: Save timeseries
         run: poetry run python3 ppos_dex.py timeseries --save
 
@@ -50,10 +54,6 @@ jobs:
             echo "no changes - skipping "
             echo "HAS_COMMITS=false" >> "$GITHUB_ENV"
           fi
-
-      - name: Pull
-        run: |
-          git pull
 
       - name: Push changes
         uses: ad-m/github-push-action@master
