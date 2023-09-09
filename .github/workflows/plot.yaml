@@ -51,6 +51,10 @@ jobs:
             echo "HAS_COMMITS=false" >> "$GITHUB_ENV"
           fi
 
+      - name: Pull
+        run: |
+          git pull
+
       - name: Push changes
         uses: ad-m/github-push-action@master
         if: env.HAS_COMMITS != false
