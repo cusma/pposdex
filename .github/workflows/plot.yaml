@@ -31,15 +31,18 @@ jobs:
       - name: Install Python dependencies
         run: poetry install
 
-      - name: Pull
-        run: |
-          git pull
+      - name: Checkout local images branch
+        run: git checkout -b images
 
       - name: Save timeseries
         run: poetry run python3 ppos_dex.py timeseries --save
 
       - name: Save snapshots
         run: poetry run python3 ppos_dex.py snapshot --save
+
+      - name: Delete remote images branch
+        run: git push origin -d images
+        continue-on-error: true
 
       - name: Commit files
         id: commit_files
