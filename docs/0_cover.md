@@ -10,4 +10,4 @@
 
 ```
 
-Algorand Pure Proof of Stake Decentralization Index (by [cusma](https://cusma.algo.xyz))
+Algorand Pure Proof of Stake Decentralization Index (by [cusma](https://x.com/cusma_b))

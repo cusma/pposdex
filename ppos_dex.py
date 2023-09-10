@@ -120,10 +120,12 @@ def main():
             end_block=args["--end-block"],
         )
         if args["timeseries"]:
-            print("💾 Saving timeseries in './docs/images/timeseries'...\n")
+            if args["--save"]:
+                print("💾 Saving timeseries in './docs/images/timeseries'...\n")
             plots.timeseries(ppos_dex_data, args["--save"])
         elif args["snapshot"]:
-            print("💾 Saving snapshots in './docs/images/snapshot'...\n")
+            if args["--save"]:
+                print("💾 Saving snapshots in './docs/images/snapshot'...\n")
             plots.snapshot(ppos_dex_data, args["--save"])
         elif args["export"]:
             print("💾 Exporting PPoS Dex data to 'ppos_dex_data.csv'...\n")

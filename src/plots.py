@@ -132,22 +132,32 @@ def ts_ppos_inequality_unb(
 
 def ts_ppos_dex(
     ppos_dex_v1: list[float | None],
+    x_axsis_v1: list[int],
+    x_ticks_v1: list[str],
     ppos_dex_v2: list[float | None],
-    x_axsis: list[int],
-    x_ticks: list[str],
+    x_axsis_v2: list[int],
+    x_ticks_v2: list[str],
     x_ticks_rotation: int = XTICKS_ROTATION,
     x_ticks_number: int = N_XTICKS,
     save: bool = False,
 ) -> None:
     plt.suptitle("PPoS Dex")
+    plt.subplot(2, 1, 1)
     plt.title("(1 = perfect decentralization)", fontsize="medium")
-    plt.plot(x_axsis, ppos_dex_v1, label="PPoS Dex V1")
-    plt.plot(x_axsis, ppos_dex_v2, label="PPoS Dex V2")
-    plt.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
+    plt.plot(x_axsis_v1, ppos_dex_v1, label="PPoS Dex V1")
+    plt.xticks(x_axsis_v1, x_ticks_v1, rotation=x_ticks_rotation)
     plt.locator_params(nbins=x_ticks_number)
-    plt.legend()
     plt.ylim(0)
     plt.grid(True)
+    plt.legend()
+    plt.subplot(2, 1, 2)
+    plt.title("(1 = perfect decentralization)", fontsize="medium")
+    plt.plot(x_axsis_v2, ppos_dex_v2, label="PPoS Dex V2")
+    plt.xticks(x_axsis_v2, x_ticks_v2, rotation=x_ticks_rotation)
+    plt.locator_params(nbins=x_ticks_number)
+    plt.ylim(0)
+    plt.grid(True)
+    plt.legend()
     plt.tight_layout()
     if save:
         plt.savefig(fname="./docs/images/timeseries/ppos_dex")
@@ -339,9 +349,21 @@ def timeseries(ppos_dex_data: list[dict], save: bool = False) -> None:
     ts_ppos_inequality_unb(ppos_theil_l, ppos_theil_t, x_axsis, x_ticks, save=save)
 
     # PPoS Dex
+    ppos_dex_data_v2 = [d for d in ppos_dex_data if d.get("ppos_dex_v2")]
+    x_axsis_v2 = list(range(len(ppos_dex_data_v2)))
+    x_ticks_v2 = [d["timestamp"][:10] for d in ppos_dex_data_v2]
+
     ppos_dex_v1 = [d.get("ppos_dex") for d in ppos_dex_data]
-    ppos_dex_v2 = [d.get("ppos_dex_v2") for d in ppos_dex_data]
-    ts_ppos_dex(ppos_dex_v1, ppos_dex_v2, x_axsis, x_ticks, save=save)
+    ppos_dex_v2 = [d.get("ppos_dex_v2") for d in ppos_dex_data_v2]
+    ts_ppos_dex(
+        ppos_dex_v1=ppos_dex_v1,
+        x_axsis_v1=x_axsis,
+        x_ticks_v1=x_ticks,
+        ppos_dex_v2=ppos_dex_v2,
+        x_axsis_v2=x_axsis_v2,
+        x_ticks_v2=x_ticks_v2,
+        save=save,
+    )
 
 
 def snapshot(ppos_dex_data: list[dict], save: bool = False) -> None:
