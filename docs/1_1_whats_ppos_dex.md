@@ -10,7 +10,7 @@ The monitoring tool is fully trustless: anyone can autonomulsy read the Algorand
 blockchain, do some client-side math, and publish the index on-chain.
 
 Open index data are published daily by the [PPoS Dex Oracle](https://algoexplorer.io/address/WIPE4JSUWLXKZZK6GJ6VI32PX6ZWPKBRH5YFRJCHWOVC73P5RI4DGUQUWQ)
-and then plotted as [timeseries](./2_1_timeseries.md) and [snaphots](./2_2_snapshot.md).
+and then plotted as [timeseries](./2_1_timeseries.md) and [snapshots](./2_2_snapshot.md).
 
 PPoS Dex CLI provides also simple data analytics plots.
 
