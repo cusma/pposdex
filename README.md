@@ -18,7 +18,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 cargo install mdbook
 ```
 
-* Serve the repo on <localhost:3000>
+* Serve the repo on [localhost:3000](http://localhost:3000)
 
 ```bash
 mdbook serve
