@@ -1,6 +1,9 @@
 name: Test
 
 on:
+  push:
+    branches: [ main ]
+
   pull_request:
 
   release:
@@ -39,12 +42,9 @@ jobs:
         run: pipx install algokit
 
       - name: Run LocalNet
-        run: algokit localnet start
-
-      - name: Sleep to allow the LocalNet to start
         run: |
-          sleep 10
-#          algokit localnet status
+          algokit localnet start
+          npx --yes wait-on tcp:4001 -t 30000
 
       - name: Test
         run: poetry run pytest --verbose
