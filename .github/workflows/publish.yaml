@@ -36,4 +36,4 @@ jobs:
       - name: Publish data
         env:
           ALGO_MNEMONIC: ${{ secrets.ALGO_MNEMONIC }}
-        run: uv run --no-sync python ppos_dex.py publish
+        run: uv run --no-sync pposdex publish

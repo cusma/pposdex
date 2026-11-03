@@ -25,21 +25,20 @@ You are all set!
 
 ## Node setup
 
-PPoS Dex interacts both with Algorand Node and an Indexer. You may choose:
+PPoS Dex interacts both with Algorand Node and an Indexer. Every command
+accepts a network option:
 
-1. Your local hosted Node and Indexer (e.g. [AlgoKit](https://github.com/algorandfoundation/algokit-cli));
-2. A third party Node and Indexer APIs.
+| Option | Network | Node and Indexer |
+| --- | --- | --- |
+| _(none)_ | MainNet | [AlgoNode APIs](https://algonode.io/api/) |
+| `-t`, `--test` | TestNet | [AlgoNode APIs](https://algonode.io/api/) |
+| `-l`, `--localhost` | LocalNet | [AlgoKit](https://github.com/algorandfoundation/algokit-cli) LocalNet on `localhost` |
 
-PPoS Dex uses [AlgoNode APIs](https://algonode.io/api/) by default.
-
-If you prefer using your local hosted Node and Indexer (or other API providers),
-the following environment variables must be set:
+To use AlgoKit LocalNet, start it before running PPoS Dex:
 
 ```bash
-export ALGOD_SERVER=...
-export ALGOD_TOKEN=...
-export INDEXER_SERVER=...
-export INDEXER_TOKEN=...
+uvx algokit localnet start
+uv run pposdex health --localhost
 ```
 
 ---

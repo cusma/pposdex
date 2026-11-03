@@ -8,13 +8,13 @@ authors = [{ name = "cusma", email = "cosimo.bassi@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "algokit-utils>=1.4.0,<2",
-    "docopt>=0.6.2",
     "matplotlib>=3.10",
     "msgpack>=1.0",
-    "py-algorand-sdk>=2.11,<3",
-    "schema>=0.7.5",
+    "py-algorand-sdk>=2.12,<3",
 ]
+
+[project.scripts]
+pposdex = "pposdex.cli:main"
 
 [dependency-groups]
 dev = [
@@ -25,8 +25,9 @@ dev = [
     "ruff>=0.14",
 ]
 
-[tool.uv]
-package = false
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
 
 [tool.ruff]
 target-version = "py312"
@@ -39,10 +40,6 @@ ignore = [
     "PLR0917",
 ]
 
-[tool.ruff.lint.per-file-ignores]
-# docopt usage lines can't be wrapped; CLI dispatch is rewritten with argparse later
-"ppos_dex.py" = ["E501", "PLR0912"]
-
 [tool.mypy]
 python_version = "3.12"
 check_untyped_defs = true
@@ -50,17 +47,16 @@ warn_unused_ignores = true
 warn_redundant_casts = true
 
 [[tool.mypy.overrides]]
-module = ["docopt", "schema", "msgpack"]
+module = ["msgpack"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["test"]
-pythonpath = ["."]
 addopts = ["--strict-markers", "--cov", "--cov-report=term-missing"]
 markers = [
     "integration: requires a running AlgoKit LocalNet",
 ]
 
 [tool.coverage.run]
-source = ["src"]
+source = ["pposdex"]

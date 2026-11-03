@@ -1,37 +1,87 @@
 import base64
 import sys
+from dataclasses import dataclass
 from datetime import datetime
 
 import msgpack
-import schema
-from algokit_utils import Account
 from algosdk.constants import microalgos_to_algos_ratio
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
-import src.inequality_idx as idx
-from src import helpers
+from pposdex import helpers
+from pposdex import inequality_idx as idx
+from pposdex.helpers import Account
 
 d_N = 1  # noqa: N816 (math notation)
 d_T = 1  # noqa: N816 (math notation)
 MICROALGO_TOTAL_SUPPLY = 10**16
-SCHEMA = schema.Schema(
-    {
-        "algo_threshold": int,
-        "accounts": schema.And(int, lambda n: n >= 0),
-        "algo_dynamics": schema.And(float, lambda n: n >= 0),
-        "ppos_online_stake": schema.And(float, lambda n: 0 <= n <= 1),
-        "ppos_online_accounts": schema.And(float, lambda n: 0 <= n <= 1),
-        schema.Optional("algo_hhi"): schema.And(float, lambda n: 0 <= n <= 1),
-        "ppos_gini": schema.And(float, lambda n: 0 <= n <= 1),
-        "ppos_theil_l": schema.And(float, lambda n: n >= 0),
-        "ppos_theil_t": schema.And(float, lambda n: n >= 0),
-        schema.Optional("ppos_hhi"): schema.And(float, lambda n: 0 <= n <= 1),
-        "ppos_dex": schema.And(float, lambda n: 0 <= n <= 1),
-        schema.Optional("ppos_dex_v2"): schema.And(float, lambda n: 0 <= n <= 1),
-        "timestamp": str,
-    }
-)
+
+
+class InvalidDataError(ValueError):
+    """PPoS Dex data point does not comply with the schema"""
+
+
+@dataclass(frozen=True)
+class Field:
+    type: type
+    min: float | None = None
+    max: float | None = None
+    required: bool = True
+
+
+SCHEMA: dict[str, Field] = {
+    "algo_threshold": Field(int),
+    "accounts": Field(int, min=0),
+    "algo_dynamics": Field(float, min=0),
+    "ppos_online_stake": Field(float, min=0, max=1),
+    "ppos_online_accounts": Field(float, min=0, max=1),
+    "algo_hhi": Field(float, min=0, max=1, required=False),
+    "ppos_gini": Field(float, min=0, max=1),
+    "ppos_theil_l": Field(float, min=0),
+    "ppos_theil_t": Field(float, min=0),
+    "ppos_hhi": Field(float, min=0, max=1, required=False),
+    "ppos_dex": Field(float, min=0, max=1),
+    "ppos_dex_v2": Field(float, min=0, max=1, required=False),
+    "timestamp": Field(str),
+}
+
+
+def validate(data: object) -> dict:
+    """
+    Validate a PPoS Dex data point against the SCHEMA
+
+    Args:
+        data: PPoS Dex data point
+
+    Returns:
+        The validated data point
+
+    Raises:
+        InvalidDataError: if the data point does not comply with the SCHEMA
+    """
+    if not isinstance(data, dict):
+        raise InvalidDataError(f"Expected a mapping, got {type(data).__name__}")
+
+    unknown_keys = data.keys() - SCHEMA.keys()
+    if unknown_keys:
+        raise InvalidDataError(f"Unknown keys: {sorted(map(str, unknown_keys))}")
+
+    for key, spec in SCHEMA.items():
+        if key not in data:
+            if spec.required:
+                raise InvalidDataError(f"Missing key: {key}")
+            continue
+        value = data[key]
+        if not isinstance(value, spec.type):
+            raise InvalidDataError(f"{key}: expected {spec.type.__name__}")
+        if not isinstance(value, int | float):
+            continue
+        if spec.min is not None and value < spec.min:
+            raise InvalidDataError(f"{key}: {value} < {spec.min}")
+        if spec.max is not None and value > spec.max:
+            raise InvalidDataError(f"{key}: {value} > {spec.max}")
+
+    return data
 
 
 def post_ppos_dex_data(
@@ -39,7 +89,6 @@ def post_ppos_dex_data(
     indexer_client: IndexerClient,
     publisher: Account,
     algo_threshold: int,
-    data_schema: schema.Schema,
     wait_rounds: int = 0,
 ) -> dict:
     """
@@ -50,7 +99,6 @@ def post_ppos_dex_data(
         indexer_client: Algorand Indexer Client
         publisher: Data publisher account
         algo_threshold: Minimum balance data filter (expressed in ALGOs)
-        data_schema: Data validation schema
         wait_rounds: Wait rounds for note publishing confirmation
 
     Returns:
@@ -94,7 +142,7 @@ def post_ppos_dex_data(
         "ppos_dex_v2": ppos_dex_v2,
         "timestamp": str(datetime.now()),
     }
-    ppos_dex_data = data_schema.validate(ppos_dex_data)
+    ppos_dex_data = validate(ppos_dex_data)
 
     # Publish Data
     helpers.post_note(
@@ -107,7 +155,6 @@ def get_ppos_dex_data(
     indexer_client: IndexerClient,
     publisher_address: str,
     algo_threshold: int,
-    data_schema: schema.Schema,
     start_block: int,
     end_block: int | None = None,
 ) -> list[dict]:
@@ -118,7 +165,6 @@ def get_ppos_dex_data(
         indexer_client: Algorand Indexer Client
         publisher_address: Publisher addres to read from
         algo_threshold: Minimum balance data filter (expressed in ALGOs)
-        data_schema: Data validation schema
         start_block: Data starting block
         end_block: Data ending block
 
@@ -132,11 +178,10 @@ def get_ppos_dex_data(
     ppos_dex_data: list[dict] = []
     for txn_note in ppos_dex_txns_note:
         try:
-            data: dict = msgpack.unpackb(base64.b64decode(txn_note))
-            data = data_schema.validate(data)
+            data = validate(msgpack.unpackb(base64.b64decode(txn_note)))
             if data["algo_threshold"] == algo_threshold:
                 ppos_dex_data += [data]
-        except schema.SchemaError:
+        except InvalidDataError:
             # Ignore non compliant data
             pass
         except msgpack.ExtraData:

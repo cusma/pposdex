@@ -2,11 +2,15 @@ import base64
 from collections.abc import Callable
 
 import pytest
-from algokit_utils import Account
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
-from src.helpers import get_address_txns_note, get_algo_holders, post_note
+from pposdex.helpers import (
+    Account,
+    get_address_txns_note,
+    get_algo_holders,
+    post_note,
+)
 
 pytestmark = pytest.mark.integration
 
