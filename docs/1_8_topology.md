@@ -21,8 +21,8 @@ paths and reducing communication hops. Complementary fully P2P communications pa
 are under active research.
 
 Paths of communication are therefore essential to ensure that no one is excluded
-from the communication: everybody should be able to _talk_ and _listen_ to each other
-without relying on a few dominant paths.
+from the communication: everybody should be able to _talk_ and _listen_ to each
+other without relying on a few dominant paths.
 
 **The more communication paths between nodes the more robust and decentralized
 the network.**
@@ -73,7 +73,9 @@ of the _Central Point Dominance_ so:
 ---
 
 > Network Topology Decentralization does not consider the degree of _geo-delocalization_
-> of the physical infrastrucutre. More insights on this topic can be found [here](https://databricks.com/blog/2020/10/08/analyzing-algorand-blockchain-data-with-databricks-delta.html).
+> of the physical infrastrucutre. More insights on this topic can be found in
+> [Analyzing Algorand Blockchain Data with Databricks
+> Delta](https://databricks.com/blog/2020/10/08/analyzing-algorand-blockchain-data-with-databricks-delta.html).
 > For the scope of this project we consider a _perfect_ Network Topology Decentralization
 > (\\( d_T = 1 \\)), leaving the refinement of the calculation of this decentralization
 > factor to future works.

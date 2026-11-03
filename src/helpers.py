@@ -5,15 +5,17 @@ Algorand PPoS Dex Helpers
 import functools
 import json
 import os
+import sys
 import time
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 
+from algokit_utils import Account
 from algosdk import mnemonic
-from algosdk.transaction import PaymentTxn, wait_for_confirmation
 from algosdk.error import IndexerHTTPError
+from algosdk.transaction import PaymentTxn, wait_for_confirmation
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
-from algokit_utils import Account
 
 ATTEMPT_DELAY_SEC = 3
 MAX_ATTEMPTS = 10
@@ -44,7 +46,7 @@ def indexer_request(request: Callable) -> Callable:
                 time.sleep(ATTEMPT_DELAY_SEC)
             finally:
                 attempts += 1
-        quit("Algorand Indexer request failed.")
+        sys.exit("Algorand Indexer request failed.")
 
     return wrapper
 
@@ -59,7 +61,7 @@ def get_publisher_account() -> Account:
 @indexer_request
 def get_algo_holders(
     indexer_client: IndexerClient,
-    microalgo_min_balance: Optional[int] = None,
+    microalgo_min_balance: int | None = None,
 ) -> list[dict]:
     """
     Get Accounts holding a balance greater than `microalgo_min_balance`
@@ -90,7 +92,7 @@ def get_algo_holders(
             nexttoken = result["next-token"]
 
     if not holders:
-        quit(f"No account with {microalgo_min_balance} microAlgo balance found.")
+        sys.exit(f"No account with {microalgo_min_balance} microAlgo balance found.")
 
     return holders
 
@@ -99,8 +101,8 @@ def get_algo_holders(
 def get_address_txns_note(
     indexer_client: IndexerClient,
     address: str,
-    start_block: Optional[int] = None,
-    end_block: Optional[int] = None,
+    start_block: int | None = None,
+    end_block: int | None = None,
 ) -> list[str]:
     """
     Get transaction notes published by `address`
@@ -139,7 +141,7 @@ def get_address_txns_note(
             txns_note.append(note)
 
     if not txns_note:
-        quit(f"No published note found for account {address}.")
+        sys.exit(f"No published note found for account {address}.")
 
     return txns_note
 

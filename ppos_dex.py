@@ -26,20 +26,20 @@ Options:
   -h, --help
 """
 
-
 import csv
 import sys
-from docopt import docopt
 from pprint import pprint
+
 from algokit_utils.network_clients import (
     get_algod_client,
-    get_default_localnet_config,
     get_algonode_config,
+    get_default_localnet_config,
     get_indexer_client,
 )
+from docopt import docopt
 
 import src.ppos_dex_data as pposdex
-import src.plots as plots
+from src import plots
 from src.helpers import get_publisher_account
 
 
@@ -76,7 +76,9 @@ def main():
         try:
             assert args["--end-block"] > args["--start-block"]
         except AssertionError:
-            raise AssertionError("⚠️ --end-block must be grater than --start-block")
+            raise AssertionError(
+                "⚠️ --end-block must be grater than --start-block"
+            ) from None
 
     if args["--localhost"]:
         algod_config = get_default_localnet_config("algod")

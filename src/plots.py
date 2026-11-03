@@ -1,3 +1,5 @@
+import math
+
 import matplotlib.pyplot as plt
 
 N_XTICKS = 10
@@ -5,8 +7,8 @@ XTICKS_ROTATION = 45
 
 
 def ts_algo_prt(
-    algo_dynamics: list[float | None],
-    online_stake: list[float | None],
+    algo_dynamics: list[float],
+    online_stake: list[float],
     x_axsis: list[int],
     x_ticks: list[str],
     x_ticks_rotation: int = XTICKS_ROTATION,
@@ -31,7 +33,7 @@ def ts_algo_prt(
 
 
 def ts_accounts_prt(
-    online_accounts: list[float | None],
+    online_accounts: list[float],
     x_axsis: list[int],
     x_ticks: list[str],
     x_ticks_rotation: int = XTICKS_ROTATION,
@@ -55,7 +57,7 @@ def ts_accounts_prt(
 
 
 def ts_algo_inequality(
-    algo_hhi: list[float | None],
+    algo_hhi: list[float],
     x_axsis: list[int],
     x_ticks: list[str],
     x_ticks_rotation: int = XTICKS_ROTATION,
@@ -79,8 +81,8 @@ def ts_algo_inequality(
 
 
 def ts_ppos_inequality_b(
-    ppos_gini: list[float | None],
-    ppos_hhi: list[float | None],
+    ppos_gini: list[float],
+    ppos_hhi: list[float],
     x_axsis: list[int],
     x_ticks: list[str],
     x_ticks_rotation: int = XTICKS_ROTATION,
@@ -105,8 +107,8 @@ def ts_ppos_inequality_b(
 
 
 def ts_ppos_inequality_unb(
-    ppos_theil_l: list[float | None],
-    ppos_theil_t: list[float | None],
+    ppos_theil_l: list[float],
+    ppos_theil_t: list[float],
     x_axsis: list[int],
     x_ticks: list[str],
     x_ticks_rotation: int = XTICKS_ROTATION,
@@ -131,10 +133,10 @@ def ts_ppos_inequality_unb(
 
 
 def ts_ppos_dex(
-    ppos_dex_v1: list[float | None],
+    ppos_dex_v1: list[float],
     x_axsis_v1: list[int],
     x_ticks_v1: list[str],
-    ppos_dex_v2: list[float | None],
+    ppos_dex_v2: list[float],
     x_axsis_v2: list[int],
     x_ticks_v2: list[str],
     x_ticks_rotation: int = XTICKS_ROTATION,
@@ -180,7 +182,7 @@ def snap_algo_prt(
 ) -> None:
     plt.style.use("fivethirtyeight")
     plt.suptitle(
-        f"ALGO Dynamics\n(1 = full circulation or complete participation)\n"
+        "ALGO Dynamics\n(1 = full circulation or complete participation)\n"
         + snap_suptitle(timestamp, algo_threshold, accounts),
         fontsize="medium",
     )
@@ -209,7 +211,7 @@ def snap_accounts_prt(
 ) -> None:
     plt.style.use("fivethirtyeight")
     plt.suptitle(
-        f"Accounts Participation\n(1 = complete participation)\n"
+        "Accounts Participation\n(1 = complete participation)\n"
         + snap_suptitle(timestamp, algo_threshold, accounts),
         fontsize="medium",
     )
@@ -233,7 +235,7 @@ def snap_algo_inequality(
 ) -> None:
     plt.style.use("fivethirtyeight")
     plt.suptitle(
-        f"ALGO Inequality\n(0 = complete equality)\n"
+        "ALGO Inequality\n(0 = complete equality)\n"
         + snap_suptitle(timestamp, algo_threshold, accounts),
         fontsize="medium",
     )
@@ -260,7 +262,7 @@ def snap_ppos_inequality(
 ) -> None:
     plt.style.use("fivethirtyeight")
     plt.suptitle(
-        f"Validators Stake Inequality\n(0 = complete equality)\n"
+        "Validators Stake Inequality\n(0 = complete equality)\n"
         + snap_suptitle(timestamp, algo_threshold, accounts),
         fontsize="medium",
     )
@@ -300,7 +302,7 @@ def snap_ppos_dex(
 ) -> None:
     plt.style.use("fivethirtyeight")
     plt.suptitle(
-        f"PPoS Dex\n(1 = perfect decentralization)\n"
+        "PPoS Dex\n(1 = perfect decentralization)\n"
         + snap_suptitle(timestamp, algo_threshold, accounts),
         fontsize="medium",
     )
@@ -320,32 +322,37 @@ def snap_ppos_dex(
     plt.close()
 
 
+def _series(ppos_dex_data: list[dict], key: str) -> list[float]:
+    # Missing data points are plotted as gaps
+    return [d.get(key, math.nan) for d in ppos_dex_data]
+
+
 def timeseries(ppos_dex_data: list[dict], save: bool = False) -> None:
     ppos_dex_data.reverse()
     x_axsis = list(range(len(ppos_dex_data)))
     x_ticks = [d["timestamp"][:10] for d in ppos_dex_data]
 
     # Stake Participation
-    algo_dynamics = [d.get("algo_dynamics") for d in ppos_dex_data]
-    online_stake = [d.get("ppos_online_stake") for d in ppos_dex_data]
+    algo_dynamics = _series(ppos_dex_data, "algo_dynamics")
+    online_stake = _series(ppos_dex_data, "ppos_online_stake")
     ts_algo_prt(algo_dynamics, online_stake, x_axsis, x_ticks, save=save)
 
     # Accounts Participation
-    online_accounts = [d.get("ppos_online_accounts") for d in ppos_dex_data]
+    online_accounts = _series(ppos_dex_data, "ppos_online_accounts")
     ts_accounts_prt(online_accounts, x_axsis, x_ticks, save=save)
 
     # Stake Inequality
-    algo_hhi = [d.get("algo_hhi") for d in ppos_dex_data]
+    algo_hhi = _series(ppos_dex_data, "algo_hhi")
     ts_algo_inequality(algo_hhi, x_axsis, x_ticks, save=save)
 
     # PPoS Inequality Bounded
-    ppos_gini = [d.get("ppos_gini") for d in ppos_dex_data]
-    ppos_hhi = [d.get("ppos_hhi") for d in ppos_dex_data]
+    ppos_gini = _series(ppos_dex_data, "ppos_gini")
+    ppos_hhi = _series(ppos_dex_data, "ppos_hhi")
     ts_ppos_inequality_b(ppos_gini, ppos_hhi, x_axsis, x_ticks, save=save)
 
     # PPoS Inequality Unbounded
-    ppos_theil_l = [d.get("ppos_theil_l") for d in ppos_dex_data]
-    ppos_theil_t = [d.get("ppos_theil_t") for d in ppos_dex_data]
+    ppos_theil_l = _series(ppos_dex_data, "ppos_theil_l")
+    ppos_theil_t = _series(ppos_dex_data, "ppos_theil_t")
     ts_ppos_inequality_unb(ppos_theil_l, ppos_theil_t, x_axsis, x_ticks, save=save)
 
     # PPoS Dex
@@ -353,8 +360,8 @@ def timeseries(ppos_dex_data: list[dict], save: bool = False) -> None:
     x_axsis_v2 = list(range(len(ppos_dex_data_v2)))
     x_ticks_v2 = [d["timestamp"][:10] for d in ppos_dex_data_v2]
 
-    ppos_dex_v1 = [d.get("ppos_dex") for d in ppos_dex_data]
-    ppos_dex_v2 = [d.get("ppos_dex_v2") for d in ppos_dex_data_v2]
+    ppos_dex_v1 = _series(ppos_dex_data, "ppos_dex")
+    ppos_dex_v2 = _series(ppos_dex_data_v2, "ppos_dex_v2")
     ts_ppos_dex(
         ppos_dex_v1=ppos_dex_v1,
         x_axsis_v1=x_axsis,

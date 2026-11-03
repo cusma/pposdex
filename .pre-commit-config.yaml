@@ -1,54 +1,46 @@
 repos:
-# YAML
+# Generic
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.4.0
+  rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # frozen: v6.0.0
   hooks:
     - id: check-yaml
+    - id: check-toml
+    - id: check-merge-conflict
+    - id: check-added-large-files
+    - id: detect-private-key
     - id: end-of-file-fixer
     - id: trailing-whitespace
 
-# Python
-- repo: https://github.com/psf/black
-  rev: 23.7.0
+# Python (tool versions come from uv.lock)
+- repo: local
   hooks:
-  - id: black
-    language_version: python3.11
-
-- repo: https://github.com/myint/autoflake
-  rev: v2.2.0
-  hooks:
-    - id: autoflake
-      args:
-        - --in-place
-        - --remove-unused-variables
-        - --remove-all-unused-imports
-        - --expand-star-imports
-        - --ignore-init-module-imports
-
-- repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.5.1
-  hooks:
+    - id: uv-lock
+      name: uv lock check
+      entry: uv lock --check
+      language: system
+      files: ^(pyproject\.toml|uv\.lock)$
+      pass_filenames: false
+    - id: ruff-check
+      name: ruff check
+      entry: uv run --locked ruff check --fix
+      language: system
+      types_or: [python, pyi]
+    - id: ruff-format
+      name: ruff format
+      entry: uv run --locked ruff format
+      language: system
+      types_or: [python, pyi]
     - id: mypy
-      args: [
-        "--check-untyped-defs",
-        "--ignore-missing-imports",
-        "--scripts-are-modules",
-        "--python-version=3.11",
-      ]
-      additional_dependencies: ["types-requests", "types-python-dateutil"]
-      language_version: python3.11
+      name: mypy
+      entry: uv run --locked mypy
+      language: system
+      types_or: [python, pyi]
+      args: [ppos_dex.py, src, test]
+      pass_filenames: false
 
 # Markdown
 - repo: https://github.com/igorshubovych/markdownlint-cli
-  rev: v0.36.0
+  rev: cbcdc463be5464e25e3e955a511599a67b9b987f  # frozen: v0.50.0
   hooks:
     - id: markdownlint
       args: ["--fix"]
-
-# GitHub Actions
-- repo: https://github.com/bridgecrewio/checkov.git
-  rev: 2.4.14
-  hooks:
-    - id: checkov
-      files: .+
-      verbose: false

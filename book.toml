@@ -1,7 +1,6 @@
 [book]
 authors = ["cusma"]
 language = "en"
-multilingual = false
 src = "docs"
 title = "PPos Dex"
 

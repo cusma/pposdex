@@ -1,25 +1,66 @@
-[tool.poetry]
+[project]
 name = "pposdex"
 version = "3.0.0"
 description = "Algorand Pure Proof of Stake Decentralization Index"
 license = "MIT"
-authors = ["cusma <cosimo.bassi@gmail.com>"]
+license-files = ["LICENSE"]
+authors = [{ name = "cusma", email = "cosimo.bassi@gmail.com" }]
 readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "algokit-utils>=1.4.0,<2",
+    "docopt>=0.6.2",
+    "matplotlib>=3.10",
+    "msgpack>=1.0",
+    "py-algorand-sdk>=2.11,<3",
+    "schema>=0.7.5",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-algokit-utils = "^1.3.1"
-docopt = "^0.6.2"
-matplotlib = "^3.7.2"
-py-algorand-sdk = "^2.4.0"
-schema = "^0.7.5"
+[dependency-groups]
+dev = [
+    "mypy>=1.18",
+    "pre-commit>=4.3",
+    "pytest>=8.4",
+    "pytest-cov>=7.0",
+    "ruff>=0.14",
+]
 
+[tool.uv]
+package = false
 
-[tool.poetry.group.dev.dependencies]
-pytest = "*"
-pytest-sugar = "*"
+[tool.ruff]
+target-version = "py312"
 
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "PT", "N", "C4", "PL"]
+ignore = [
+    "PLR2004", # magic values are domain constants here
+    "PLR0913", # plotting and index functions take many explicit parameters
+    "PLR0917",
+]
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.ruff.lint.per-file-ignores]
+# docopt usage lines can't be wrapped; CLI dispatch is rewritten with argparse later
+"ppos_dex.py" = ["E501", "PLR0912"]
+
+[tool.mypy]
+python_version = "3.12"
+check_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+[[tool.mypy.overrides]]
+module = ["docopt", "schema", "msgpack"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["test"]
+pythonpath = ["."]
+addopts = ["--strict-markers", "--cov", "--cov-report=term-missing"]
+markers = [
+    "integration: requires a running AlgoKit LocalNet",
+]
+
+[tool.coverage.run]
+source = ["src"]

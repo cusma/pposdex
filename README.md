@@ -23,3 +23,29 @@ cargo install mdbook
 ```bash
 mdbook serve
 ```
+
+## Development
+
+PPoS Dex uses [`uv`](https://docs.astral.sh/uv/) for Python and dependencies
+management.
+
+* Install the dependencies and the pre-commit hooks
+
+```bash
+uv sync
+uv run pre-commit install
+```
+
+* Run the unit tests
+
+```bash
+uv run pytest -m "not integration"
+```
+
+* Run the integration tests (requires [AlgoKit](https://github.com/algorandfoundation/algokit-cli)
+LocalNet)
+
+```bash
+uvx algokit localnet start
+uv run pytest -m integration
+```

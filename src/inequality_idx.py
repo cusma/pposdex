@@ -17,7 +17,7 @@ def scalar_product(vector_1: list[float], vector_2: list[float]) -> float:
         Scalar product (vector_1 * vector_2)
     """
     assert len(vector_1) == len(vector_2)
-    return sum(i[0] * i[1] for i in zip(vector_1, vector_2))
+    return sum(i[0] * i[1] for i in zip(vector_1, vector_2, strict=True))
 
 
 def gini(distribution: list[float]) -> float:
@@ -59,7 +59,7 @@ def generalized_entropy(distribution: list[float], alpha: float) -> float:
             alpha != 0, 1
     """
     assert distribution
-    assert alpha != 0 and alpha != 1
+    assert alpha not in {0, 1}
     n = len(distribution)
     mean_amount = sum(distribution) / n
     epsilon: float = 0
@@ -114,13 +114,13 @@ def theil_t(distribution: list[float]) -> float:
 
 def herfindahl_hirschman(distribution: list[float]) -> float:
     """
-    Herfindahl–Hirschman Index
+    Herfindahl-Hirschman Index
 
     Args:
         distribution: Wealth distribution in the market
 
     Returns:
-        Herfindahl–Hirschman Index (HHI), market concentration degree
+        Herfindahl-Hirschman Index (HHI), market concentration degree
             0 <= HHI < 1,
             HHI = 0, perfectly competitive
     """

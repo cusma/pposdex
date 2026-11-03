@@ -1,7 +1,7 @@
-import pytest
+import time
+from collections.abc import Callable
 
-from algosdk.v2client.algod import AlgodClient
-from algosdk.v2client.indexer import IndexerClient
+import pytest
 from algokit_utils import (
     Account,
     get_algod_client,
@@ -9,6 +9,8 @@ from algokit_utils import (
     get_indexer_client,
     get_localnet_default_account,
 )
+from algosdk.v2client.algod import AlgodClient
+from algosdk.v2client.indexer import IndexerClient
 
 
 @pytest.fixture(scope="session")
@@ -54,3 +56,16 @@ def indexer_client() -> IndexerClient:
 @pytest.fixture(scope="session")
 def faucet(algod_client) -> Account:
     return get_localnet_default_account(algod_client)
+
+
+@pytest.fixture(scope="session")
+def wait_for_indexer(indexer_client) -> Callable[[int], None]:
+    def wait(confirmed_round: int, timeout_sec: float = 30) -> None:
+        # Algod confirms a transaction before the Indexer has caught up to its round
+        deadline = time.monotonic() + timeout_sec
+        while indexer_client.health()["round"] < confirmed_round:
+            if time.monotonic() > deadline:
+                raise TimeoutError(f"Indexer did not reach round {confirmed_round}")
+            time.sleep(0.5)
+
+    return wait

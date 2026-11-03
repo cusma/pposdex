@@ -5,7 +5,7 @@
 Take a snapshot of latest published PPoS Dex data.
 
 ```shell
-poetry run ppos_dex.py snapshot [--publisher=<p>] [--algo-threshold=<a>] [--start-block=<s>] [--localhost | --test] [--save]
+uv run ppos_dex.py snapshot [--publisher=<p>] [--algo-threshold=<a>] [--start-block=<s>] [--localhost | --test] [--save]
 ```
 
 ## Options
