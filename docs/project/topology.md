@@ -1,7 +1,5 @@
 # Network Topology
 
----
-
 Blockchain's public ledger is distributed across multiple nodes in a network. All
 these nodes work together, using the same set of software rules (the _Consensus
 Protocol_), to verify transactions that are eventually added to the finalized ledger.
@@ -70,8 +68,7 @@ of the _Central Point Dominance_ so:
 
 \\[ d_T = 1 - CPD \\]
 
----
-
+> [!NOTE]
 > Network Topology Decentralization does not consider the degree of _geo-delocalization_
 > of the physical infrastructure. More insights on this topic can be found in
 > [Analyzing Algorand Blockchain Data with Databricks

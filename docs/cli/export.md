@@ -1,7 +1,5 @@
 # Export Plot PPoS Dex data
 
----
-
 Export PPoS Dex data to `csv` file for external analysis.
 
 ```shell

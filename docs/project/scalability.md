@@ -1,7 +1,5 @@
 # Scalability
 
----
-
 Scalability can be quantified in several ways:
 
 - Block's finalization latency;
@@ -16,5 +14,3 @@ dozen of minutes (or a few hours) to just 3.5 seconds, with no waste of energy,
 neglectable transaction’s cost (0.001 ALGO), and no hardware barriers.
 
 So we have quantitative evidences of Algorand's _scalability_.
-
----

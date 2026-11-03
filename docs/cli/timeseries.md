@@ -1,7 +1,5 @@
 # Plot PPoS Dex timeseries
 
----
-
 Plot PPoS Dex timeseries published to evaluate trends.
 
 ```shell
@@ -18,5 +16,3 @@ threshold (default: 1000 ALGO);
 1. `[--localhost | test]` select local hosted Node and Indexer / other API providers,
 or default TestNet end-points;
 1. `[--save]` save plots in `./docs/images/timeseries`.
-
----

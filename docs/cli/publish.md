@@ -1,7 +1,5 @@
 # Publish PPoS Dex data points
 
----
-
 Contribute publishing trustless PPoS Dex data points on Algorand blockchain paying
 just the minimum transaction fee (currently 0.001 ALGO).
 
@@ -42,5 +40,3 @@ or default TestNet end-points.
 Is worth noting that lower values of `[--algo-threshold=<at>]` will require more
 querying efforts. You should avoid lowering the default threshold, especially if
 you are using third party API services.
-
----

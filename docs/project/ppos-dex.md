@@ -1,7 +1,5 @@
 # Pure Proof of Stake Decentralization Index
 
----
-
 We finally apply the \\(DEX\\) index to Algorand’s PPoS, defining the
 \\(PPoS DEX\\) index.
 
@@ -54,8 +52,7 @@ ideal condition, _never reaching it_.
 | PPoS Theil’T           | \\(TT(S)\\)      | PPoS staking inequality, sensitive to differences at the high end of the distribution (large stakes)  |
 | PPoS HHI               | \\(1 - HHI(S)\\) | PPoS staking inequality, takes the number of participating accounts in consideration                  |
 
----
-
+> [!NOTE]
 > **Minimum balance filter**
 >
 > Due to the huge number of accounts already existing on Algorand (more than 30M

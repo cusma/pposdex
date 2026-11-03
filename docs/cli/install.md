@@ -1,7 +1,5 @@
 # PPoS Dex CLI
 
----
-
 PPoS Dex CLI provides the following utilities:
 
 1. Publishing PPoS Dex data point;
@@ -40,5 +38,3 @@ To use AlgoKit LocalNet, start it before running PPoS Dex:
 uvx algokit localnet start
 uv run pposdex health --localhost
 ```
-
----

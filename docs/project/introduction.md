@@ -1,7 +1,5 @@
 # Introduction
 
----
-
 Blockchain technology arose to fulfil the promise of genesis and exchange of digital
 native value in a disintermediated, censorship resistant, safe and scalable way.
 
@@ -45,5 +43,3 @@ permissionless system in a secure way?
 Is the foundational Blockchain promise doomed by the Buterin trilemma?
 
 **Here is where Algorand steps in.**
-
----

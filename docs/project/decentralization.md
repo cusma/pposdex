@@ -1,7 +1,5 @@
 # Decentralization
 
----
-
 Defining a quantitative _Decentralization Index_ for a Blockchain network
 running on Proof of Stake (PoS) consensus is not simple: a precise and rigorous
 definition of such a metric could easily fit as subject of an academic research
@@ -64,5 +62,3 @@ The index can range from 0 (_completely centralized_) to 1 (_completely decentra
 Let's try first to define an ideal theoretical condition of decentralization for
 each of those three per-unit factors. Then, everything deviating from those conditions
 will make a PoS Blockchain more real and far from platonic ideality.
-
----

@@ -1,7 +1,5 @@
 # Plot PPoS Dex snapshot
 
----
-
 Take a snapshot of latest published PPoS Dex data.
 
 ```shell
@@ -17,5 +15,3 @@ threshold (default: 1000 ALGO);
 1. `[--localhost | test]` select local hosted Node and Indexer / other API providers,
 or default TestNet end-points;
 1. `[--save]` save plots in `./docs/images/snapshot`.
-
----

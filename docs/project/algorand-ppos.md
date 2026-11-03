@@ -1,7 +1,5 @@
 # Algorand Pure Proof of Stake Consensus
 
----
-
 [Prof. Silvio Micali](https://it.wikipedia.org/wiki/Silvio_Micali)
 combined state-of-art distributed computation, cryptography and game theory into
 the [Algorand Pure Proof of Stake](https://developer.algorand.org/docs/algorand_consensus/)
@@ -34,8 +32,7 @@ Algorand PPoS solves Blockchains' trilemma achieving at the same time:
 
 **The point is: can we measure these properties?**
 
----
-
+> [!TIP]
 > Useful references:
 >
 > - [Algorand](https://arxiv.org/abs/1607.01341)
