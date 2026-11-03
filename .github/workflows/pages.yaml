@@ -49,13 +49,17 @@ jobs:
         continue-on-error: true
         run: uv run --no-sync pposdex snapshot --save
 
+      - name: Render insights
+        continue-on-error: true
+        run: uv run --no-sync python -m pposdex.insights
+
       - name: Keep online plots that failed to render
         env:
           SITE_URL: ${{ steps.pages.outputs.base_url }}
         run: |
           # The plots the data pages show, e.g. ../images/timeseries/ppos_dex.svg,
           # each with its dark variant, e.g. ../images/timeseries/ppos_dex.dark.svg
-          plots=$(grep -ohE '\.\./images/(timeseries|snapshot)/[a-z_]+\.svg' docs/data/*.md | sort -u)
+          plots=$(grep -ohE '\.\./images/(timeseries|snapshot|insights)/[a-z_]+\.svg' docs/data/*.md | sort -u)
           for plot in $plots; do
             for variant in "$plot" "${plot%.svg}.dark.svg"; do
               path="docs/images/${variant#../images/}"

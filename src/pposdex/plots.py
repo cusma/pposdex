@@ -116,17 +116,6 @@ TIMESERIES = (
         ),
     ),
     TimeseriesChart(
-        name="accounts_prt",
-        title="Accounts Participation in PPoS",
-        panels=(
-            TimeseriesPanel(
-                subtitle="100% = complete participation",
-                lines=(Line("ppos_online_accounts", "Accounts Participation"),),
-                fmt=percent,
-            ),
-        ),
-    ),
-    TimeseriesChart(
         name="algo_inequality",
         title="ALGO Inequality",
         panels=(TimeseriesPanel(EQUALITY, (Line("algo_hhi", "HHI"),)),),
@@ -173,19 +162,6 @@ SNAPSHOTS = (
         bars=(
             Bar("ALGO Supply", "algo_dynamics", _x_max_unit, percent),
             Bar("ALGO Participation", "ppos_online_stake", _x_max_unit, percent),
-        ),
-    ),
-    SnapshotChart(
-        name="accounts_prt",
-        title="Accounts Participation",
-        subtitle="100% = complete participation",
-        bars=(
-            Bar(
-                "Accounts Participation",
-                "ppos_online_accounts",
-                _x_max_unit,
-                percent,
-            ),
         ),
     ),
     SnapshotChart(

@@ -59,6 +59,7 @@ the preview, render them first:
 ```bash
 uv run pposdex timeseries --save
 uv run pposdex snapshot --save
+uv run python -m pposdex.insights
 ```
 
 Each chart is saved as SVG in a light and a dark variant: the docs show the

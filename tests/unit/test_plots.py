@@ -12,7 +12,6 @@ from pposdex.plots import Line, TimeseriesChart, TimeseriesPanel
 from pposdex.ppos_dex_data import PPoSDexData
 
 TIMESERIES = [
-    "accounts_prt",
     "algo_dynamics",
     "algo_inequality",
     "ppos_dex",
@@ -20,7 +19,6 @@ TIMESERIES = [
     "ppos_inequality_unb",
 ]
 SNAPSHOT = [
-    "accounts_prt",
     "algo_dynamics",
     "ppos_dex",
     "ppos_inequality",

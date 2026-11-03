@@ -1,12 +1,12 @@
 # PPoS Timeseries
 
+> [!NOTE]
+> The ALGO participation also moves with the circulating supply: see the
+> [Insights](insights.md) for the absolute numbers behind it.
+
 ## ALGO Dynamics
 
 ![Timeseries ALGO Dynamics](../images/timeseries/algo_dynamics.svg)
-
-## Accounts Participation
-
-![Timeseries Accounts Participation](../images/timeseries/accounts_prt.svg)
 
 ## ALGO Inequality
 
