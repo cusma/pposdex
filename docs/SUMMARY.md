@@ -1,34 +1,34 @@
 # Summary
 
-[Cover](./0_cover.md)
+[Cover](cover.md)
 
 # The Project
 
-- [What's _PPoS Dex_?](./1_1_whats_ppos_dex.md)
-- [Introduction](./1_2_introduction.md)
-- [Algorand Pure Poof of Stake](./1_3_ppos.md)
-  - [Scalability](./1_4_scalability.md)
-  - [Security](./1_5_security.md)
-  - [Decentralization](./1_6_decentralization.md)
-    - [Nodes](1_7_nodes.md)
-    - [Topology](1_8_topology.md)
-    - [Stake](1_9_stakes.md)
-- [PPoS Dex](1_10_ppos_dex.md)
+- [What's _PPoS Dex_?](project/what-is-ppos-dex.md)
+- [Introduction](project/introduction.md)
+- [Algorand Pure Proof of Stake](project/algorand-ppos.md)
+  - [Scalability](project/scalability.md)
+  - [Security](project/security.md)
+  - [Decentralization](project/decentralization.md)
+    - [Nodes](project/nodes.md)
+    - [Topology](project/topology.md)
+    - [Stake](project/stake.md)
+- [PPoS Dex](project/ppos-dex.md)
 
 # Data
 
-- [Timeseries](2_1_timeseries.md)
-- [Snapshot](2_2_snapshot.md)
+- [Timeseries](data/timeseries.md)
+- [Snapshot](data/snapshot.md)
 
 # CLI
 
-- [Install](3_1_install.md)
-- [Usage](3_2_usage.md)
-  - [Publish](3_3_publish.md)
-  - [Timeseries](3_4_timeseries.md)
-  - [Snapshot](3_5_snapshot.md)
-  - [Export](3_6_export.md)
+- [Install](cli/install.md)
+- [Usage](cli/usage.md)
+  - [Publish](cli/publish.md)
+  - [Timeseries](cli/timeseries.md)
+  - [Snapshot](cli/snapshot.md)
+  - [Export](cli/export.md)
 
 ---
 
-[Contribute](CONTRIBUTE.md)
+[Contribute](contributing.md)
