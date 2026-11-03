@@ -3,14 +3,13 @@ name: Deploy mdBook
 on:
   push:
     branches: [main]
-  pull_request:
   workflow_dispatch:
 
 permissions: {}
 
 concurrency:
-  group: ${{ github.event_name == 'pull_request' && format('pages-{0}', github.ref) || 'pages' }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -20,8 +19,6 @@ jobs:
     permissions:
       contents: read
       pages: read
-    env:
-      MDBOOK_VERSION: 0.5.4
 
     steps:
       - name: Checkout
@@ -29,13 +26,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install mdBook
-        run: |
-          mkdir -p "$HOME/.local/bin"
-          curl --proto '=https' --tlsv1.2 --silent --show-error --fail --location \
-            "https://github.com/rust-lang/mdBook/releases/download/v${MDBOOK_VERSION}/mdbook-v${MDBOOK_VERSION}-x86_64-unknown-linux-gnu.tar.gz" \
-            | tar -xz -C "$HOME/.local/bin"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Set up mdBook
+        uses: ./.github/actions/setup-mdbook
 
       - name: Setup Pages
         id: pages
@@ -55,7 +47,6 @@ jobs:
   deploy:
     name: Deploy PPoS Dex mdBook
     needs: build
-    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

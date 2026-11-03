@@ -1,0 +1,181 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Cache pre-commit environments
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Run pre-commit
+        run: uv run pre-commit run --all-files --show-diff-on-failure
+
+  unit:
+    name: Unit tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13", "3.14"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Test
+        run: uv run pytest
+
+  integration:
+    name: Integration tests (LocalNet)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Start LocalNet
+        run: |
+          uvx algokit@2.10.2 localnet start
+          curl --silent --fail --retry 30 --retry-all-errors --retry-delay 2 http://localhost:4001/health
+          curl --silent --fail --retry 30 --retry-all-errors --retry-delay 2 http://localhost:8980/health
+
+      # Coverage is enforced on unit tests, integration tests cover a slice
+      - name: Test
+        run: uv run pytest -m integration --no-cov
+
+  docs:
+    name: Docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up mdBook
+        uses: ./.github/actions/setup-mdbook
+
+      - name: Build mdBook
+        run: mdbook build
+
+      - name: Test mdBook
+        run: mdbook test
+
+      # Links between pages, images and anchors: no network, fails only on real mistakes
+      - name: Check internal links
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          args: >-
+            --offline
+            --include-fragments
+            --no-progress
+            README.md
+            CONTRIBUTING.md
+            'docs/**/*.md'
+
+  workflows:
+    name: Workflows lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+
+      - name: Run actionlint
+        run: uvx --from actionlint-py==1.7.12.25 actionlint
+
+      - name: Run zizmor
+        run: uvx zizmor==1.32.0 --offline .github
+
+  # Single check to require on main: skipped jobs pass, failed or cancelled ones fail
+  ci:
+    name: CI
+    if: always()
+    needs: [lint, unit, integration, docs, workflows]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+
+    steps:
+      - name: Check jobs results
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Jobs results: $RESULTS"
+          for result in $RESULTS; do
+            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
+              exit 1
+            fi
+          done

@@ -1,12 +1,6 @@
 name: Check links
 
 on:
-  pull_request:
-    paths:
-      - "docs/**"
-      - "README.md"
-      - "CONTRIBUTING.md"
-      - ".github/workflows/links.yaml"
   schedule:
     - cron: "17 6 * * 1"
   workflow_dispatch:
@@ -14,40 +8,13 @@ on:
 permissions: {}
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 jobs:
-  internal:
-    # Links between pages, images and anchors: no network, fails only on real mistakes
-    name: Check internal docs links
-    if: github.event_name != 'schedule'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Check internal links
-        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
-        with:
-          args: >-
-            --offline
-            --include-fragments
-            --no-progress
-            README.md
-            CONTRIBUTING.md
-            'docs/**/*.md'
-
   external:
     # Sites outside our control: report broken links in an issue, never fail
     name: Check external docs links
-    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

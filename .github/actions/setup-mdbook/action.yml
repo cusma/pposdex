@@ -1,0 +1,20 @@
+name: Set up mdBook
+description: Install a prebuilt mdBook binary
+
+inputs:
+  version:
+    description: mdBook version
+    default: "0.5.4"
+
+runs:
+  using: composite
+  steps:
+    - name: Install mdBook
+      shell: bash
+      env:
+        MDBOOK_VERSION: ${{ inputs.version }}
+      run: |
+        curl --proto '=https' --tlsv1.2 --silent --show-error --fail --location \
+          "https://github.com/rust-lang/mdBook/releases/download/v${MDBOOK_VERSION}/mdbook-v${MDBOOK_VERSION}-x86_64-unknown-linux-gnu.tar.gz" \
+          | sudo tar -xz -C /usr/local/bin
+        mdbook --version

@@ -1,0 +1,5 @@
+rules:
+  self-repository:
+    # actionlint doesn't support the `uses: $/...` syntax yet: keep `./...`
+    # for the in-repo setup-mdbook action until it does
+    disable: true
