@@ -12,7 +12,6 @@ dependencies = [
     "matplotlib>=3.10",
     "msgpack>=1.0",
     "py-algorand-sdk>=2.12,<3",
-    "schema>=0.7.5",
 ]
 
 [project.scripts]
@@ -53,7 +52,7 @@ warn_unused_ignores = true
 warn_redundant_casts = true
 
 [[tool.mypy.overrides]]
-module = ["docopt", "schema", "msgpack"]
+module = ["docopt", "msgpack"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

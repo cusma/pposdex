@@ -105,7 +105,6 @@ def main():
             publisher=publisher,
             algo_threshold=args["--algo-threshold"],
             wait_rounds=3,
-            data_schema=pposdex.SCHEMA,
         )
         print("📈 PPoS Dex published data:")
         pprint(published_data, indent=4)
@@ -115,7 +114,6 @@ def main():
             indexer_client=indexer_client,
             publisher_address=args["--publisher"],
             algo_threshold=args["--algo-threshold"],
-            data_schema=pposdex.SCHEMA,
             start_block=args["--start-block"],
             end_block=args["--end-block"],
         )
