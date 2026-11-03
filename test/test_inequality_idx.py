@@ -1,4 +1,5 @@
 import math
+from collections.abc import Callable
 
 import pytest
 
@@ -6,7 +7,7 @@ from pposdex import inequality_idx as idx
 
 
 def test_scalar_product() -> None:
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError, match="longer"):
         idx.scalar_product([1, 1], [1, 1, 1])
 
     assert idx.scalar_product([1, 0], [0, 1]) == 0
@@ -153,3 +154,18 @@ class TestHHI:
         assert math.isclose(hhi_2, 0.643, abs_tol=1e-10)
         print(f"HHI - Low Inequality: {hhi_1}")
         print(f"HHI - High Inequality: {hhi_2}")
+
+
+@pytest.mark.parametrize(
+    "index",
+    [idx.gini, idx.theil_l, idx.theil_t, idx.herfindahl_hirschman],
+)
+def test_empty_distribution(index: Callable[[list[float]], float]) -> None:
+    with pytest.raises(ValueError, match="empty"):
+        index([])
+
+
+def test_gini_does_not_sort_input() -> None:
+    distribution = [3.0, 1.0, 2.0]
+    idx.gini(distribution)
+    assert distribution == [3.0, 1.0, 2.0]

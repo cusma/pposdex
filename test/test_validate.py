@@ -1,10 +1,10 @@
 import pytest
 
-from pposdex.ppos_dex_data import InvalidDataError, validate
+from pposdex.ppos_dex_data import SCHEMA, InvalidDataError, PPoSDexData, validate
 
 
 @pytest.fixture
-def data_point() -> dict:
+def data_point() -> dict[str, object]:
     return {
         "algo_threshold": 1000,
         "accounts": 42,
@@ -22,24 +22,24 @@ def data_point() -> dict:
     }
 
 
-def test_valid(data_point: dict) -> None:
+def test_valid(data_point: dict[str, object]) -> None:
     assert validate(data_point) == data_point
 
 
 @pytest.mark.parametrize("key", ["algo_hhi", "ppos_hhi", "ppos_dex_v2"])
-def test_optional_key(data_point: dict, key: str) -> None:
+def test_optional_key(data_point: dict[str, object], key: str) -> None:
     del data_point[key]
     assert validate(data_point) == data_point
 
 
 @pytest.mark.parametrize("key", ["algo_threshold", "ppos_gini", "timestamp"])
-def test_missing_key(data_point: dict, key: str) -> None:
+def test_missing_key(data_point: dict[str, object], key: str) -> None:
     del data_point[key]
     with pytest.raises(InvalidDataError):
         validate(data_point)
 
 
-def test_unknown_key(data_point: dict) -> None:
+def test_unknown_key(data_point: dict[str, object]) -> None:
     data_point["unknown"] = 1
     with pytest.raises(InvalidDataError):
         validate(data_point)
@@ -56,7 +56,7 @@ def test_unknown_key(data_point: dict) -> None:
         ("timestamp", 0),
     ],
 )
-def test_invalid_value(data_point: dict, key: str, value: object) -> None:
+def test_invalid_value(data_point: dict[str, object], key: str, value: object) -> None:
     data_point[key] = value
     with pytest.raises(InvalidDataError):
         validate(data_point)
@@ -66,3 +66,9 @@ def test_invalid_value(data_point: dict, key: str, value: object) -> None:
 def test_not_a_mapping(data: object) -> None:
     with pytest.raises(InvalidDataError):
         validate(data)
+
+
+def test_schema_matches_typed_dict() -> None:
+    assert SCHEMA.keys() == PPoSDexData.__annotations__.keys()
+    required = {key for key, spec in SCHEMA.items() if spec.required}
+    assert required == PPoSDexData.__required_keys__

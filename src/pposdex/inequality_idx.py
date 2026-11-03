@@ -15,9 +15,16 @@ def scalar_product(vector_1: list[float], vector_2: list[float]) -> float:
 
     Returns:
         Scalar product (vector_1 * vector_2)
+
+    Raises:
+        ValueError: if the vectors have different lengths
     """
-    assert len(vector_1) == len(vector_2)
-    return sum(i[0] * i[1] for i in zip(vector_1, vector_2, strict=True))
+    return sum(x_1 * x_2 for x_1, x_2 in zip(vector_1, vector_2, strict=True))
+
+
+def _check_not_empty(distribution: list[float]) -> None:
+    if not distribution:
+        raise ValueError("Distribution must not be empty")
 
 
 def gini(distribution: list[float]) -> float:
@@ -32,9 +39,9 @@ def gini(distribution: list[float]) -> float:
             0 <= G < 1,
             G = 0, perfect equality
     """
-    assert distribution
+    _check_not_empty(distribution)
     n = len(distribution)
-    distribution.sort()
+    distribution = sorted(distribution)
     num = scalar_product(list(range(1, n + 1)), distribution)
     den = sum(distribution)
     return (2 / n) * (num / den) - (n + 1) / n
@@ -42,7 +49,7 @@ def gini(distribution: list[float]) -> float:
 
 def generalized_entropy(distribution: list[float], alpha: float) -> float:
     """
-    Genralized Entropy Index
+    Generalized Entropy Index
 
     Args:
         distribution: Wealth distribution of the population
@@ -54,12 +61,13 @@ def generalized_entropy(distribution: list[float], alpha: float) -> float:
     Returns:
         Generalized Entropy Index (GE), inequality of wealth
             distribution with inequality weight alpha
-            0 <= GE(aplha) < +inf,
+            0 <= GE(alpha) < +inf,
             GE(alpha) = 0, perfect equality,
             alpha != 0, 1
     """
-    assert distribution
-    assert alpha not in {0, 1}
+    _check_not_empty(distribution)
+    if alpha in {0, 1}:
+        raise ValueError("Alpha must be different from 0 and 1")
     n = len(distribution)
     mean_amount = sum(distribution) / n
     epsilon: float = 0
@@ -81,7 +89,7 @@ def theil_l(distribution: list[float]) -> float:
             0 <= TL < +inf
             TL = 0, perfect equality
     """
-    assert distribution
+    _check_not_empty(distribution)
     n = len(distribution)
     mean_amount = sum(distribution) / n
     epsilon: float = 0
@@ -103,7 +111,7 @@ def theil_t(distribution: list[float]) -> float:
             0 <= TT < +inf
             TT = 0, perfect equality
     """
-    assert distribution
+    _check_not_empty(distribution)
     n = len(distribution)
     mean_amount = sum(distribution) / n
     epsilon: float = 0
@@ -124,7 +132,6 @@ def herfindahl_hirschman(distribution: list[float]) -> float:
             0 <= HHI < 1,
             HHI = 0, perfectly competitive
     """
-    assert distribution
+    _check_not_empty(distribution)
     market_size = sum(distribution)
-    market_shares = [share / market_size for share in distribution]
-    return sum([share**2 for share in market_shares])
+    return sum((share / market_size) ** 2 for share in distribution)

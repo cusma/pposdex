@@ -26,13 +26,13 @@ The cryptographic sortition is used to:
 - Randomly and secretly elect a block proposer;
 - Randomly and secretly elect a committee of validators _for every proposed block_.
 
-Algorand PPoS solves Blockchains' trilemma acheiving at the same time:
+Algorand PPoS solves Blockchains' trilemma achieving at the same time:
 
 1. Scalability
 1. Security
 1. Decentralization
 
-**The point is: can we measure these properites?**
+**The point is: can we measure these properties?**
 
 ---
 
@@ -40,4 +40,4 @@ Algorand PPoS solves Blockchains' trilemma acheiving at the same time:
 >
 > - [Algorand](https://arxiv.org/abs/1607.01341)
 > - [Algorand PPoS Video](https://www.youtube.com/watch?v=u0ExeqpKJd0)
-> - [Algorand Efficency Video](https://www.youtube.com/watch?v=e8s8Ui8vDaY)
+> - [Algorand Efficiency Video](https://www.youtube.com/watch?v=e8s8Ui8vDaY)

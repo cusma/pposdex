@@ -1,7 +1,8 @@
 import base64
-import sys
+import logging
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Literal, NotRequired, TypedDict, cast
 
 import msgpack
 from algosdk.constants import microalgos_to_algos_ratio
@@ -10,11 +11,46 @@ from algosdk.v2client.indexer import IndexerClient
 
 from pposdex import helpers
 from pposdex import inequality_idx as idx
-from pposdex.helpers import Account
+from pposdex.helpers import Account, PPoSDexError
+
+logger = logging.getLogger(__name__)
 
 d_N = 1  # noqa: N816 (math notation)
 d_T = 1  # noqa: N816 (math notation)
 MICROALGO_TOTAL_SUPPLY = 10**16
+
+
+class PPoSDexData(TypedDict):
+    """PPoS Dex data point, as published on-chain"""
+
+    algo_threshold: int
+    accounts: int
+    algo_dynamics: float
+    ppos_online_stake: float
+    ppos_online_accounts: float
+    algo_hhi: NotRequired[float]
+    ppos_gini: float
+    ppos_theil_l: float
+    ppos_theil_t: float
+    ppos_hhi: NotRequired[float]
+    ppos_dex: float
+    ppos_dex_v2: NotRequired[float]
+    timestamp: str
+
+
+# PPoS Dex data point keys holding a metric
+Metric = Literal[
+    "algo_dynamics",
+    "ppos_online_stake",
+    "ppos_online_accounts",
+    "algo_hhi",
+    "ppos_gini",
+    "ppos_theil_l",
+    "ppos_theil_t",
+    "ppos_hhi",
+    "ppos_dex",
+    "ppos_dex_v2",
+]
 
 
 class InvalidDataError(ValueError):
@@ -46,7 +82,7 @@ SCHEMA: dict[str, Field] = {
 }
 
 
-def validate(data: object) -> dict:
+def validate(data: object) -> PPoSDexData:
     """
     Validate a PPoS Dex data point against the SCHEMA
 
@@ -81,7 +117,7 @@ def validate(data: object) -> dict:
         if spec.max is not None and value > spec.max:
             raise InvalidDataError(f"{key}: {value} > {spec.max}")
 
-    return data
+    return cast(PPoSDexData, data)
 
 
 def post_ppos_dex_data(
@@ -90,7 +126,7 @@ def post_ppos_dex_data(
     publisher: Account,
     algo_threshold: int,
     wait_rounds: int = 0,
-) -> dict:
+) -> PPoSDexData:
     """
     Post PPoS Dex data on-chain
 
@@ -108,9 +144,10 @@ def post_ppos_dex_data(
     holders = helpers.get_algo_holders(indexer_client, microalgo_threshold)
 
     stakes = [account["amount"] for account in holders]
-    online_stakes = [
+    # Sorted: the indexes below sum the stakes in this order
+    online_stakes = sorted(
         account["amount"] for account in holders if account["status"] == "Online"
-    ]
+    )
 
     ledger = algod_client.ledger_supply()
     assert isinstance(ledger, dict)
@@ -127,7 +164,7 @@ def post_ppos_dex_data(
     ppos_dex_v1 = d_N * d_T * algo_dyn * algo_prt * accounts_prt * (1 - ppos_gini)
     ppos_dex_v2 = d_N * d_T * algo_dyn * algo_prt * (1 - ppos_hhi)
 
-    ppos_dex_data = {
+    ppos_dex_data: PPoSDexData = {
         "algo_threshold": algo_threshold,
         "accounts": len(stakes),
         "algo_dynamics": algo_dyn,
@@ -157,13 +194,13 @@ def get_ppos_dex_data(
     algo_threshold: int,
     start_block: int,
     end_block: int | None = None,
-) -> list[dict]:
+) -> list[PPoSDexData]:
     """
     Get PPoS Dex data from chain
 
     Args:
         indexer_client: Algorand Indexer Client
-        publisher_address: Publisher addres to read from
+        publisher_address: Publisher address to read from
         algo_threshold: Minimum balance data filter (expressed in ALGOs)
         start_block: Data starting block
         end_block: Data ending block
@@ -175,22 +212,19 @@ def get_ppos_dex_data(
         indexer_client, publisher_address, start_block, end_block
     )
 
-    ppos_dex_data: list[dict] = []
+    ppos_dex_data: list[PPoSDexData] = []
     for txn_note in ppos_dex_txns_note:
         try:
             data = validate(msgpack.unpackb(base64.b64decode(txn_note)))
             if data["algo_threshold"] == algo_threshold:
                 ppos_dex_data += [data]
-        except InvalidDataError:
-            # Ignore non compliant data
-            pass
-        except msgpack.ExtraData:
-            # Ignore wrongly serialized data
-            pass
+        except (InvalidDataError, msgpack.ExtraData) as err:
+            # Ignore non compliant or wrongly serialized data
+            logger.debug("Skipping note %s: %s", txn_note, err)
 
     if not ppos_dex_data:
-        sys.exit(
-            f"No valid PPos Dex data published by {publisher_address} "
+        raise PPoSDexError(
+            f"No valid PPoS Dex data published by {publisher_address} "
             f"starting from block {start_block}."
         )
 

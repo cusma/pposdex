@@ -4,8 +4,8 @@ Algorand PPoS Dex Helpers
 
 import functools
 import json
+import logging
 import os
-import sys
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -23,7 +23,17 @@ from algosdk.v2client.indexer import IndexerClient
 
 ATTEMPT_DELAY_SEC = 3
 MAX_ATTEMPTS = 10
+ACCOUNTS_PAGE_SIZE = 1000  # Indexer maximum, the default page is 100 accounts
 ENV_MNEMONIC = "ALGO_MNEMONIC"
+
+# Indexer and Algod JSON responses
+type Json = dict[str, Any]
+
+logger = logging.getLogger(__name__)
+
+
+class PPoSDexError(Exception):
+    """Error reported to the user as a message, without a traceback"""
 
 
 @dataclass(frozen=True)
@@ -34,10 +44,11 @@ class Account:
 
     @property
     def address(self) -> str:
-        return account.address_from_private_key(self.private_key)
+        address: str = account.address_from_private_key(self.private_key)
+        return address
 
 
-def indexer_request(request: Callable) -> Callable:
+def indexer_request[**P, R](request: Callable[P, R]) -> Callable[P, R]:
     """
     Wraps a request to the Indexer adding connection attempts management.
 
@@ -49,19 +60,17 @@ def indexer_request(request: Callable) -> Callable:
     """
 
     @functools.wraps(request)
-    def wrapper(*args, **kwargs) -> Any:
-        attempts = 1
-        while attempts <= MAX_ATTEMPTS:
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+        for attempt in range(1, MAX_ATTEMPTS + 1):
             try:
                 return request(*args, **kwargs)
             except IndexerHTTPError as err:
-                print(err)
-                print(f"Indexer request attempt {attempts}/{MAX_ATTEMPTS}")
-                print("Trying submit request again...")
-                time.sleep(ATTEMPT_DELAY_SEC)
-            finally:
-                attempts += 1
-        sys.exit("Algorand Indexer request failed.")
+                logger.warning("%s", err)
+                logger.warning("Indexer request attempt %d/%d", attempt, MAX_ATTEMPTS)
+                if attempt < MAX_ATTEMPTS:
+                    logger.warning("Retrying the Indexer request...")
+                    time.sleep(ATTEMPT_DELAY_SEC)
+        raise PPoSDexError("Algorand Indexer request failed.")
 
     return wrapper
 
@@ -69,7 +78,7 @@ def indexer_request(request: Callable) -> Callable:
 def get_publisher_account() -> Account:
     env_mnemonic = os.getenv(f"{ENV_MNEMONIC}")
     if env_mnemonic is None:
-        raise Exception(f"Mnemonic environment variable not set: {ENV_MNEMONIC}")
+        raise PPoSDexError(f"Mnemonic environment variable not set: {ENV_MNEMONIC}")
     return Account(private_key=mnemonic.to_private_key(env_mnemonic))
 
 
@@ -77,7 +86,7 @@ def get_publisher_account() -> Account:
 def get_algo_holders(
     indexer_client: IndexerClient,
     microalgo_min_balance: int | None = None,
-) -> list[dict]:
+) -> list[Json]:
     """
     Get Accounts holding a balance greater than `microalgo_min_balance`
 
@@ -91,12 +100,13 @@ def get_algo_holders(
     nexttoken = ""
     has_result = True
 
-    holders: list[dict] = []
+    holders: list[Json] = []
     while has_result:
         result = indexer_client.accounts(
             next_page=nexttoken,
             min_balance=microalgo_min_balance,
             exclude="all",
+            limit=ACCOUNTS_PAGE_SIZE,
         )
 
         accounts = result["accounts"]
@@ -107,7 +117,9 @@ def get_algo_holders(
             nexttoken = result["next-token"]
 
     if not holders:
-        sys.exit(f"No account with {microalgo_min_balance} microAlgo balance found.")
+        raise PPoSDexError(
+            f"No account with {microalgo_min_balance} microAlgo balance found."
+        )
 
     return holders
 
@@ -134,7 +146,7 @@ def get_address_txns_note(
     nexttoken = ""
     has_result = True
 
-    address_txns: list[dict] = []
+    address_txns: list[Json] = []
     while has_result:
         result = indexer_client.search_transactions_by_address(
             address=address,
@@ -156,7 +168,7 @@ def get_address_txns_note(
             txns_note.append(note)
 
     if not txns_note:
-        sys.exit(f"No published note found for account {address}.")
+        raise PPoSDexError(f"No published note found for account {address}.")
 
     return txns_note
 
@@ -166,8 +178,7 @@ def post_note(
     publisher: Account,
     note: bytes,
     wait_rounds: int = 0,
-    verbose: bool = False,
-) -> dict:
+) -> Json:
     """
     Post a note on Algorand
 
@@ -176,7 +187,6 @@ def post_note(
         publisher: Publisher account
         note: Note to publish
         wait_rounds: Wait rounds for note publishing confirmation
-        verbose: Show publication details
 
     Returns:
         Confirmed publication transaction
@@ -194,12 +204,9 @@ def post_note(
         unsigned_txn, AccountTransactionSigner(publisher.private_key)
     )
     txid = algod_client.send_transaction(signed_txn)
-    if verbose:
-        print(f"Publishing Algorand PPoS Dex data in txID: {txid}\n")
+    logger.debug("Publishing Algorand PPoS Dex data in txID: %s", txid)
 
-    confirmed_txn = wait_for_confirmation(algod_client, txid, wait_rounds)
-
-    if verbose:
-        print(f"Confirmed in round: {confirmed_txn.get('confirmed-round', 0)}\n")
-        print(f"Transaction information:\n{json.dumps(confirmed_txn, indent=4)}")
+    confirmed_txn: Json = wait_for_confirmation(algod_client, txid, wait_rounds)
+    logger.debug("Confirmed in round: %s", confirmed_txn.get("confirmed-round", 0))
+    logger.debug("Transaction information:\n%s", json.dumps(confirmed_txn, indent=4))
     return confirmed_txn

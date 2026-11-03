@@ -2,7 +2,7 @@
 
 ---
 
-Intreacting with PPoS Dex CLI is pretty easy, just ask for help (each command
+Interacting with PPoS Dex CLI is pretty easy, just ask for help (each command
 has its own `--help` too):
 
 ```bash
@@ -24,7 +24,7 @@ options:
   -h, --help    show this help message and exit
 ```
 
-Use the `health` command to check Algorand Nods and Indexer availability:
+Use the `health` command to check Algorand Nodes and Indexer availability:
 
 ```bash
 uv run pposdex health [--localhost | --test]

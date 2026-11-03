@@ -2,7 +2,7 @@
 authors = ["cusma"]
 language = "en"
 src = "docs"
-title = "PPos Dex"
+title = "PPoS Dex"
 
 [output.html]
 mathjax-support = true

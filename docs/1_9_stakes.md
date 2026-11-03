@@ -16,7 +16,7 @@ The first condition is quantified by the _Stake Participation Index_ (\\(S_P\\))
 while the second conditions is quantified by the _Stake Inequality Index_ (\\(S_I\\)).
 
 One could still argue that even if all the participating stake is equally distributed
-among validators, a PoS consenus could still be _centralized_ due to the concentrarion
+among validators, a PoS consensus could still be _centralized_ due to the concentration
 of stake in a few accounts. So an additional _Account Participation Index_ (\\(A_P\\))
 is introduced.
 
@@ -33,7 +33,7 @@ PoS validation. It can be quantified as:
 
 Where:
 
-* _Stake Dynamics_ \\(S_{dyn}\\): is the fraction of _ciruclating supply_ (\\(S_c\\))
+* _Stake Dynamics_ \\(S_{dyn}\\): is the fraction of _circulating supply_ (\\(S_c\\))
 over the _genesis supply_ (\\( S_g\\)).  It only applies to fixed genesis supply
 Blockchains;
 * _Stake Participation_ \\(S_{p}\\): is the fraction of _validation supply_ (\\(S_v\\))
@@ -71,7 +71,7 @@ index.
 
 ### Theil Indexes
 
-_Theil's Indexs_, called _Theil's L_ and _Theil's T_, measure the inequality of
+_Theil's Indexes_, called _Theil's L_ and _Theil's T_, measure the inequality of
 a stake distribution \\(S\\) over a set of \\(N\\) validators, with different
 sensitivities:
 

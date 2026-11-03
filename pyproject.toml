@@ -42,9 +42,9 @@ ignore = [
 
 [tool.mypy]
 python_version = "3.12"
-check_untyped_defs = true
-warn_unused_ignores = true
-warn_redundant_casts = true
+strict = true
+# py-algorand-sdk ships type hints, but many of its functions are unannotated
+untyped_calls_exclude = ["algosdk"]
 
 [[tool.mypy.overrides]]
 module = ["msgpack"]
