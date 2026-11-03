@@ -61,6 +61,18 @@ uv run pposdex timeseries --save
 uv run pposdex snapshot --save
 ```
 
+## Release
+
+Bump the version in `pyproject.toml` on `main`, then push a matching tag:
+
+```bash
+git tag v4.0.0
+git push origin v4.0.0
+```
+
+The release workflow runs the CI on the tag, checks it matches the version,
+and creates a GitHub release with the attested wheel and sdist.
+
 ## Contributors
 
 * [manuelmauro](https://github.com/manuelmauro) (for letting me discover `mdBook`)

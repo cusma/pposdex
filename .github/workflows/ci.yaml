@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+  # The release workflow checks the tagged commit
+  workflow_call:
 
 permissions: {}
 
