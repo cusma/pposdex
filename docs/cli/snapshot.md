@@ -2,16 +2,11 @@
 
 Take a snapshot of latest published PPoS Dex data.
 
-```shell
-uv run pposdex snapshot [--publisher=<p>] [--algo-threshold=<a>] [--start-block=<s>] [--localhost | --test] [--save]
+```text
+$ uv run pposdex snapshot --help
+{{#include help/snapshot.txt}}
 ```
 
-## Options
-
-1. `[--publisher=<p>]` publisher account address (default: PPoS Dex Oracle account);
-1. `[--algo-threshold=<t>]` plot only data of accounts that own more than this
-threshold (default: 1000 ALGO);
-1. `[--start-block=<s>]` plot data from this block (if availables);
-1. `[--localhost | test]` select local hosted Node and Indexer / other API providers,
-or default TestNet end-points;
-1. `[--save]` save plots in `./docs/images/snapshot`.
+The snapshot shows the latest data point published with the selected
+`--algo-threshold`, by default by the PPoS Dex Oracle account. With `--save` the
+plots are saved in `./docs/images/snapshot` instead of being shown.

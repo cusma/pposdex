@@ -1,0 +1,14 @@
+usage: pposdex [-h] <command> ...
+
+Algorand PPoS Decentralization Index.
+
+positional arguments:
+  <command>
+    publish     Publish PPoS Dex data. Requires ALGO_MNEMONIC environment variable.
+    timeseries  Plot PPoS Dex timeseries.
+    snapshot    Plot latest PPoS Dex data point.
+    export      Export PPoS Dex data to `.csv`.
+    health      Check Algod and Indexer status.
+
+options:
+  -h, --help    show this help message and exit

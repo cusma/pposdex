@@ -1,0 +1,8 @@
+usage: pposdex health [-h] [-l | -t] [-v | -q]
+
+options:
+  -h, --help       show this help message and exit
+  -l, --localhost  Use AlgoKit LocalNet
+  -t, --test       Use TestNet (default: MainNet)
+  -v, --verbose    Show debug details
+  -q, --quiet      Show errors only

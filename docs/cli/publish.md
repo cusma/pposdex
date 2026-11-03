@@ -11,32 +11,31 @@ export ALGO_MNEMONIC=...
 
 and use the `publish` command:
 
-```bash
-$ uv run pposdex publish [--algo-threshold=<a>] [--localhost | --test]
-
-📈 PPoS Dex published data:
-
-{
-  "algo_threshold": 1000,
-  "accounts": 13346,
-  "algo_dynamics": 0.3741854092978301,
-  "ppos_online_stake": 0.598241416943984,
-  "ppos_online_accounts": 0.01715869923572606,
-  "ppos_gini": 0.829793933948626,
-  "ppos_theil_l": 4.640220128476622,
-  "ppos_theil_t": 1.5593480873810057,
-  "ppos_dex": 0.0006537665878508702,
-  "timestamp": "2021-01-06 00:22:09.607573"
-}
+```text
+$ uv run pposdex publish --help
+{{#include help/publish.txt}}
 ```
 
-## Options
+The published data point is printed once confirmed, for example:
 
-1. `[--algo-threshold=<at>]` consider only accounts that own more than this threshold
-(default: 1000 ALGO);
-1. `[--localhost | test]` select local hosted Node and Indexer / other API providers,
-or default TestNet end-points.
+```text
+📈 PPoS Dex published data:
+{   'accounts': 147633,
+    'algo_dynamics': 0.9816195500486596,
+    'algo_hhi': 0.011881330526539167,
+    'algo_threshold': 1000,
+    'ppos_dex': 0.00018605998214704048,
+    'ppos_dex_v2': 0.197653743427405,
+    'ppos_gini': 0.9030210736028383,
+    'ppos_hhi': 0.01606794676611987,
+    'ppos_online_accounts': 0.009550710207067525,
+    'ppos_online_stake': 0.20464292567467565,
+    'ppos_theil_l': 2.266361842976268,
+    'ppos_theil_t': 2.4749568856442137,
+    'timestamp': '2026-11-01 03:31:36.875492'}
+```
 
-Is worth noting that lower values of `[--algo-threshold=<at>]` will require more
-querying efforts. You should avoid lowering the default threshold, especially if
-you are using third party API services.
+> [!WARNING]
+> Lower values of `--algo-threshold` require more querying efforts. You should
+> avoid lowering the default threshold, especially if you are using third party
+> API services.
