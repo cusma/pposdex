@@ -9,7 +9,7 @@ PPoS is provenly fork-less, ensuring blocks' instant finality.
 Block proposer election and block validation remain secrets until accomplished,
 preventing malicious users to DDoS, corrupt or threat honest nodes.
 
-Moreover, Algorand [State Proofs](https://developer.algorand.org/docs/get-details/stateproofs/)
+Moreover, Algorand [State Proofs](https://dev.algorand.co/concepts/protocol/state-proofs/)
 secure Algorand's history with post-quantum resistant [Falcon signatures](https://falcon-sign.info/).
 
 A quantitative attestation of Algorand's security is represented by the fact that,

@@ -28,8 +28,8 @@ accepts a network option:
 
 | Option | Network | Node and Indexer |
 | --- | --- | --- |
-| _(none)_ | MainNet | [AlgoNode APIs](https://algonode.io/api/) |
-| `-t`, `--test` | TestNet | [AlgoNode APIs](https://algonode.io/api/) |
+| _(none)_ | MainNet | [Nodely APIs](https://nodely.io/docs/free/start) |
+| `-t`, `--test` | TestNet | [Nodely APIs](https://nodely.io/docs/free/start) |
 | `-l`, `--localhost` | LocalNet | [AlgoKit](https://github.com/algorandfoundation/algokit-cli) LocalNet on `localhost` |
 
 To use AlgoKit LocalNet, start it before running PPoS Dex:
