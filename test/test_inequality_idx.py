@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-import src.inequality_idx as idx
+from pposdex import inequality_idx as idx
 
 
 def test_scalar_product() -> None:

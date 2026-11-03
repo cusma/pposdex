@@ -5,7 +5,7 @@
 Plot PPoS Dex timeseries published to evaluate trends.
 
 ```shell
-potery run ppos_dex.py timeseries [--publisher=<p>] [--algo-threshold=<a>] [--start-block=<s>] [--end-block=<e>] [--localhost | --test] [--save]
+uv run pposdex timeseries [--publisher=<p>] [--algo-threshold=<a>] [--start-block=<s>] [--end-block=<e>] [--localhost | --test] [--save]
 ```
 
 ## Options

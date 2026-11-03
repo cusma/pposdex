@@ -34,10 +34,10 @@ jobs:
         run: uv sync --locked --no-dev
 
       - name: Save timeseries
-        run: uv run --no-sync python ppos_dex.py timeseries --save
+        run: uv run --no-sync pposdex timeseries --save
 
       - name: Save snapshots
-        run: uv run --no-sync python ppos_dex.py snapshot --save
+        run: uv run --no-sync pposdex snapshot --save
 
       - name: Push images
         run: |

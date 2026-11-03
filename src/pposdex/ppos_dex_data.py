@@ -9,8 +9,8 @@ from algosdk.constants import microalgos_to_algos_ratio
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
-import src.inequality_idx as idx
-from src import helpers
+from pposdex import helpers
+from pposdex import inequality_idx as idx
 
 d_N = 1  # noqa: N816 (math notation)
 d_T = 1  # noqa: N816 (math notation)

@@ -35,7 +35,7 @@ repos:
       entry: uv run --locked mypy
       language: system
       types_or: [python, pyi]
-      args: [ppos_dex.py, src, test]
+      args: [src, test]
       pass_filenames: false
 
 # Markdown

@@ -38,9 +38,9 @@ from algokit_utils.network_clients import (
 )
 from docopt import docopt
 
-import src.ppos_dex_data as pposdex
-from src import plots
-from src.helpers import get_publisher_account
+from pposdex import plots
+from pposdex import ppos_dex_data as pposdex
+from pposdex.helpers import get_publisher_account
 
 
 def args_types(args: dict) -> dict:
