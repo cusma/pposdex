@@ -57,6 +57,8 @@ ignore_missing_imports = true
 [tool.pytest]
 minversion = "9.0"
 testpaths = ["tests"]
+# Shared test helpers, like the fake clients in tests/fakes.py
+pythonpath = ["tests"]
 # Integration tests need a running LocalNet: run them with `pytest -m integration`
 addopts = ["-ra", "--import-mode=importlib", "-m", "not integration", "--cov=pposdex"]
 strict = true
@@ -68,6 +70,7 @@ source = ["pposdex"]
 branch = true
 
 [tool.coverage.report]
+fail_under = 95
 show_missing = true
 skip_covered = true
 exclude_also = ['if __name__ == "__main__":']
