@@ -36,4 +36,6 @@ mathjax-support = true
 "/3_4_timeseries.html" = "cli/timeseries.html"
 "/3_5_snapshot.html" = "cli/snapshot.html"
 "/3_6_export.html" = "cli/export.html"
-"/CONTRIBUTE.html" = "contributing.html"
+# The contributing guide lives in the repository
+"/CONTRIBUTE.html" = "https://github.com/cusma/pposdex/blob/main/CONTRIBUTING.md"
+"/contributing.html" = "https://github.com/cusma/pposdex/blob/main/CONTRIBUTING.md"

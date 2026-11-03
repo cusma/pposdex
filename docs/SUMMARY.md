@@ -28,7 +28,3 @@
   - [Timeseries](cli/timeseries.md)
   - [Snapshot](cli/snapshot.md)
   - [Export](cli/export.md)
-
----
-
-[Contribute](contributing.md)

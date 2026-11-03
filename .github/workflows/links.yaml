@@ -5,6 +5,7 @@ on:
     paths:
       - "docs/**"
       - "README.md"
+      - "CONTRIBUTING.md"
       - ".github/workflows/links.yaml"
   schedule:
     - cron: "17 6 * * 1"
@@ -40,6 +41,7 @@ jobs:
             --include-fragments
             --no-progress
             README.md
+            CONTRIBUTING.md
             'docs/**/*.md'
 
   external:
@@ -70,6 +72,7 @@ jobs:
             --max-retries 3
             --no-progress
             README.md
+            CONTRIBUTING.md
             'docs/**/*.md'
 
       - name: Find open report issue
