@@ -92,8 +92,6 @@ def make_data_point() -> Callable[..., PPoSDexData]:
 
 @pytest.fixture
 def images(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    """Run in a temporary folder where plots can be saved"""
+    """Run in an empty temporary folder, where saving plots creates their folders"""
     monkeypatch.chdir(tmp_path)
-    for kind in ("timeseries", "snapshot"):
-        (tmp_path / "docs" / "images" / kind).mkdir(parents=True)
     return tmp_path / "docs" / "images"

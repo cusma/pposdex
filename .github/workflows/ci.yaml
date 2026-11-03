@@ -132,6 +132,7 @@ jobs:
           args: >-
             --offline
             --include-fragments
+            --exclude 'docs/images/(timeseries|snapshot)/'
             --no-progress
             README.md
             CONTRIBUTING.md

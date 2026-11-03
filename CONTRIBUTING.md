@@ -53,6 +53,14 @@ The documentation is an [`mdBook`](https://rust-lang.github.io/mdBook/) in the
 mdbook serve --open
 ```
 
+The data plots are rendered when the docs are deployed. To include them in
+the preview, render them first:
+
+```bash
+uv run pposdex timeseries --save
+uv run pposdex snapshot --save
+```
+
 ## Contributors
 
 * [manuelmauro](https://github.com/manuelmauro) (for letting me discover `mdBook`)

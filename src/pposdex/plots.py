@@ -195,6 +195,7 @@ SNAPSHOTS = (
 def _output(fig: Figure, path: Path, save: bool) -> None:
     fig.tight_layout()
     if save:
+        path.parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(path)
     else:
         plt.show()

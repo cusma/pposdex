@@ -1,0 +1,93 @@
+name: Deploy docs
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  # The daily workflow redeploys the docs with fresh plots
+  workflow_call:
+
+permissions: {}
+
+jobs:
+  build:
+    name: Build docs with plots
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pages: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: false
+
+      - name: Set up mdBook
+        uses: ./.github/actions/setup-mdbook
+
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - name: Install dependencies
+        run: uv sync --locked --no-dev
+
+      # The plots read the published data from MainNet: an outage must not
+      # block the docs, the next step keeps the plots currently online
+      - name: Render timeseries
+        continue-on-error: true
+        run: uv run --no-sync pposdex timeseries --save
+
+      - name: Render snapshot
+        continue-on-error: true
+        run: uv run --no-sync pposdex snapshot --save
+
+      - name: Keep online plots that failed to render
+        env:
+          SITE_URL: ${{ steps.pages.outputs.base_url }}
+        run: |
+          # The plots the data pages show, e.g. ../images/timeseries/ppos_dex.png
+          plots=$(grep -ohE '\.\./images/(timeseries|snapshot)/[a-z_]+\.png' docs/data/*.md | sort -u)
+          for plot in $plots; do
+            path="docs/images/${plot#../images/}"
+            [ -f "$path" ] && continue
+            echo "::warning::Not rendered, keeping the online plot: $path"
+            mkdir -p "$(dirname "$path")"
+            curl --fail --silent --show-error --location --retry 3 \
+              --output "$path" "$SITE_URL/${plot#../}"
+          done
+
+      - name: Build mdBook
+        run: mdbook build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: ./book
+
+  deploy:
+    name: Deploy docs
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
