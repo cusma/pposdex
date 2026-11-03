@@ -108,9 +108,10 @@ def post_ppos_dex_data(
     holders = helpers.get_algo_holders(indexer_client, microalgo_threshold)
 
     stakes = [account["amount"] for account in holders]
-    online_stakes = [
+    # Sorted: the indexes below sum the stakes in this order
+    online_stakes = sorted(
         account["amount"] for account in holders if account["status"] == "Online"
-    ]
+    )
 
     ledger = algod_client.ledger_supply()
     assert isinstance(ledger, dict)
