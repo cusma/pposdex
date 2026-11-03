@@ -1,6 +1,6 @@
 """
 The CLI reference in the docs includes each command's `--help` output from
-docs/cli/help. Regenerate it with `UPDATE_DOCS=1 uv run pytest test/test_docs.py`.
+docs/cli/help. Regenerate it with `UPDATE_DOCS=1 uv run pytest tests/unit/test_docs.py`.
 """
 
 import os
@@ -11,7 +11,7 @@ import pytest
 
 from pposdex.cli import build_parser
 
-HELP_DIR = Path(__file__).parents[1] / "docs" / "cli" / "help"
+HELP_DIR = Path(__file__).parents[2] / "docs" / "cli" / "help"
 COMMANDS = ["publish", "timeseries", "snapshot", "export", "health"]
 
 
@@ -34,5 +34,5 @@ def test_cli_help_in_docs(
     if os.getenv("UPDATE_DOCS") == "1":
         path.write_text(help_text, encoding="utf8")
     assert help_text == path.read_text(encoding="utf8"), (
-        "CLI help changed: run `UPDATE_DOCS=1 uv run pytest test/test_docs.py`"
+        "CLI help changed: run `UPDATE_DOCS=1 uv run pytest tests/unit/test_docs.py`"
     )

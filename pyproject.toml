@@ -20,7 +20,7 @@ pposdex = "pposdex.cli:main"
 dev = [
     "mypy>=1.18",
     "pre-commit>=4.3",
-    "pytest>=8.4",
+    "pytest>=9.0",
     "pytest-cov>=7.0",
     "ruff>=0.14",
 ]
@@ -45,18 +45,28 @@ python_version = "3.12"
 strict = true
 # py-algorand-sdk ships type hints, but many of its functions are unannotated
 untyped_calls_exclude = ["algosdk"]
+# Test folders are not packages: name their modules from these roots
+mypy_path = ["src", "tests"]
+explicit_package_bases = true
 
 [[tool.mypy.overrides]]
 module = ["msgpack"]
 ignore_missing_imports = true
 
-[tool.pytest.ini_options]
-minversion = "8.0"
-testpaths = ["test"]
-addopts = ["--strict-markers", "--cov", "--cov-report=term-missing"]
-markers = [
-    "integration: requires a running AlgoKit LocalNet",
-]
+[tool.pytest]
+minversion = "9.0"
+testpaths = ["tests"]
+# Integration tests need a running LocalNet: run them with `pytest -m integration`
+addopts = ["-ra", "--import-mode=importlib", "-m", "not integration", "--cov"]
+strict = true
+filterwarnings = ["error"]
+markers = ["integration: requires a running AlgoKit LocalNet"]
 
 [tool.coverage.run]
 source = ["pposdex"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_also = ['if __name__ == "__main__":']

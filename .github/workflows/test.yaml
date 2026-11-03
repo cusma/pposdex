@@ -41,7 +41,7 @@ jobs:
         run: uv sync --locked
 
       - name: Test
-        run: uv run pytest -m "not integration"
+        run: uv run pytest
 
   integration:
     name: Integration tests (LocalNet)

@@ -1,7 +1,6 @@
 import base64
 from collections.abc import Callable
 
-import pytest
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
@@ -11,8 +10,6 @@ from pposdex.helpers import (
     get_algo_holders,
     post_note,
 )
-
-pytestmark = pytest.mark.integration
 
 
 def test_get_algo_holders(

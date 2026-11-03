@@ -26,7 +26,7 @@ uv run pre-commit install
 * Run the unit tests
 
 ```bash
-uv run pytest -m "not integration"
+uv run pytest
 ```
 
 * Run the integration tests (requires [AlgoKit](https://github.com/algorandfoundation/algokit-cli)
@@ -40,7 +40,7 @@ uv run pytest -m integration
 * If you change the CLI options, update the help included in the docs
 
 ```bash
-UPDATE_DOCS=1 uv run pytest test/test_docs.py
+UPDATE_DOCS=1 uv run pytest tests/unit/test_docs.py
 ```
 
 ## Documentation
