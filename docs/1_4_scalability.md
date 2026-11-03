@@ -2,7 +2,7 @@
 
 ---
 
-Scalability can be quantified in serveral ways:
+Scalability can be quantified in several ways:
 
 - Block's finalization latency;
 - Transactions per second;

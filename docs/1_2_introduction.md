@@ -28,10 +28,10 @@ in the system, through the allocation of computational and energetic resources,
 is the core of this consensus mechanism.
 
 However, Blockchains that run on PoW fail in fulfilling the promise of scalability,
-decentralisation, transaction speed, and costs, ending up relying on energey-intensive
+decentralisation, transaction speed, and costs, ending up relying on energy-intensive
 centralised computational farms.
 
-The ultimate output of a Blockchain infrastrucuture is: reaching consensus to finalize
+The ultimate output of a Blockchain infrastructure is: reaching consensus to finalize
 _state transitions_ of a distributed permissionless system in secure, scalable,
 and decentralized way.
 

@@ -200,7 +200,7 @@ def get_ppos_dex_data(
 
     Args:
         indexer_client: Algorand Indexer Client
-        publisher_address: Publisher addres to read from
+        publisher_address: Publisher address to read from
         algo_threshold: Minimum balance data filter (expressed in ALGOs)
         start_block: Data starting block
         end_block: Data ending block

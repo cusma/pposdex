@@ -2,7 +2,7 @@
 
 ---
 
-Contribute publishing trustless PPos Dex data points on Algorand blockchain paying
+Contribute publishing trustless PPoS Dex data points on Algorand blockchain paying
 just the minimum transaction fee (currently 0.001 ALGO).
 
 Set your publisher _mnemonic_ as environment variable:
@@ -40,7 +40,7 @@ $ uv run pposdex publish [--algo-threshold=<a>] [--localhost | --test]
 or default TestNet end-points.
 
 Is worth noting that lower values of `[--algo-threshold=<at>]` will require more
-querying efforts. You should avoid lowering the default threshold, expecially if
+querying efforts. You should avoid lowering the default threshold, especially if
 you are using third party API services.
 
 ---

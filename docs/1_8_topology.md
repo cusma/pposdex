@@ -73,7 +73,7 @@ of the _Central Point Dominance_ so:
 ---
 
 > Network Topology Decentralization does not consider the degree of _geo-delocalization_
-> of the physical infrastrucutre. More insights on this topic can be found in
+> of the physical infrastructure. More insights on this topic can be found in
 > [Analyzing Algorand Blockchain Data with Databricks
 > Delta](https://databricks.com/blog/2020/10/08/analyzing-algorand-blockchain-data-with-databricks-delta.html).
 > For the scope of this project we consider a _perfect_ Network Topology Decentralization
