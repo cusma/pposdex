@@ -4,6 +4,7 @@ __pycache__/
 .coverage
 .mypy_cache/
 .pytest_cache/
+.hypothesis/
 .ruff_cache/
 
 # IDE

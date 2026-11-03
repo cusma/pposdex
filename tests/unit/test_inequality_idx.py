@@ -2,170 +2,161 @@ import math
 from collections.abc import Callable
 
 import pytest
+from hypothesis import given
+from hypothesis import strategies as st
 
 from pposdex import inequality_idx as idx
 
+type Index = Callable[[list[float]], float]
 
-def test_scalar_product() -> None:
-    with pytest.raises(ValueError, match="longer"):
-        idx.scalar_product([1, 1], [1, 1, 1])
+SMALL_EQUAL = (0.20,) * 5
+LARGE_EQUAL = (0.01,) * 100
+INEQUAL = (0.15,) * 6 + (0.01,) * 10
+VERY_INEQUAL = (0.80,) + (0.02,) * 5 + (0.01,) * 10
+# A single small stake among large ones, and a single large stake among small ones
+LOW_END_INEQUAL = (1.0,) + (1000.0,) * 99
+HIGH_END_INEQUAL = (1.0,) * 99 + (1000.0,)
 
-    assert idx.scalar_product([1, 0], [0, 1]) == 0
-    assert idx.scalar_product([1, 2], [2, 1]) == 4
-
-
-class TestGiniIndex:
-    def test_equality(
-        self,
-        small_equal_distribution: list[float],
-        large_equal_distribution: list[float],
-    ) -> None:
-        gi_1 = idx.gini(small_equal_distribution)
-        gi_2 = idx.gini(large_equal_distribution)
-        assert math.isclose(gi_1, 0, abs_tol=1e-15)
-        assert math.isclose(gi_2, 0, abs_tol=1e-15)
-
-    def test_inequality(
-        self,
-        inequal_distribution: list[float],
-        very_inequal_distribution: list[float],
-    ) -> None:
-        gi_1 = idx.gini(inequal_distribution)
-        gi_2 = idx.gini(very_inequal_distribution)
-        assert gi_1 < gi_2
-        print(f"Gini - Low Inequality: {gi_1}")
-        print(f"Gini - High Inequality: {gi_2}")
-
-    def test_value(self) -> None:
-        assert idx.gini(list(range(1, 5))) == 0.25
-
-
-class TestGeneralizedEntropy:
-    def test_equality(
-        self,
-        small_equal_distribution: list[float],
-        large_equal_distribution: list[float],
-    ) -> None:
-        ge_1 = idx.generalized_entropy(small_equal_distribution, 2)
-        ge_2 = idx.generalized_entropy(large_equal_distribution, 3)
-        assert math.isclose(ge_1, 0, abs_tol=1e-15)
-        assert math.isclose(ge_2, 0, abs_tol=1e-15)
-
-    def test_inequality(
-        self,
-        inequal_distribution: list[float],
-        very_inequal_distribution: list[float],
-    ) -> None:
-        ge_1 = idx.generalized_entropy(inequal_distribution, 2)
-        ge_2 = idx.generalized_entropy(very_inequal_distribution, 2)
-        assert ge_1 < ge_2
-
-    def test_sensitivity(
-        self,
-        low_end_inequal_distribution: list[float],
-        high_end_inequal_distribution: list[float],
-    ) -> None:
-        small_alpha = 2
-        large_alpha = 20
-
-        ge_1 = idx.generalized_entropy(low_end_inequal_distribution, small_alpha)
-        ge_2 = idx.generalized_entropy(low_end_inequal_distribution, large_alpha)
-        assert ge_1 > ge_2
-        print(f"GE - Low End Inequality, Small Alpha: {ge_1}")
-        print(f"GE - Low End Inequality, Large Alpha: {ge_2}")
-
-        ge_1 = idx.generalized_entropy(high_end_inequal_distribution, small_alpha)
-        ge_2 = idx.generalized_entropy(high_end_inequal_distribution, large_alpha)
-        assert ge_1 < ge_2
-        print(f"GE - High End Inequality, Small Alpha: {ge_1}")
-        print(f"GE - High End Inequality, Large Alpha: {ge_2}")
-
-
-class TestTheil:
-    def test_equality(
-        self,
-        small_equal_distribution: list[float],
-        large_equal_distribution: list[float],
-    ) -> None:
-        tl_1 = idx.theil_l(small_equal_distribution)
-        tl_2 = idx.theil_l(large_equal_distribution)
-        assert math.isclose(tl_1, 0, abs_tol=1e-15)
-        assert math.isclose(tl_2, 0, abs_tol=1e-15)
-
-        tt_1 = idx.theil_t(small_equal_distribution)
-        tt_2 = idx.theil_t(large_equal_distribution)
-        assert math.isclose(tt_1, 0, abs_tol=1e-15)
-        assert math.isclose(tt_2, 0, abs_tol=1e-15)
-
-    def test_inequality(
-        self,
-        inequal_distribution: list[float],
-        very_inequal_distribution: list[float],
-    ) -> None:
-        tl_1 = idx.theil_l(inequal_distribution)
-        tl_2 = idx.theil_l(very_inequal_distribution)
-        assert tl_1 < tl_2
-
-        tt_1 = idx.theil_t(inequal_distribution)
-        tt_2 = idx.theil_t(very_inequal_distribution)
-        assert tt_1 < tt_2
-
-    def test_sensitivity(
-        self,
-        low_end_inequal_distribution: list[float],
-        high_end_inequal_distribution: list[float],
-    ) -> None:
-        tl = idx.theil_l(low_end_inequal_distribution)
-        tt = idx.theil_t(low_end_inequal_distribution)
-        assert tl > tt
-        print(f"TL - Low End Inequality: {tl}")
-        print(f"TT - Low End Inequality: {tt}")
-
-        tl = idx.theil_l(high_end_inequal_distribution)
-        tt = idx.theil_t(high_end_inequal_distribution)
-        assert tl < tt
-        print(f"TL - High End Inequality: {tl}")
-        print(f"TT - High End Inequality: {tt}")
-
-
-class TestHHI:
-    def test_equality(
-        self,
-        small_equal_distribution: list[float],
-        large_equal_distribution: list[float],
-    ) -> None:
-        hhi_1 = idx.herfindahl_hirschman(small_equal_distribution)
-        hhi_2 = idx.herfindahl_hirschman(large_equal_distribution)
-        assert hhi_1 > hhi_2
-        assert math.isclose(hhi_1, 0.20, abs_tol=1e-10)
-        assert math.isclose(hhi_2, 0.01, abs_tol=1e-10)
-        print(f"HHI - Small Equal Distribution: {hhi_1}")
-        print(f"HHI - Large Equal Distribution: {hhi_2}")
-
-    def test_inequality(
-        self,
-        inequal_distribution: list[float],
-        very_inequal_distribution: list[float],
-    ) -> None:
-        hhi_1 = idx.herfindahl_hirschman(inequal_distribution)
-        hhi_2 = idx.herfindahl_hirschman(very_inequal_distribution)
-        assert hhi_1 < hhi_2
-        assert math.isclose(hhi_1, 0.136, abs_tol=1e-10)
-        assert math.isclose(hhi_2, 0.643, abs_tol=1e-10)
-        print(f"HHI - Low Inequality: {hhi_1}")
-        print(f"HHI - High Inequality: {hhi_2}")
-
-
-@pytest.mark.parametrize(
-    "index",
-    [idx.gini, idx.theil_l, idx.theil_t, idx.herfindahl_hirschman],
+EQUAL_DISTRIBUTIONS = pytest.mark.parametrize(
+    "distribution", [SMALL_EQUAL, LARGE_EQUAL], ids=["small", "large"]
 )
-def test_empty_distribution(index: Callable[[list[float]], float]) -> None:
-    with pytest.raises(ValueError, match="empty"):
-        index([])
 
 
-def test_gini_does_not_sort_input() -> None:
-    distribution = [3.0, 1.0, 2.0]
-    idx.gini(distribution)
-    assert distribution == [3.0, 1.0, 2.0]
+def ge(alpha: float) -> Index:
+    return lambda distribution: idx.generalized_entropy(distribution, alpha)
+
+
+ZERO_ON_EQUALITY = pytest.mark.parametrize(
+    "index",
+    [idx.gini, ge(2), ge(3), idx.theil_l, idx.theil_t],
+    ids=["gini", "ge2", "ge3", "theil_l", "theil_t"],
+)
+INDEXES = pytest.mark.parametrize(
+    "index",
+    [idx.gini, ge(2), idx.theil_l, idx.theil_t, idx.herfindahl_hirschman],
+    ids=["gini", "ge2", "theil_l", "theil_t", "hhi"],
+)
+
+# Microalgo balances, exact as floats up to 2**53
+stake = st.integers(min_value=1, max_value=10**15).map(float)
+stakes = st.lists(stake, min_size=1, max_size=200)
+
+
+class TestScalarProduct:
+    @pytest.mark.parametrize(
+        ("vector_1", "vector_2", "expected"),
+        [([1, 0], [0, 1], 0), ([1, 2], [2, 1], 4)],
+    )
+    def test_value(
+        self, vector_1: list[float], vector_2: list[float], expected: float
+    ) -> None:
+        assert idx.scalar_product(vector_1, vector_2) == expected
+
+    def test_different_lengths(self) -> None:
+        with pytest.raises(ValueError, match="longer"):
+            idx.scalar_product([1, 1], [1, 1, 1])
+
+
+class TestExamples:
+    @ZERO_ON_EQUALITY
+    @EQUAL_DISTRIBUTIONS
+    def test_zero_on_equality(
+        self, index: Index, distribution: tuple[float, ...]
+    ) -> None:
+        assert index(list(distribution)) == pytest.approx(0, abs=1e-15)
+
+    @INDEXES
+    def test_grows_with_inequality(self, index: Index) -> None:
+        assert index(list(INEQUAL)) < index(list(VERY_INEQUAL))
+
+    def test_gini_value(self) -> None:
+        assert idx.gini([1, 2, 3, 4]) == 0.25
+
+    @pytest.mark.parametrize(
+        ("distribution", "expected"),
+        [
+            (SMALL_EQUAL, 0.20),
+            (LARGE_EQUAL, 0.01),
+            (INEQUAL, 0.136),
+            (VERY_INEQUAL, 0.643),
+        ],
+        ids=["small_equal", "large_equal", "inequal", "very_inequal"],
+    )
+    def test_hhi_value(self, distribution: tuple[float, ...], expected: float) -> None:
+        assert idx.herfindahl_hirschman(list(distribution)) == pytest.approx(expected)
+
+    def test_ge_sensitivity(self) -> None:
+        # Small alpha weighs small stakes, large alpha weighs large stakes
+        low_end, high_end = list(LOW_END_INEQUAL), list(HIGH_END_INEQUAL)
+        assert ge(2)(low_end) > ge(20)(low_end)
+        assert ge(2)(high_end) < ge(20)(high_end)
+
+    def test_theil_sensitivity(self) -> None:
+        # Theil L weighs small stakes, Theil T weighs large stakes
+        low_end, high_end = list(LOW_END_INEQUAL), list(HIGH_END_INEQUAL)
+        assert idx.theil_l(low_end) > idx.theil_t(low_end)
+        assert idx.theil_l(high_end) < idx.theil_t(high_end)
+
+
+class TestInvalidInput:
+    @pytest.mark.parametrize(
+        "index",
+        [idx.gini, idx.theil_l, idx.theil_t, idx.herfindahl_hirschman, ge(2)],
+        ids=["gini", "theil_l", "theil_t", "hhi", "ge2"],
+    )
+    def test_empty_distribution(self, index: Index) -> None:
+        with pytest.raises(ValueError, match="empty"):
+            index([])
+
+    @pytest.mark.parametrize("alpha", [0, 1])
+    def test_ge_alpha(self, alpha: float) -> None:
+        with pytest.raises(ValueError, match="Alpha"):
+            idx.generalized_entropy([1.0, 2.0], alpha)
+
+    def test_gini_does_not_sort_input(self) -> None:
+        distribution = [3.0, 1.0, 2.0]
+        idx.gini(distribution)
+        assert distribution == [3.0, 1.0, 2.0]
+
+
+class TestProperties:
+    @given(stakes)
+    def test_gini_bounds(self, distribution: list[float]) -> None:
+        n = len(distribution)
+        assert -1e-12 <= idx.gini(distribution) <= 1 - 1 / n + 1e-12
+
+    @given(stakes)
+    def test_theil_bounds(self, distribution: list[float]) -> None:
+        tolerance = 1e-9
+        upper = math.log(len(distribution)) + tolerance
+        assert idx.theil_l(distribution) >= -tolerance
+        assert -tolerance <= idx.theil_t(distribution) <= upper
+
+    @given(stakes)
+    def test_hhi_bounds(self, distribution: list[float]) -> None:
+        n = len(distribution)
+        assert 1 / n - 1e-12 <= idx.herfindahl_hirschman(distribution) <= 1 + 1e-12
+
+    @given(stake, st.integers(1, 200))
+    def test_equal_stakes(self, value: float, n: int) -> None:
+        distribution = [value] * n
+        assert idx.gini(distribution) == pytest.approx(0, abs=1e-12)
+        assert idx.theil_l(distribution) == pytest.approx(0, abs=1e-12)
+        assert idx.theil_t(distribution) == pytest.approx(0, abs=1e-12)
+        assert idx.herfindahl_hirschman(distribution) == pytest.approx(1 / n)
+
+    @INDEXES
+    @given(distribution=stakes, data=st.data())
+    def test_permutation_invariance(
+        self, index: Index, distribution: list[float], data: st.DataObject
+    ) -> None:
+        shuffled = data.draw(st.permutations(distribution))
+        assert index(shuffled) == pytest.approx(index(distribution), abs=1e-9)
+
+    @INDEXES
+    @given(distribution=stakes, factor=st.integers(2, 1000))
+    def test_scale_invariance(
+        self, index: Index, distribution: list[float], factor: int
+    ) -> None:
+        scaled = [stake * factor for stake in distribution]
+        assert index(scaled) == pytest.approx(index(distribution), abs=1e-9)
