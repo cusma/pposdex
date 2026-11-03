@@ -8,7 +8,6 @@ authors = [{ name = "cusma", email = "cosimo.bassi@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "docopt>=0.6.2",
     "matplotlib>=3.10",
     "msgpack>=1.0",
     "py-algorand-sdk>=2.12,<3",
@@ -41,10 +40,6 @@ ignore = [
     "PLR0917",
 ]
 
-[tool.ruff.lint.per-file-ignores]
-# docopt usage lines can't be wrapped; CLI dispatch is rewritten with argparse later
-"src/pposdex/cli.py" = ["E501", "PLR0912"]
-
 [tool.mypy]
 python_version = "3.12"
 check_untyped_defs = true
@@ -52,7 +47,7 @@ warn_unused_ignores = true
 warn_redundant_casts = true
 
 [[tool.mypy.overrides]]
-module = ["docopt", "msgpack"]
+module = ["msgpack"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
