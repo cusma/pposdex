@@ -1,325 +1,202 @@
+"""
+PPoS Dex plots
+"""
+
 import math
+from collections.abc import Callable
+from dataclasses import dataclass
+from pathlib import Path
 
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 
 N_XTICKS = 10
 XTICKS_ROTATION = 45
+TIMESERIES_DIR = Path("./docs/images/timeseries")
+SNAPSHOT_DIR = Path("./docs/images/snapshot")
+SNAPSHOT_STYLE = "fivethirtyeight"
 
 
-def ts_algo_prt(
-    algo_dynamics: list[float],
-    online_stake: list[float],
-    x_axsis: list[int],
-    x_ticks: list[str],
-    x_ticks_rotation: int = XTICKS_ROTATION,
-    x_ticks_number: int = N_XTICKS,
-    save: bool = False,
-) -> None:
-    plt.suptitle("ALGO Dynamics")
-    plt.title("(1 = full circulation or complete participation)", fontsize="medium")
-    plt.plot(x_axsis, algo_dynamics, label="ALGO Supply")
-    plt.plot(x_axsis, online_stake, label="ALGO Participation in PPoS")
-    plt.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
-    plt.locator_params(nbins=x_ticks_number)
-    plt.legend()
-    plt.ylim(0, 1)
-    plt.grid(True)
-    plt.tight_layout()
+@dataclass(frozen=True)
+class Line:
+    key: str
+    label: str
+
+
+@dataclass(frozen=True)
+class TimeseriesPanel:
+    subtitle: str
+    lines: tuple[Line, ...]
+    y_max: float | None = None
+    # Only plot data points where this key is set
+    only_with: str | None = None
+
+
+@dataclass(frozen=True)
+class TimeseriesChart:
+    name: str
+    title: str
+    panels: tuple[TimeseriesPanel, ...]
+
+
+@dataclass(frozen=True)
+class Bar:
+    label: str
+    key: str
+    x_max: Callable[[dict], float]
+    color: str | None = None
+    # Other keys the bar needs, it is not drawn if any of them is missing
+    requires: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class SnapshotChart:
+    name: str
+    title: str
+    bars: tuple[Bar, ...]
+
+
+def _x_max_unit(_: dict) -> float:
+    return 1
+
+
+def _x_max_zoom(key: str) -> Callable[[dict], float]:
+    # Zoom on small values, up to the unit
+    return lambda data: min([1, 10 * data[key]])
+
+
+def _x_max_theil(data: dict) -> float:
+    return round(max(data["ppos_theil_l"], data["ppos_theil_t"])) + 1
+
+
+EQUALITY = "(0 = complete equality)"
+DECENTRALIZATION = "(1 = perfect decentralization)"
+
+TIMESERIES = (
+    TimeseriesChart(
+        name="algo_dynamics",
+        title="ALGO Dynamics",
+        panels=(
+            TimeseriesPanel(
+                subtitle="(1 = full circulation or complete participation)",
+                lines=(
+                    Line("algo_dynamics", "ALGO Supply"),
+                    Line("ppos_online_stake", "ALGO Participation in PPoS"),
+                ),
+                y_max=1,
+            ),
+        ),
+    ),
+    TimeseriesChart(
+        name="accounts_prt",
+        title="Accounts Participation in PPoS",
+        panels=(
+            TimeseriesPanel(
+                subtitle="(1 = complete participation)",
+                lines=(Line("ppos_online_accounts", "Accounts Participation"),),
+            ),
+        ),
+    ),
+    TimeseriesChart(
+        name="algo_inequality",
+        title="ALGO Inequality",
+        panels=(TimeseriesPanel(EQUALITY, (Line("algo_hhi", "HHI"),)),),
+    ),
+    TimeseriesChart(
+        name="ppos_inequality_b",
+        title="Validators Stake Inequality (Bounded)",
+        panels=(
+            TimeseriesPanel(
+                EQUALITY, (Line("ppos_gini", "Gini Index"), Line("ppos_hhi", "HHI"))
+            ),
+        ),
+    ),
+    TimeseriesChart(
+        name="ppos_inequality_unb",
+        title="Validators Stake Inequality (Unbounded)",
+        panels=(
+            TimeseriesPanel(
+                EQUALITY,
+                (
+                    Line("ppos_theil_l", "Theil L Index"),
+                    Line("ppos_theil_t", "Theil T Index"),
+                ),
+            ),
+        ),
+    ),
+    TimeseriesChart(
+        name="ppos_dex",
+        title="PPoS Dex",
+        panels=(
+            TimeseriesPanel(DECENTRALIZATION, (Line("ppos_dex", "PPoS Dex V1"),)),
+            TimeseriesPanel(
+                DECENTRALIZATION,
+                (Line("ppos_dex_v2", "PPoS Dex V2"),),
+                only_with="ppos_dex_v2",
+            ),
+        ),
+    ),
+)
+
+SNAPSHOTS = (
+    SnapshotChart(
+        name="algo_dynamics",
+        title="ALGO Dynamics\n(1 = full circulation or complete participation)",
+        bars=(
+            Bar("ALGO Supply", "algo_dynamics", _x_max_unit),
+            Bar("ALGO Participation", "ppos_online_stake", _x_max_unit),
+        ),
+    ),
+    SnapshotChart(
+        name="accounts_prt",
+        title="Accounts Participation\n(1 = complete participation)",
+        bars=(
+            Bar(
+                "Accounts Participation",
+                "ppos_online_accounts",
+                _x_max_zoom("ppos_online_accounts"),
+            ),
+        ),
+    ),
+    SnapshotChart(
+        name="ppos_inequality",
+        title=f"Validators Stake Inequality\n{EQUALITY}",
+        bars=(
+            Bar("Gini Index", "ppos_gini", _x_max_unit, color="g"),
+            Bar("HHI", "ppos_hhi", _x_max_unit, color="g"),
+            # Theil indexes are unbounded: shown only together, on the same scale
+            Bar(
+                "Theil L Index",
+                "ppos_theil_l",
+                _x_max_theil,
+                requires=("ppos_theil_t",),
+            ),
+            Bar(
+                "Theil T Index",
+                "ppos_theil_t",
+                _x_max_theil,
+                requires=("ppos_theil_l",),
+            ),
+        ),
+    ),
+    SnapshotChart(
+        name="ppos_dex",
+        title=f"PPoS Dex\n{DECENTRALIZATION}",
+        bars=(
+            Bar("PPoS Dex v1", "ppos_dex", _x_max_zoom("ppos_dex")),
+            Bar("PPoS Dex v2", "ppos_dex_v2", _x_max_zoom("ppos_dex_v2")),
+        ),
+    ),
+)
+
+
+def _output(fig: Figure, path: Path, save: bool) -> None:
+    fig.tight_layout()
     if save:
-        plt.savefig(fname="./docs/images/timeseries/algo_dynamics")
+        fig.savefig(path)
     else:
         plt.show()
-    plt.close()
-
-
-def ts_accounts_prt(
-    online_accounts: list[float],
-    x_axsis: list[int],
-    x_ticks: list[str],
-    x_ticks_rotation: int = XTICKS_ROTATION,
-    x_ticks_number: int = N_XTICKS,
-    save: bool = False,
-) -> None:
-    plt.suptitle("Accounts Participation in PPoS")
-    plt.title("(1 = complete participation)", fontsize="medium")
-    plt.plot(x_axsis, online_accounts, label="Accounts Participation")
-    plt.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
-    plt.locator_params(nbins=x_ticks_number)
-    plt.legend()
-    plt.ylim(0)
-    plt.grid(True)
-    plt.tight_layout()
-    if save:
-        plt.savefig(fname="./docs/images/timeseries/accounts_prt")
-    else:
-        plt.show()
-    plt.close()
-
-
-def ts_algo_inequality(
-    algo_hhi: list[float],
-    x_axsis: list[int],
-    x_ticks: list[str],
-    x_ticks_rotation: int = XTICKS_ROTATION,
-    x_ticks_number: int = N_XTICKS,
-    save: bool = False,
-) -> None:
-    plt.suptitle("ALGO Inequality")
-    plt.title("(0 = complete equality)", fontsize="medium")
-    plt.plot(x_axsis, algo_hhi, label="HHI")
-    plt.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
-    plt.locator_params(nbins=x_ticks_number)
-    plt.legend()
-    plt.ylim(0)
-    plt.grid(True)
-    plt.tight_layout()
-    if save:
-        plt.savefig(fname="./docs/images/timeseries/algo_inequality")
-    else:
-        plt.show()
-    plt.close()
-
-
-def ts_ppos_inequality_b(
-    ppos_gini: list[float],
-    ppos_hhi: list[float],
-    x_axsis: list[int],
-    x_ticks: list[str],
-    x_ticks_rotation: int = XTICKS_ROTATION,
-    x_ticks_number: int = N_XTICKS,
-    save: bool = False,
-) -> None:
-    plt.suptitle("Validators Stake Inequality (Bounded)")
-    plt.title("(0 = complete equality)", fontsize="medium")
-    plt.plot(x_axsis, ppos_gini, label="Gini Index")
-    plt.plot(x_axsis, ppos_hhi, label="HHI")
-    plt.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
-    plt.locator_params(nbins=x_ticks_number)
-    plt.legend()
-    plt.ylim(0)
-    plt.grid(True)
-    plt.tight_layout()
-    if save:
-        plt.savefig(fname="./docs/images/timeseries/ppos_inequality_b")
-    else:
-        plt.show()
-    plt.close()
-
-
-def ts_ppos_inequality_unb(
-    ppos_theil_l: list[float],
-    ppos_theil_t: list[float],
-    x_axsis: list[int],
-    x_ticks: list[str],
-    x_ticks_rotation: int = XTICKS_ROTATION,
-    x_ticks_number: int = N_XTICKS,
-    save: bool = False,
-) -> None:
-    plt.suptitle("Validators Stake Inequality (Unbounded)")
-    plt.title("(0 = complete equality)", fontsize="medium")
-    plt.plot(x_axsis, ppos_theil_l, label="Theil L Index")
-    plt.plot(x_axsis, ppos_theil_t, label="Theil T Index")
-    plt.xticks(x_axsis, x_ticks, rotation=x_ticks_rotation)
-    plt.locator_params(nbins=x_ticks_number)
-    plt.legend()
-    plt.ylim(0)
-    plt.grid(True)
-    plt.tight_layout()
-    if save:
-        plt.savefig(fname="./docs/images/timeseries/ppos_inequality_unb")
-    else:
-        plt.show()
-    plt.close()
-
-
-def ts_ppos_dex(
-    ppos_dex_v1: list[float],
-    x_axsis_v1: list[int],
-    x_ticks_v1: list[str],
-    ppos_dex_v2: list[float],
-    x_axsis_v2: list[int],
-    x_ticks_v2: list[str],
-    x_ticks_rotation: int = XTICKS_ROTATION,
-    x_ticks_number: int = N_XTICKS,
-    save: bool = False,
-) -> None:
-    plt.suptitle("PPoS Dex")
-    plt.subplot(2, 1, 1)
-    plt.title("(1 = perfect decentralization)", fontsize="medium")
-    plt.plot(x_axsis_v1, ppos_dex_v1, label="PPoS Dex V1")
-    plt.xticks(x_axsis_v1, x_ticks_v1, rotation=x_ticks_rotation)
-    plt.locator_params(nbins=x_ticks_number)
-    plt.ylim(0)
-    plt.grid(True)
-    plt.legend()
-    plt.subplot(2, 1, 2)
-    plt.title("(1 = perfect decentralization)", fontsize="medium")
-    plt.plot(x_axsis_v2, ppos_dex_v2, label="PPoS Dex V2")
-    plt.xticks(x_axsis_v2, x_ticks_v2, rotation=x_ticks_rotation)
-    plt.locator_params(nbins=x_ticks_number)
-    plt.ylim(0)
-    plt.grid(True)
-    plt.legend()
-    plt.tight_layout()
-    if save:
-        plt.savefig(fname="./docs/images/timeseries/ppos_dex")
-    else:
-        plt.show()
-    plt.close()
-
-
-def snap_suptitle(timestamp: str, algo_threshold: int, accounts: int) -> str:
-    return f"{timestamp}\nThreshold: {algo_threshold} ALGO\nAccounts: {accounts}"
-
-
-def snap_algo_prt(
-    algo_dynamics: float | None,
-    online_stake: float | None,
-    timestamp: str,
-    algo_threshold: int,
-    accounts: int,
-    save: bool = False,
-) -> None:
-    plt.style.use("fivethirtyeight")
-    plt.suptitle(
-        "ALGO Dynamics\n(1 = full circulation or complete participation)\n"
-        + snap_suptitle(timestamp, algo_threshold, accounts),
-        fontsize="medium",
-    )
-    if algo_dynamics is not None:
-        plt.subplot(2, 1, 1)
-        plt.barh("ALGO Supply", algo_dynamics)
-        plt.xlim(0, 1)
-    if online_stake is not None:
-        plt.subplot(2, 1, 2)
-        plt.barh("ALGO Participation", online_stake)
-        plt.xlim(0, 1)
-    plt.tight_layout()
-    if save:
-        plt.savefig(fname="./docs/images/snapshot/algo_dynamics")
-    else:
-        plt.show()
-    plt.close()
-
-
-def snap_accounts_prt(
-    online_accounts: float | None,
-    timestamp: str,
-    algo_threshold: int,
-    accounts: int,
-    save: bool = False,
-) -> None:
-    plt.style.use("fivethirtyeight")
-    plt.suptitle(
-        "Accounts Participation\n(1 = complete participation)\n"
-        + snap_suptitle(timestamp, algo_threshold, accounts),
-        fontsize="medium",
-    )
-    if online_accounts is not None:
-        plt.barh("Accounts Participation", online_accounts)
-        plt.xlim(0, min([1, 10 * online_accounts]))
-    plt.tight_layout()
-    if save:
-        plt.savefig(fname="./docs/images/snapshot/accounts_prt")
-    else:
-        plt.show()
-    plt.close()
-
-
-def snap_algo_inequality(
-    algo_hhi: float | None,
-    timestamp: str,
-    algo_threshold: int,
-    accounts: int,
-    save: bool = False,
-) -> None:
-    plt.style.use("fivethirtyeight")
-    plt.suptitle(
-        "ALGO Inequality\n(0 = complete equality)\n"
-        + snap_suptitle(timestamp, algo_threshold, accounts),
-        fontsize="medium",
-    )
-    if algo_hhi is not None:
-        plt.barh("ALGO Inequality", algo_hhi)
-        plt.xlim(0, 1)
-    plt.tight_layout()
-    if save:
-        plt.savefig(fname="./docs/images/snapshot/algo_inequality")
-    else:
-        plt.show()
-    plt.close()
-
-
-def snap_ppos_inequality(
-    ppos_gini: float | None,
-    ppos_theil_l: float | None,
-    ppos_theil_t: float | None,
-    ppos_hhi: float | None,
-    timestamp: str,
-    algo_threshold: int,
-    accounts: int,
-    save: bool = False,
-) -> None:
-    plt.style.use("fivethirtyeight")
-    plt.suptitle(
-        "Validators Stake Inequality\n(0 = complete equality)\n"
-        + snap_suptitle(timestamp, algo_threshold, accounts),
-        fontsize="medium",
-    )
-    # Boundend
-    if ppos_gini is not None:
-        plt.subplot(4, 1, 1)
-        plt.barh("Gini Index", ppos_gini, color="g")
-        plt.xlim(0, 1)
-    if ppos_hhi is not None:
-        plt.subplot(4, 1, 2)
-        plt.barh("HHI", ppos_hhi, color="g")
-        plt.xlim(0, 1)
-    # Unbounded
-    if ppos_theil_l is not None and ppos_theil_t is not None:
-        x_upper_lim = round(max(ppos_theil_l, ppos_theil_t)) + 1
-        plt.subplot(4, 1, 3)
-        plt.barh("Theil L Index", ppos_theil_l)
-        plt.xlim(0, x_upper_lim)
-        plt.subplot(4, 1, 4)
-        plt.barh("Theil T Index", ppos_theil_t)
-        plt.xlim(0, x_upper_lim)
-    plt.tight_layout()
-    if save:
-        plt.savefig(fname="./docs/images/snapshot/ppos_inequality")
-    else:
-        plt.show()
-    plt.close()
-
-
-def snap_ppos_dex(
-    ppos_dex_v1: float | None,
-    ppos_dex_v2: float | None,
-    timestamp: str,
-    algo_threshold: int,
-    accounts: int,
-    save: bool = False,
-) -> None:
-    plt.style.use("fivethirtyeight")
-    plt.suptitle(
-        "PPoS Dex\n(1 = perfect decentralization)\n"
-        + snap_suptitle(timestamp, algo_threshold, accounts),
-        fontsize="medium",
-    )
-    if ppos_dex_v1 is not None:
-        plt.subplot(2, 1, 1)
-        plt.barh("PPoS Dex v1", ppos_dex_v1)
-        plt.xlim(0, min([1, 10 * ppos_dex_v1]))
-    if ppos_dex_v2 is not None:
-        plt.subplot(2, 1, 2)
-        plt.barh("PPoS Dex v2", ppos_dex_v2)
-        plt.xlim(0, min([1, 10 * ppos_dex_v2]))
-    plt.tight_layout()
-    if save:
-        plt.savefig(fname="./docs/images/snapshot/ppos_dex")
-    else:
-        plt.show()
-    plt.close()
+    plt.close(fig)
 
 
 def _series(ppos_dex_data: list[dict], key: str) -> list[float]:
@@ -327,87 +204,61 @@ def _series(ppos_dex_data: list[dict], key: str) -> list[float]:
     return [d.get(key, math.nan) for d in ppos_dex_data]
 
 
+def plot_timeseries(
+    chart: TimeseriesChart, ppos_dex_data: list[dict], save: bool = False
+) -> None:
+    fig = plt.figure()
+    fig.suptitle(chart.title)
+    for row, panel in enumerate(chart.panels, start=1):
+        data = ppos_dex_data
+        if panel.only_with is not None:
+            data = [d for d in data if d.get(panel.only_with)]
+        x_axis = list(range(len(data)))
+        x_ticks = [d["timestamp"][:10] for d in data]
+
+        ax = fig.add_subplot(len(chart.panels), 1, row)
+        ax.set_title(panel.subtitle, fontsize="medium")
+        for line in panel.lines:
+            ax.plot(x_axis, _series(data, line.key), label=line.label)
+        ax.set_xticks(x_axis, x_ticks, rotation=XTICKS_ROTATION)
+        ax.locator_params(nbins=N_XTICKS)
+        ax.legend()
+        ax.set_ylim(0, panel.y_max)
+        ax.grid(True)
+    _output(fig, TIMESERIES_DIR / f"{chart.name}.png", save)
+
+
+def snap_suptitle(timestamp: str, algo_threshold: int, accounts: int) -> str:
+    return f"{timestamp}\nThreshold: {algo_threshold} ALGO\nAccounts: {accounts}"
+
+
+def plot_snapshot(chart: SnapshotChart, data: dict, save: bool = False) -> None:
+    with plt.style.context(SNAPSHOT_STYLE):
+        fig = plt.figure()
+        fig.suptitle(
+            f"{chart.title}\n"
+            + snap_suptitle(
+                data["timestamp"][:10], data["algo_threshold"], data["accounts"]
+            ),
+            fontsize="medium",
+        )
+        for row, bar in enumerate(chart.bars, start=1):
+            if any(data.get(key) is None for key in (bar.key, *bar.requires)):
+                continue
+            ax = fig.add_subplot(len(chart.bars), 1, row)
+            ax.barh(bar.label, data[bar.key], color=bar.color)
+            ax.set_xlim(0, bar.x_max(data))
+        _output(fig, SNAPSHOT_DIR / f"{chart.name}.png", save)
+
+
 def timeseries(ppos_dex_data: list[dict], save: bool = False) -> None:
-    ppos_dex_data.reverse()
-    x_axsis = list(range(len(ppos_dex_data)))
-    x_ticks = [d["timestamp"][:10] for d in ppos_dex_data]
-
-    # Stake Participation
-    algo_dynamics = _series(ppos_dex_data, "algo_dynamics")
-    online_stake = _series(ppos_dex_data, "ppos_online_stake")
-    ts_algo_prt(algo_dynamics, online_stake, x_axsis, x_ticks, save=save)
-
-    # Accounts Participation
-    online_accounts = _series(ppos_dex_data, "ppos_online_accounts")
-    ts_accounts_prt(online_accounts, x_axsis, x_ticks, save=save)
-
-    # Stake Inequality
-    algo_hhi = _series(ppos_dex_data, "algo_hhi")
-    ts_algo_inequality(algo_hhi, x_axsis, x_ticks, save=save)
-
-    # PPoS Inequality Bounded
-    ppos_gini = _series(ppos_dex_data, "ppos_gini")
-    ppos_hhi = _series(ppos_dex_data, "ppos_hhi")
-    ts_ppos_inequality_b(ppos_gini, ppos_hhi, x_axsis, x_ticks, save=save)
-
-    # PPoS Inequality Unbounded
-    ppos_theil_l = _series(ppos_dex_data, "ppos_theil_l")
-    ppos_theil_t = _series(ppos_dex_data, "ppos_theil_t")
-    ts_ppos_inequality_unb(ppos_theil_l, ppos_theil_t, x_axsis, x_ticks, save=save)
-
-    # PPoS Dex
-    ppos_dex_data_v2 = [d for d in ppos_dex_data if d.get("ppos_dex_v2")]
-    x_axsis_v2 = list(range(len(ppos_dex_data_v2)))
-    x_ticks_v2 = [d["timestamp"][:10] for d in ppos_dex_data_v2]
-
-    ppos_dex_v1 = _series(ppos_dex_data, "ppos_dex")
-    ppos_dex_v2 = _series(ppos_dex_data_v2, "ppos_dex_v2")
-    ts_ppos_dex(
-        ppos_dex_v1=ppos_dex_v1,
-        x_axsis_v1=x_axsis,
-        x_ticks_v1=x_ticks,
-        ppos_dex_v2=ppos_dex_v2,
-        x_axsis_v2=x_axsis_v2,
-        x_ticks_v2=x_ticks_v2,
-        save=save,
-    )
+    # Published data comes newest first, plot it in chronological order
+    chronological = ppos_dex_data[::-1]
+    for chart in TIMESERIES:
+        plot_timeseries(chart, chronological, save)
 
 
 def snapshot(ppos_dex_data: list[dict], save: bool = False) -> None:
-    timestamp = ppos_dex_data[0]["timestamp"][:10]
-    algo_threshold = ppos_dex_data[0]["algo_threshold"]
-    accounts = ppos_dex_data[0]["accounts"]
-
-    # Stake Participation
-    algo_dynamics = ppos_dex_data[0].get("algo_dynamics")
-    online_stake = ppos_dex_data[0].get("ppos_online_stake")
-    snap_algo_prt(
-        algo_dynamics, online_stake, timestamp, algo_threshold, accounts, save=save
-    )
-
-    # Accounts Participation
-    online_accounts = ppos_dex_data[0].get("ppos_online_accounts")
-    snap_accounts_prt(online_accounts, timestamp, algo_threshold, accounts, save=save)
-
-    # PPoS Inequality
-    ppos_gini = ppos_dex_data[0].get("ppos_gini")
-    ppos_theil_l = ppos_dex_data[0].get("ppos_theil_l")
-    ppos_theil_t = ppos_dex_data[0].get("ppos_theil_t")
-    ppos_hhi = ppos_dex_data[0].get("ppos_hhi")
-    snap_ppos_inequality(
-        ppos_gini,
-        ppos_theil_l,
-        ppos_theil_t,
-        ppos_hhi,
-        timestamp,
-        algo_threshold,
-        accounts,
-        save=save,
-    )
-
-    # PPoS Dex
-    ppos_dex_v1 = ppos_dex_data[0].get("ppos_dex")
-    ppos_dex_v2 = ppos_dex_data[0].get("ppos_dex_v2")
-    snap_ppos_dex(
-        ppos_dex_v1, ppos_dex_v2, timestamp, algo_threshold, accounts, save=save
-    )
+    latest = ppos_dex_data[0]
+    for chart in SNAPSHOTS:
+        plot_snapshot(chart, latest, save)
