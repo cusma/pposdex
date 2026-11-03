@@ -19,6 +19,7 @@
 
 - [Timeseries](data/timeseries.md)
 - [Snapshot](data/snapshot.md)
+- [Insights](data/insights.md)
 
 # CLI
 

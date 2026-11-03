@@ -15,4 +15,5 @@ book/
 # Plots, rendered when the docs are deployed
 docs/images/snapshot/
 docs/images/timeseries/
+docs/images/insights/
 *.csv

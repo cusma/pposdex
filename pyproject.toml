@@ -45,7 +45,7 @@ ignore = [
 python_version = "3.12"
 strict = true
 # py-algorand-sdk ships type hints, but many of its functions are unannotated
-untyped_calls_exclude = ["algosdk"]
+untyped_calls_exclude = ["algosdk", "matplotlib.dates"]
 # Test folders are not packages: name their modules from these roots
 mypy_path = ["src", "tests"]
 explicit_package_bases = true

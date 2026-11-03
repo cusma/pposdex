@@ -1,27 +1,33 @@
 import copy
+import math
 from collections.abc import Callable
+from datetime import datetime
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pytest
 
 from pposdex import plots
+from pposdex.plots import Line, TimeseriesChart, TimeseriesPanel
 from pposdex.ppos_dex_data import PPoSDexData
 
 TIMESERIES = [
-    "accounts_prt.png",
-    "algo_dynamics.png",
-    "algo_inequality.png",
-    "ppos_dex.png",
-    "ppos_inequality_b.png",
-    "ppos_inequality_unb.png",
+    "algo_dynamics",
+    "algo_inequality",
+    "ppos_dex",
+    "ppos_inequality_b",
+    "ppos_inequality_unb",
 ]
 SNAPSHOT = [
-    "accounts_prt.png",
-    "algo_dynamics.png",
-    "ppos_dex.png",
-    "ppos_inequality.png",
+    "algo_dynamics",
+    "ppos_dex",
+    "ppos_inequality",
 ]
+
+
+def svgs(names: list[str]) -> list[str]:
+    """Light and dark variants of the charts"""
+    return sorted(f"{name}{suffix}.svg" for name in names for suffix in ("", ".dark"))
 
 
 @pytest.fixture
@@ -53,16 +59,24 @@ def test_save(
 ) -> None:
     original = copy.deepcopy(data)
     plot(data, True)
-    assert sorted(p.name for p in (images / kind).iterdir()) == expected
+    assert sorted(p.name for p in (images / kind).iterdir()) == svgs(expected)
     assert data == original
     assert not plt.get_fignums()
+
+
+def test_svg_keeps_text(data: list[PPoSDexData], images: Path) -> None:
+    plots.snapshot(data, True)
+    svg = (images / "snapshot" / "ppos_dex.svg").read_text()
+    # Text is rendered by the browser, in the system font
+    assert "PPoS Dex" in svg
+    assert "system-ui" in svg
 
 
 def test_snapshot_without_optional_metrics(
     data: list[PPoSDexData], images: Path
 ) -> None:
     plots.snapshot(data[-1:], True)
-    assert sorted(p.name for p in (images / "snapshot").iterdir()) == SNAPSHOT
+    assert sorted(p.name for p in (images / "snapshot").iterdir()) == svgs(SNAPSHOT)
 
 
 @pytest.mark.parametrize(
@@ -81,4 +95,66 @@ def test_show(
     monkeypatch.setattr(plt, "show", lambda: shown.append(None))
     plot(data, False)
     assert len(shown) == charts
-    assert not list(images.rglob("*.png"))
+    assert not images.exists()
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [(0.0096, "1.0%"), (0.2, "20%"), (1, "100%")],
+)
+def test_percent(value: float, expected: str) -> None:
+    assert plots.percent(value) == expected
+
+
+def test_line_value(make_data_point: Callable[..., PPoSDexData]) -> None:
+    data = make_data_point()
+    del data["ppos_hhi"]
+    assert Line("ppos_gini", "").value(data) == 0.9
+    assert math.isnan(Line("ppos_hhi", "").value(data))
+    assert Line(lambda d: 2 * d["ppos_gini"], "").value(data) == 1.8
+
+
+class TestSeries:
+    def test_breaks_where_data_is_missing(self, data: list[PPoSDexData]) -> None:
+        dates, values = plots.series(data[::-1], Line("ppos_gini", ""))
+        # A gap point between 2021 and 2026, then the three days
+        assert len(dates) == len(values) == 5
+        assert math.isnan(values[1])
+        assert dates[0] < dates[1] < dates[2]
+
+    def test_no_data_periods(self) -> None:
+        dates = [datetime(2026, 1, d) for d in (1, 2)] + [datetime(2026, 3, 1)]
+        assert plots.no_data_periods(dates) == [(dates[1], dates[2])]
+
+
+@pytest.mark.parametrize(
+    ("positions", "expected"),
+    [
+        ([0.5], [0.5]),
+        ([0.1, 0.9], [0.1, 0.9]),
+        ([0.5, 0.52], [0.5, 0.6]),
+        ([0.52, 0.5, 0.51], [0.7, 0.5, 0.6]),
+    ],
+)
+def test_dodge(positions: list[float], expected: list[float]) -> None:
+    assert plots.dodge(positions, 0.1) == pytest.approx(expected)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [lambda d: d["accounts"], lambda _: math.nan],
+    ids=["values", "no_values"],
+)
+def test_log_panel(
+    value: Callable[[PPoSDexData], float], data: list[PPoSDexData], images: Path
+) -> None:
+    panel = TimeseriesPanel("", (Line(value, ""),), fmt=str, log=True)
+    plots.plot_timeseries(TimeseriesChart("log", "Log", (panel,)), data, True, images)
+    assert (images / "log.svg").exists()
+
+
+def test_snap_subtitle(make_data_point: Callable[..., PPoSDexData]) -> None:
+    data = make_data_point(accounts=147633)
+    assert plots.snap_subtitle(data) == (
+        "3 Nov 2026  ·  147,633 accounts holding at least 1,000 ALGO"
+    )
