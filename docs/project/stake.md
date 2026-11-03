@@ -32,7 +32,7 @@ PoS validation. It can be quantified as:
 Where:
 
 * _Stake Dynamics_ \\(S_{dyn}\\): is the fraction of _circulating supply_ (\\(S_c\\))
-over the _genesis supply_ (\\( S_g\\)).  It only applies to fixed genesis supply
+over the _genesis supply_ (\\( S_g\\)). It only applies to fixed genesis supply
 Blockchains;
 * _Stake Participation_ \\(S_{p}\\): is the fraction of _validation supply_ (\\(S_v\\))
 over the _circulating supply_ (\\( S_c\\)).

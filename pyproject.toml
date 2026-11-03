@@ -74,3 +74,13 @@ fail_under = 95
 show_missing = true
 skip_covered = true
 exclude_also = ['if __name__ == "__main__":']
+
+[tool.rumdl]
+# mdBook's table of contents is not a regular page
+exclude = ["docs/SUMMARY.md"]
+# Also when pre-commit passes the file explicitly
+force-exclude = true
+
+[tool.rumdl.MD013]
+code-blocks = false
+tables = false

@@ -22,7 +22,7 @@ We say Algorand Validating Stake is _“completely decentralized”_ iff:
 
 1. All the ALGO genesis supply is circulating in the ecosystem (\\(S_{dyn}\\));
 1. All the ALGO circulating supply is taking part to the PPoS (\\(S_{prt}\\));
-1. All the accounts that owns ALGOs are taking part to PPoS  (\\(A_{prt}\\));
+1. All the accounts that owns ALGOs are taking part to PPoS (\\(A_{prt}\\));
 1. All the accounts participating in PPoS hold the same amount of ALGO
 (\\(GI\\) or \\(HHI\\));
 

@@ -39,8 +39,8 @@ repos:
       pass_filenames: false
 
 # Markdown
-- repo: https://github.com/igorshubovych/markdownlint-cli
-  rev: cbcdc463be5464e25e3e955a511599a67b9b987f  # frozen: v0.50.0
+- repo: https://github.com/rvben/rumdl-pre-commit
+  rev: 03a7d1a4936b5889602852175bca2d39acb3281e  # frozen: v0.3.0
   hooks:
-    - id: markdownlint
+    - id: rumdl-check
       args: ["--fix"]
