@@ -1,4 +1,5 @@
 import base64
+from collections.abc import Callable
 
 import pytest
 from algokit_utils import Account
@@ -31,11 +32,13 @@ def test_get_address_txns_note(
     algod_client: AlgodClient,
     indexer_client: IndexerClient,
     faucet: Account,
+    wait_for_indexer: Callable[[int], None],
 ) -> None:
     note = b"silvio"
     post_note(algod_client, faucet, note)
     post_note(algod_client, faucet, b"noise")
     post_note(algod_client, faucet, b"more noise")
-    post_note(algod_client, faucet, b"even more noise")
+    last_txn = post_note(algod_client, faucet, b"even more noise")
+    wait_for_indexer(last_txn["confirmed-round"])
     published_notes = get_address_txns_note(indexer_client, faucet.address)
     assert base64.b64encode(note).decode() in published_notes
