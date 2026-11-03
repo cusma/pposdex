@@ -79,7 +79,7 @@ def faucet(algod_client: AlgodClient) -> Account:
 
 
 @pytest.fixture(scope="session")
-def wait_for_indexer(indexer_client) -> Callable[[int], None]:
+def wait_for_indexer(indexer_client: IndexerClient) -> Callable[[int], None]:
     def wait(confirmed_round: int, timeout_sec: float = 30) -> None:
         # Algod confirms a transaction before the Indexer has caught up to its round
         deadline = time.monotonic() + timeout_sec

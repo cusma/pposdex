@@ -2,6 +2,7 @@ import base64
 import sys
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Literal, NotRequired, TypedDict, cast
 
 import msgpack
 from algosdk.constants import microalgos_to_algos_ratio
@@ -15,6 +16,39 @@ from pposdex.helpers import Account
 d_N = 1  # noqa: N816 (math notation)
 d_T = 1  # noqa: N816 (math notation)
 MICROALGO_TOTAL_SUPPLY = 10**16
+
+
+class PPoSDexData(TypedDict):
+    """PPoS Dex data point, as published on-chain"""
+
+    algo_threshold: int
+    accounts: int
+    algo_dynamics: float
+    ppos_online_stake: float
+    ppos_online_accounts: float
+    algo_hhi: NotRequired[float]
+    ppos_gini: float
+    ppos_theil_l: float
+    ppos_theil_t: float
+    ppos_hhi: NotRequired[float]
+    ppos_dex: float
+    ppos_dex_v2: NotRequired[float]
+    timestamp: str
+
+
+# PPoS Dex data point keys holding a metric
+Metric = Literal[
+    "algo_dynamics",
+    "ppos_online_stake",
+    "ppos_online_accounts",
+    "algo_hhi",
+    "ppos_gini",
+    "ppos_theil_l",
+    "ppos_theil_t",
+    "ppos_hhi",
+    "ppos_dex",
+    "ppos_dex_v2",
+]
 
 
 class InvalidDataError(ValueError):
@@ -46,7 +80,7 @@ SCHEMA: dict[str, Field] = {
 }
 
 
-def validate(data: object) -> dict:
+def validate(data: object) -> PPoSDexData:
     """
     Validate a PPoS Dex data point against the SCHEMA
 
@@ -81,7 +115,7 @@ def validate(data: object) -> dict:
         if spec.max is not None and value > spec.max:
             raise InvalidDataError(f"{key}: {value} > {spec.max}")
 
-    return data
+    return cast(PPoSDexData, data)
 
 
 def post_ppos_dex_data(
@@ -90,7 +124,7 @@ def post_ppos_dex_data(
     publisher: Account,
     algo_threshold: int,
     wait_rounds: int = 0,
-) -> dict:
+) -> PPoSDexData:
     """
     Post PPoS Dex data on-chain
 
@@ -128,7 +162,7 @@ def post_ppos_dex_data(
     ppos_dex_v1 = d_N * d_T * algo_dyn * algo_prt * accounts_prt * (1 - ppos_gini)
     ppos_dex_v2 = d_N * d_T * algo_dyn * algo_prt * (1 - ppos_hhi)
 
-    ppos_dex_data = {
+    ppos_dex_data: PPoSDexData = {
         "algo_threshold": algo_threshold,
         "accounts": len(stakes),
         "algo_dynamics": algo_dyn,
@@ -158,7 +192,7 @@ def get_ppos_dex_data(
     algo_threshold: int,
     start_block: int,
     end_block: int | None = None,
-) -> list[dict]:
+) -> list[PPoSDexData]:
     """
     Get PPoS Dex data from chain
 
@@ -176,7 +210,7 @@ def get_ppos_dex_data(
         indexer_client, publisher_address, start_block, end_block
     )
 
-    ppos_dex_data: list[dict] = []
+    ppos_dex_data: list[PPoSDexData] = []
     for txn_note in ppos_dex_txns_note:
         try:
             data = validate(msgpack.unpackb(base64.b64decode(txn_note)))

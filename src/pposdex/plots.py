@@ -10,6 +10,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 
+from pposdex.ppos_dex_data import Metric, PPoSDexData
+
 N_XTICKS = 10
 XTICKS_ROTATION = 45
 TIMESERIES_DIR = Path("./docs/images/timeseries")
@@ -19,7 +21,7 @@ SNAPSHOT_STYLE = "fivethirtyeight"
 
 @dataclass(frozen=True)
 class Line:
-    key: str
+    key: Metric
     label: str
 
 
@@ -29,7 +31,7 @@ class TimeseriesPanel:
     lines: tuple[Line, ...]
     y_max: float | None = None
     # Only plot data points where this key is set
-    only_with: str | None = None
+    only_with: Metric | None = None
 
 
 @dataclass(frozen=True)
@@ -42,11 +44,11 @@ class TimeseriesChart:
 @dataclass(frozen=True)
 class Bar:
     label: str
-    key: str
-    x_max: Callable[[dict], float]
+    key: Metric
+    x_max: Callable[[PPoSDexData], float]
     color: str | None = None
     # Other keys the bar needs, it is not drawn if any of them is missing
-    requires: tuple[str, ...] = ()
+    requires: tuple[Metric, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -56,16 +58,16 @@ class SnapshotChart:
     bars: tuple[Bar, ...]
 
 
-def _x_max_unit(_: dict) -> float:
+def _x_max_unit(_: PPoSDexData) -> float:
     return 1
 
 
-def _x_max_zoom(key: str) -> Callable[[dict], float]:
+def _x_max_zoom(key: Metric) -> Callable[[PPoSDexData], float]:
     # Zoom on small values, up to the unit
     return lambda data: min([1, 10 * data[key]])
 
 
-def _x_max_theil(data: dict) -> float:
+def _x_max_theil(data: PPoSDexData) -> float:
     return round(max(data["ppos_theil_l"], data["ppos_theil_t"])) + 1
 
 
@@ -199,13 +201,13 @@ def _output(fig: Figure, path: Path, save: bool) -> None:
     plt.close(fig)
 
 
-def _series(ppos_dex_data: list[dict], key: str) -> list[float]:
+def _series(ppos_dex_data: list[PPoSDexData], key: Metric) -> list[float]:
     # Missing data points are plotted as gaps
     return [d.get(key, math.nan) for d in ppos_dex_data]
 
 
 def plot_timeseries(
-    chart: TimeseriesChart, ppos_dex_data: list[dict], save: bool = False
+    chart: TimeseriesChart, ppos_dex_data: list[PPoSDexData], save: bool = False
 ) -> None:
     fig = plt.figure()
     fig.suptitle(chart.title)
@@ -232,7 +234,7 @@ def snap_suptitle(timestamp: str, algo_threshold: int, accounts: int) -> str:
     return f"{timestamp}\nThreshold: {algo_threshold} ALGO\nAccounts: {accounts}"
 
 
-def plot_snapshot(chart: SnapshotChart, data: dict, save: bool = False) -> None:
+def plot_snapshot(chart: SnapshotChart, data: PPoSDexData, save: bool = False) -> None:
     with plt.style.context(SNAPSHOT_STYLE):
         fig = plt.figure()
         fig.suptitle(
@@ -251,14 +253,14 @@ def plot_snapshot(chart: SnapshotChart, data: dict, save: bool = False) -> None:
         _output(fig, SNAPSHOT_DIR / f"{chart.name}.png", save)
 
 
-def timeseries(ppos_dex_data: list[dict], save: bool = False) -> None:
+def timeseries(ppos_dex_data: list[PPoSDexData], save: bool = False) -> None:
     # Published data comes newest first, plot it in chronological order
     chronological = ppos_dex_data[::-1]
     for chart in TIMESERIES:
         plot_timeseries(chart, chronological, save)
 
 
-def snapshot(ppos_dex_data: list[dict], save: bool = False) -> None:
+def snapshot(ppos_dex_data: list[PPoSDexData], save: bool = False) -> None:
     latest = ppos_dex_data[0]
     for chart in SNAPSHOTS:
         plot_snapshot(chart, latest, save)

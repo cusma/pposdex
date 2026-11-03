@@ -1,4 +1,5 @@
 import math
+from collections.abc import Callable
 
 import pytest
 
@@ -159,7 +160,7 @@ class TestHHI:
     "index",
     [idx.gini, idx.theil_l, idx.theil_t, idx.herfindahl_hirschman],
 )
-def test_empty_distribution(index) -> None:
+def test_empty_distribution(index: Callable[[list[float]], float]) -> None:
     with pytest.raises(ValueError, match="empty"):
         index([])
 

@@ -16,6 +16,7 @@ from pposdex.networks import (
     get_algod_client,
     get_indexer_client,
 )
+from pposdex.ppos_dex_data import PPoSDexData
 
 BANNER = r"""
          _______  _______           ______    ______
@@ -156,7 +157,7 @@ def main(argv: list[str] | None = None) -> None:
         show_data(args, ppos_dex_data)
 
 
-def show_data(args: argparse.Namespace, ppos_dex_data: list[dict]) -> None:
+def show_data(args: argparse.Namespace, ppos_dex_data: list[PPoSDexData]) -> None:
     if args.command == "timeseries":
         if args.save:
             print("💾 Saving timeseries in './docs/images/timeseries'...\n")

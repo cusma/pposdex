@@ -26,6 +26,9 @@ MAX_ATTEMPTS = 10
 ACCOUNTS_PAGE_SIZE = 1000  # Indexer maximum, the default page is 100 accounts
 ENV_MNEMONIC = "ALGO_MNEMONIC"
 
+# Indexer and Algod JSON responses
+type Json = dict[str, Any]
+
 
 @dataclass(frozen=True)
 class Account:
@@ -35,10 +38,11 @@ class Account:
 
     @property
     def address(self) -> str:
-        return account.address_from_private_key(self.private_key)
+        address: str = account.address_from_private_key(self.private_key)
+        return address
 
 
-def indexer_request(request: Callable) -> Callable:
+def indexer_request[**P, R](request: Callable[P, R]) -> Callable[P, R]:
     """
     Wraps a request to the Indexer adding connection attempts management.
 
@@ -50,7 +54,7 @@ def indexer_request(request: Callable) -> Callable:
     """
 
     @functools.wraps(request)
-    def wrapper(*args, **kwargs) -> Any:
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
         attempts = 1
         while attempts <= MAX_ATTEMPTS:
             try:
@@ -78,7 +82,7 @@ def get_publisher_account() -> Account:
 def get_algo_holders(
     indexer_client: IndexerClient,
     microalgo_min_balance: int | None = None,
-) -> list[dict]:
+) -> list[Json]:
     """
     Get Accounts holding a balance greater than `microalgo_min_balance`
 
@@ -92,7 +96,7 @@ def get_algo_holders(
     nexttoken = ""
     has_result = True
 
-    holders: list[dict] = []
+    holders: list[Json] = []
     while has_result:
         result = indexer_client.accounts(
             next_page=nexttoken,
@@ -136,7 +140,7 @@ def get_address_txns_note(
     nexttoken = ""
     has_result = True
 
-    address_txns: list[dict] = []
+    address_txns: list[Json] = []
     while has_result:
         result = indexer_client.search_transactions_by_address(
             address=address,
@@ -169,7 +173,7 @@ def post_note(
     note: bytes,
     wait_rounds: int = 0,
     verbose: bool = False,
-) -> dict:
+) -> Json:
     """
     Post a note on Algorand
 
@@ -199,7 +203,7 @@ def post_note(
     if verbose:
         print(f"Publishing Algorand PPoS Dex data in txID: {txid}\n")
 
-    confirmed_txn = wait_for_confirmation(algod_client, txid, wait_rounds)
+    confirmed_txn: Json = wait_for_confirmation(algod_client, txid, wait_rounds)
 
     if verbose:
         print(f"Confirmed in round: {confirmed_txn.get('confirmed-round', 0)}\n")
