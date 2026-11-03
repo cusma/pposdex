@@ -23,6 +23,7 @@ from algosdk.v2client.indexer import IndexerClient
 
 ATTEMPT_DELAY_SEC = 3
 MAX_ATTEMPTS = 10
+ACCOUNTS_PAGE_SIZE = 1000  # Indexer maximum, the default page is 100 accounts
 ENV_MNEMONIC = "ALGO_MNEMONIC"
 
 
@@ -97,6 +98,7 @@ def get_algo_holders(
             next_page=nexttoken,
             min_balance=microalgo_min_balance,
             exclude="all",
+            limit=ACCOUNTS_PAGE_SIZE,
         )
 
         accounts = result["accounts"]
