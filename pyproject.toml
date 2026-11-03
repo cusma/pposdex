@@ -81,6 +81,10 @@ exclude = ["docs/SUMMARY.md"]
 # Also when pre-commit passes the file explicitly
 force-exclude = true
 
+[tool.rumdl.per-file-ignores]
+# Plots are rendered when the docs are deployed, they are not in the repository
+"docs/data/*.md" = ["MD057"]
+
 [tool.rumdl.MD013]
 code-blocks = false
 tables = false
