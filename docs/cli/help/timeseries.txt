@@ -1,0 +1,19 @@
+usage: pposdex timeseries [-h] [-p PUBLISHER] [-s START_BLOCK] [-e END_BLOCK] [-a ALGO_THRESHOLD]
+                          [-l | -t] [-v | -q] [--save]
+
+options:
+  -h, --help            show this help message and exit
+  -p, --publisher PUBLISHER
+                        PPoS Dex data publisher address (default:
+                        WIPE4JSUWLXKZZK6GJ6VI32PX6ZWPKBRH5YFRJCHWOVC73P5RI4DGUQUWQ)
+  -s, --start-block START_BLOCK
+                        Data starting block (default: 11476070)
+  -e, --end-block END_BLOCK
+                        Data ending block
+  -a, --algo-threshold ALGO_THRESHOLD
+                        Minimum account balance in ALGO (default: 1000)
+  -l, --localhost       Use AlgoKit LocalNet
+  -t, --test            Use TestNet (default: MainNet)
+  -v, --verbose         Show debug details
+  -q, --quiet           Show errors only
+  --save                Save plots in './docs/images'

@@ -1,8 +1,41 @@
 [book]
+title = "PPoS Dex"
+description = "Algorand Pure Proof of Stake Decentralization Index"
 authors = ["cusma"]
 language = "en"
 src = "docs"
-title = "PPoS Dex"
+
+[build]
+# Fail on SUMMARY.md entries without a page instead of creating empty ones
+create-missing = false
 
 [output.html]
+site-url = "/pposdex/"
+git-repository-url = "https://github.com/cusma/pposdex"
+edit-url-template = "https://github.com/cusma/pposdex/edit/main/{path}"
 mathjax-support = true
+
+# Pages moved into folders: keep the old URLs working
+[output.html.redirect]
+"/0_cover.html" = "cover.html"
+"/1_1_whats_ppos_dex.html" = "project/what-is-ppos-dex.html"
+"/1_2_introduction.html" = "project/introduction.html"
+"/1_3_ppos.html" = "project/algorand-ppos.html"
+"/1_4_scalability.html" = "project/scalability.html"
+"/1_5_security.html" = "project/security.html"
+"/1_6_decentralization.html" = "project/decentralization.html"
+"/1_7_nodes.html" = "project/nodes.html"
+"/1_8_topology.html" = "project/topology.html"
+"/1_9_stakes.html" = "project/stake.html"
+"/1_10_ppos_dex.html" = "project/ppos-dex.html"
+"/2_1_timeseries.html" = "data/timeseries.html"
+"/2_2_snapshot.html" = "data/snapshot.html"
+"/3_1_install.html" = "cli/install.html"
+"/3_2_usage.html" = "cli/usage.html"
+"/3_3_publish.html" = "cli/publish.html"
+"/3_4_timeseries.html" = "cli/timeseries.html"
+"/3_5_snapshot.html" = "cli/snapshot.html"
+"/3_6_export.html" = "cli/export.html"
+# The contributing guide lives in the repository
+"/CONTRIBUTE.html" = "https://github.com/cusma/pposdex/blob/main/CONTRIBUTING.md"
+"/contributing.html" = "https://github.com/cusma/pposdex/blob/main/CONTRIBUTING.md"

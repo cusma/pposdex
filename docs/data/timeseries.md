@@ -1,7 +1,5 @@
 # PPoS Timeseries
 
----
-
 ## ALGO Dynamics
 
 ![Timeseries ALGO Dynamics](https://raw.githubusercontent.com/cusma/pposdex/images/docs/images/timeseries/algo_dynamics.png)
@@ -25,5 +23,3 @@
 ## PPoS Dex
 
 ![Timeseries PPoS Dex](https://raw.githubusercontent.com/cusma/pposdex/images/docs/images/timeseries/ppos_dex.png)
-
----

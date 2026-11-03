@@ -1,7 +1,5 @@
 # Stake Decentralization
 
----
-
 Since in PoS the probability of being elected as a block proposer or as a validator
 is directly proportional to validators' stakes, the distribution of such stake
 into the system is the last fundamental factor of PoS Blockchains decentralization.
@@ -96,6 +94,7 @@ of inequality, depending on what we tend to consider worse: having even a few sm
 stakes among many large ones or having even a few large stakes among many small
 ones.
 
+> [!NOTE]
 > _Theil’s Indexes_ are not upper bounded, so are not good candidates for the \\(DEX\\)
 > index. For sake of completeness we will evaluate them separately.
 
@@ -116,6 +115,7 @@ stake \\(S\\).
 (_monopoly_), therefore it _one’s complement_ \\((1 - HHI)\\) is a good candidate
 for the \\(DEX\\) index.
 
+> [!NOTE]
 > The \\(HHI\\) implicitly considers both the stake distribution among the validators
 > accounts and the _absolute number of validators accounts_. Therefore, in order
 > to avoid double counting of the _account participation_ factor, \\(A_P = 1\\)
@@ -157,10 +157,9 @@ accounts_ (\\(A_v\\)) over the _total accounts_ (\\( A_{tot}\\)):
 It can theoretically range from 0 (no account participating in PoS validation)
 to 1 (all existing accounts participating in PoS validation).
 
+> [!IMPORTANT]
 > In _account-based_ Blockchains (like Algorand), accounts are identified by _public
 > keys_. Permissionless and public networks are pseudonymous by design, therefore
 > there is no way to assert if different public keys belong to different users.
 > We assume that each public key belongs to a different participant in the PPoS
 > consensus, with their own skin in the game.
-
----

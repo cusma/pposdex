@@ -11,3 +11,5 @@
 ```
 
 Algorand Pure Proof of Stake Decentralization Index (by [cusma](https://cusma.algo.xyz))
+
+Contributions are welcome, see the [contributing guide](https://github.com/cusma/pposdex/blob/main/CONTRIBUTING.md).

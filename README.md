@@ -1,51 +1,10 @@
 # PPoS Dex
 
-PPoS Dex documentation is built with [`mdBook`](https://rust-lang.github.io/mdBook/).
+Algorand Pure Proof of Stake Decentralization Index.
 
-You can read it [remotely](https://cusma.github.io/pposdex/) or locally.
+Read the documentation [online](https://cusma.github.io/pposdex/).
 
-To read it locally you need to clone this repo and:
+## Contributing
 
-* Install Rust
-
-```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
-
-* Install `mdBook`
-
-```bash
-cargo install mdbook
-```
-
-* Serve the repo on [localhost:3000](http://localhost:3000)
-
-```bash
-mdbook serve
-```
-
-## Development
-
-PPoS Dex uses [`uv`](https://docs.astral.sh/uv/) for Python and dependencies
-management.
-
-* Install the dependencies and the pre-commit hooks
-
-```bash
-uv sync
-uv run pre-commit install
-```
-
-* Run the unit tests
-
-```bash
-uv run pytest -m "not integration"
-```
-
-* Run the integration tests (requires [AlgoKit](https://github.com/algorandfoundation/algokit-cli)
-LocalNet)
-
-```bash
-uvx algokit localnet start
-uv run pytest -m integration
-```
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) to set up the
+development environment and preview the documentation.

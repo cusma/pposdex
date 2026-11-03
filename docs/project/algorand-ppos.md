@@ -1,13 +1,11 @@
 # Algorand Pure Proof of Stake Consensus
 
----
-
 [Prof. Silvio Micali](https://it.wikipedia.org/wiki/Silvio_Micali)
 combined state-of-art distributed computation, cryptography and game theory into
-the [Algorand Pure Proof of Stake](https://developer.algorand.org/docs/algorand_consensus/)
+the [Algorand Pure Proof of Stake](https://dev.algorand.co/concepts/protocol/overview/)
 Consensus Protocol, to keep the foundational Blockchains' promise.
 
-PPoS consensus is based on the [Verifiable Random Function](https://developer.algorand.org/docs/algorand_consensus/#verifiable-random-function)
+PPoS consensus is based on the [Verifiable Random Function](https://dev.algorand.co/concepts/protocol/overview/#verifiable-random-function)
 (VRF).
 
 The VRF is used to create a fair, tamper-proof, secure and provable _cryptographic
@@ -34,8 +32,7 @@ Algorand PPoS solves Blockchains' trilemma achieving at the same time:
 
 **The point is: can we measure these properties?**
 
----
-
+> [!TIP]
 > Useful references:
 >
 > - [Algorand](https://arxiv.org/abs/1607.01341)

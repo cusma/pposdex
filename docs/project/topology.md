@@ -1,7 +1,5 @@
 # Network Topology
 
----
-
 Blockchain's public ledger is distributed across multiple nodes in a network. All
 these nodes work together, using the same set of software rules (the _Consensus
 Protocol_), to verify transactions that are eventually added to the finalized ledger.
@@ -31,7 +29,7 @@ Let’s try to visualize some communication paths examples between two generic n
 \\(N_1\\) and \\(N_2\\) connected through graphs that are intuitively different
 from each other:
 
-![Topology examples](images/info/topologies.png)
+![Topology examples](../images/info/topologies.png)
 
 We can intuitively glimpse the difference between networks \\(A\\), \\(B\\), \\(C\\)
 and \\(D\\) with respect to the concept of “topology decentralization”. Graph \\(D\\)
@@ -70,8 +68,7 @@ of the _Central Point Dominance_ so:
 
 \\[ d_T = 1 - CPD \\]
 
----
-
+> [!NOTE]
 > Network Topology Decentralization does not consider the degree of _geo-delocalization_
 > of the physical infrastructure. More insights on this topic can be found in
 > [Analyzing Algorand Blockchain Data with Databricks

@@ -1,7 +1,5 @@
 # Nodes Hardware Decentralization
 
----
-
 The first factor for the evaluation of networks' decentralization is the _rate
 of growth_ of the overall "nodes' hardware" connected to the network.
 
@@ -52,10 +50,9 @@ given the context of the analysis, we think adequate and reasonable to set:
 
 \\[ d_{N} = 1 - e^{-\left(\frac{N}{10^4}\right)^2} \\]
 
-![Cumulative Distribution](images/info/cumulative_distribution.png)
+![Cumulative Distribution](../images/info/cumulative_distribution.png)
 
----
-
+> [!NOTE]
 > Since monitoring the number of connected validators nodes would require additional
 > effort and resources, for the scope of this project we consider a _perfect_ Nodes
 > Hardware Decentralization (\\( d_N = 1 \\)), leaving the refinement of the calculation
