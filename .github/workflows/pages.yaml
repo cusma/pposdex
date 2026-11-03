@@ -53,15 +53,18 @@ jobs:
         env:
           SITE_URL: ${{ steps.pages.outputs.base_url }}
         run: |
-          # The plots the data pages show, e.g. ../images/timeseries/ppos_dex.png
-          plots=$(grep -ohE '\.\./images/(timeseries|snapshot)/[a-z_]+\.png' docs/data/*.md | sort -u)
+          # The plots the data pages show, e.g. ../images/timeseries/ppos_dex.svg,
+          # each with its dark variant, e.g. ../images/timeseries/ppos_dex.dark.svg
+          plots=$(grep -ohE '\.\./images/(timeseries|snapshot)/[a-z_]+\.svg' docs/data/*.md | sort -u)
           for plot in $plots; do
-            path="docs/images/${plot#../images/}"
-            [ -f "$path" ] && continue
-            echo "::warning::Not rendered, keeping the online plot: $path"
-            mkdir -p "$(dirname "$path")"
-            curl --fail --silent --show-error --location --retry 3 \
-              --output "$path" "$SITE_URL/${plot#../}"
+            for variant in "$plot" "${plot%.svg}.dark.svg"; do
+              path="docs/images/${variant#../images/}"
+              [ -f "$path" ] && continue
+              echo "::warning::Not rendered, keeping the online plot: $path"
+              mkdir -p "$(dirname "$path")"
+              curl --fail --silent --show-error --location --retry 3 \
+                --output "$path" "$SITE_URL/${variant#../}"
+            done
           done
 
       - name: Build mdBook

@@ -61,6 +61,9 @@ uv run pposdex timeseries --save
 uv run pposdex snapshot --save
 ```
 
+Each chart is saved as SVG in a light and a dark variant: the docs show the
+one matching the selected theme.
+
 ## Release
 
 Bump the version in `pyproject.toml` on `main`, then push a matching tag:

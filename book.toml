@@ -14,6 +14,8 @@ site-url = "/pposdex/"
 git-repository-url = "https://github.com/cusma/pposdex"
 edit-url-template = "https://github.com/cusma/pposdex/edit/main/{path}"
 mathjax-support = true
+# Swaps the charts for their dark variant on the dark themes
+additional-js = ["theme/charts.js"]
 
 # Pages moved into folders: keep the old URLs working
 [output.html.redirect]

@@ -139,7 +139,7 @@ class TestCommands:
     @pytest.mark.parametrize("command", ["timeseries", "snapshot"])
     def test_plots(self, network: list[Network], images: Path, command: str) -> None:
         main([command, "--save"])
-        assert list((images / command).glob("*.png"))
+        assert list((images / command).glob("*.svg"))
 
     @pytest.mark.parametrize("command", ["timeseries", "snapshot"])
     def test_plots_shown(
@@ -153,7 +153,7 @@ class TestCommands:
         monkeypatch.setattr(plt, "show", lambda: shown.append(None))
         main([command])
         assert shown
-        assert not list(images.rglob("*.png"))
+        assert not list(images.rglob("*.svg"))
 
     def test_publish(
         self,
