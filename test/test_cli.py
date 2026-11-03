@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 
 from pposdex.cli import (
@@ -49,3 +51,16 @@ def test_end_block_after_start_block() -> None:
 def test_no_command_prints_help(capsys: pytest.CaptureFixture[str]) -> None:
     main([])
     assert "usage: pposdex" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    ("flags", "level"),
+    [([], logging.WARNING), (["-v"], logging.DEBUG), (["--quiet"], logging.ERROR)],
+)
+def test_verbosity(flags: list[str], level: int) -> None:
+    assert build_parser().parse_args(["health", *flags]).log_level == level
+
+
+def test_verbosity_is_exclusive() -> None:
+    with pytest.raises(SystemExit):
+        build_parser().parse_args(["health", "-v", "-q"])

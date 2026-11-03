@@ -1,5 +1,5 @@
 import base64
-import sys
+import logging
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Literal, NotRequired, TypedDict, cast
@@ -11,7 +11,9 @@ from algosdk.v2client.indexer import IndexerClient
 
 from pposdex import helpers
 from pposdex import inequality_idx as idx
-from pposdex.helpers import Account
+from pposdex.helpers import Account, PPoSDexError
+
+logger = logging.getLogger(__name__)
 
 d_N = 1  # noqa: N816 (math notation)
 d_T = 1  # noqa: N816 (math notation)
@@ -216,16 +218,13 @@ def get_ppos_dex_data(
             data = validate(msgpack.unpackb(base64.b64decode(txn_note)))
             if data["algo_threshold"] == algo_threshold:
                 ppos_dex_data += [data]
-        except InvalidDataError:
-            # Ignore non compliant data
-            pass
-        except msgpack.ExtraData:
-            # Ignore wrongly serialized data
-            pass
+        except (InvalidDataError, msgpack.ExtraData) as err:
+            # Ignore non compliant or wrongly serialized data
+            logger.debug("Skipping note %s: %s", txn_note, err)
 
     if not ppos_dex_data:
-        sys.exit(
-            f"No valid PPos Dex data published by {publisher_address} "
+        raise PPoSDexError(
+            f"No valid PPoS Dex data published by {publisher_address} "
             f"starting from block {start_block}."
         )
 

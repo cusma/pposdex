@@ -4,11 +4,13 @@ Algorand PPoS Decentralization Index CLI
 
 import argparse
 import csv
+import logging
+import sys
 from pprint import pprint
 
 from pposdex import plots
 from pposdex import ppos_dex_data as pposdex
-from pposdex.helpers import get_publisher_account
+from pposdex.helpers import PPoSDexError, get_publisher_account
 from pposdex.networks import (
     LOCALNET,
     MAINNET,
@@ -17,6 +19,8 @@ from pposdex.networks import (
     get_indexer_client,
 )
 from pposdex.ppos_dex_data import PPoSDexData
+
+logger = logging.getLogger("pposdex")
 
 BANNER = r"""
          _______  _______           ______    ______
@@ -42,6 +46,24 @@ def build_parser() -> argparse.ArgumentParser:
     )
     network_group.add_argument(
         "-t", "--test", action="store_true", help="Use TestNet (default: MainNet)"
+    )
+    verbosity = network.add_mutually_exclusive_group()
+    verbosity.add_argument(
+        "-v",
+        "--verbose",
+        dest="log_level",
+        action="store_const",
+        const=logging.DEBUG,
+        default=logging.WARNING,
+        help="Show debug details",
+    )
+    verbosity.add_argument(
+        "-q",
+        "--quiet",
+        dest="log_level",
+        action="store_const",
+        const=logging.ERROR,
+        help="Show errors only",
     )
 
     threshold = argparse.ArgumentParser(add_help=False)
@@ -118,6 +140,24 @@ def main(argv: list[str] | None = None) -> None:
     if end_block is not None and end_block <= args.start_block:
         parser.error("--end-block must be greater than --start-block")
 
+    configure_logging(args.log_level)
+    try:
+        run(args)
+    except PPoSDexError as err:
+        logger.error("%s", err)
+        sys.exit(1)
+
+
+def configure_logging(level: int) -> None:
+    # Diagnostics go to stderr, command results to stdout
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("%(message)s"))
+    logger.handlers = [handler]
+    logger.setLevel(level)
+    logger.propagate = False
+
+
+def run(args: argparse.Namespace) -> None:
     if args.localhost:
         network = LOCALNET
     elif args.test:
