@@ -30,17 +30,18 @@ import csv
 import sys
 from pprint import pprint
 
-from algokit_utils.network_clients import (
-    get_algod_client,
-    get_algonode_config,
-    get_default_localnet_config,
-    get_indexer_client,
-)
 from docopt import docopt
 
 from pposdex import plots
 from pposdex import ppos_dex_data as pposdex
 from pposdex.helpers import get_publisher_account
+from pposdex.networks import (
+    LOCALNET,
+    MAINNET,
+    TESTNET,
+    get_algod_client,
+    get_indexer_client,
+)
 
 
 def args_types(args: dict) -> dict:
@@ -81,17 +82,14 @@ def main():
             ) from None
 
     if args["--localhost"]:
-        algod_config = get_default_localnet_config("algod")
-        indexer_config = get_default_localnet_config("indexer")
+        network = LOCALNET
     elif args["--test"]:
-        algod_config = get_algonode_config("testnet", "algod", "")
-        indexer_config = get_algonode_config("testnet", "indexer", "")
+        network = TESTNET
     else:
-        algod_config = get_algonode_config("mainnet", "algod", "")
-        indexer_config = get_algonode_config("mainnet", "indexer", "")
+        network = MAINNET
 
-    algod_client = get_algod_client(algod_config)
-    indexer_client = get_indexer_client(indexer_config)
+    algod_client = get_algod_client(network)
+    indexer_client = get_indexer_client(network)
 
     if args["health"]:
         print("\n⛓️ Algod Status:")

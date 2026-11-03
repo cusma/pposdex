@@ -4,13 +4,13 @@ from datetime import datetime
 
 import msgpack
 import schema
-from algokit_utils import Account
 from algosdk.constants import microalgos_to_algos_ratio
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
 from pposdex import helpers
 from pposdex import inequality_idx as idx
+from pposdex.helpers import Account
 
 d_N = 1  # noqa: N816 (math notation)
 d_T = 1  # noqa: N816 (math notation)

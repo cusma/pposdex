@@ -8,10 +8,14 @@ import os
 import sys
 import time
 from collections.abc import Callable
+from dataclasses import dataclass, field
 from typing import Any
 
-from algokit_utils import Account
-from algosdk import mnemonic
+from algosdk import account, mnemonic
+from algosdk.atomic_transaction_composer import (
+    AccountTransactionSigner,
+    sign_transaction_with_signer,
+)
 from algosdk.error import IndexerHTTPError
 from algosdk.transaction import PaymentTxn, wait_for_confirmation
 from algosdk.v2client.algod import AlgodClient
@@ -20,6 +24,17 @@ from algosdk.v2client.indexer import IndexerClient
 ATTEMPT_DELAY_SEC = 3
 MAX_ATTEMPTS = 10
 ENV_MNEMONIC = "ALGO_MNEMONIC"
+
+
+@dataclass(frozen=True)
+class Account:
+    """Algorand account, its private key is never shown in logs"""
+
+    private_key: str = field(repr=False)
+
+    @property
+    def address(self) -> str:
+        return account.address_from_private_key(self.private_key)
 
 
 def indexer_request(request: Callable) -> Callable:
@@ -175,7 +190,9 @@ def post_note(
         note=note,
     )
 
-    signed_txn = unsigned_txn.sign(publisher.private_key)
+    signed_txn = sign_transaction_with_signer(
+        unsigned_txn, AccountTransactionSigner(publisher.private_key)
+    )
     txid = algod_client.send_transaction(signed_txn)
     if verbose:
         print(f"Publishing Algorand PPoS Dex data in txID: {txid}\n")

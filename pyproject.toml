@@ -8,11 +8,10 @@ authors = [{ name = "cusma", email = "cosimo.bassi@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "algokit-utils>=1.4.0,<2",
     "docopt>=0.6.2",
     "matplotlib>=3.10",
     "msgpack>=1.0",
-    "py-algorand-sdk>=2.11,<3",
+    "py-algorand-sdk>=2.12,<3",
     "schema>=0.7.5",
 ]
 
