@@ -14,7 +14,7 @@ export ALGO_MNEMONIC=...
 and use the `publish` command:
 
 ```bash
-$ poetry run python3 ppos_dex.py publish [--algo-threshold=<a>] [--localhost | --test]
+$ uv run ppos_dex.py publish [--algo-threshold=<a>] [--localhost | --test]
 
 📈 PPoS Dex published data:
 

@@ -1,32 +1,31 @@
 import base64
+import sys
+from datetime import datetime
+
 import msgpack
 import schema
-
-from datetime import datetime
-from typing import Optional
-
 from algokit_utils import Account
 from algosdk.constants import microalgos_to_algos_ratio
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
 import src.inequality_idx as idx
-import src.helpers as helpers
+from src import helpers
 
-d_N = 1
-d_T = 1
+d_N = 1  # noqa: N816 (math notation)
+d_T = 1  # noqa: N816 (math notation)
 MICROALGO_TOTAL_SUPPLY = 10**16
 SCHEMA = schema.Schema(
     {
         "algo_threshold": int,
-        "accounts": schema.And(int, lambda n: 0 <= n),
-        "algo_dynamics": schema.And(float, lambda n: 0 <= n),
+        "accounts": schema.And(int, lambda n: n >= 0),
+        "algo_dynamics": schema.And(float, lambda n: n >= 0),
         "ppos_online_stake": schema.And(float, lambda n: 0 <= n <= 1),
         "ppos_online_accounts": schema.And(float, lambda n: 0 <= n <= 1),
         schema.Optional("algo_hhi"): schema.And(float, lambda n: 0 <= n <= 1),
         "ppos_gini": schema.And(float, lambda n: 0 <= n <= 1),
-        "ppos_theil_l": schema.And(float, lambda n: 0 <= n),
-        "ppos_theil_t": schema.And(float, lambda n: 0 <= n),
+        "ppos_theil_l": schema.And(float, lambda n: n >= 0),
+        "ppos_theil_t": schema.And(float, lambda n: n >= 0),
         schema.Optional("ppos_hhi"): schema.And(float, lambda n: 0 <= n <= 1),
         "ppos_dex": schema.And(float, lambda n: 0 <= n <= 1),
         schema.Optional("ppos_dex_v2"): schema.And(float, lambda n: 0 <= n <= 1),
@@ -66,6 +65,7 @@ def post_ppos_dex_data(
     ]
 
     ledger = algod_client.ledger_supply()
+    assert isinstance(ledger, dict)
 
     # Data Processing
     algo_dyn = ledger["total-money"] / MICROALGO_TOTAL_SUPPLY
@@ -109,7 +109,7 @@ def get_ppos_dex_data(
     algo_threshold: int,
     data_schema: schema.Schema,
     start_block: int,
-    end_block: Optional[int] = None,
+    end_block: int | None = None,
 ) -> list[dict]:
     """
     Get PPoS Dex data from chain
@@ -144,8 +144,9 @@ def get_ppos_dex_data(
             pass
 
     if not ppos_dex_data:
-        quit(
-            f"No valid PPos Dex data published by {publisher_address} starting from block {start_block}."
+        sys.exit(
+            f"No valid PPos Dex data published by {publisher_address} "
+            f"starting from block {start_block}."
         )
 
     return ppos_dex_data

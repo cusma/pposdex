@@ -3,39 +3,37 @@ name: Publish PPoS Dex data
 on:
   schedule:
     - cron: "0 0 * * *"
-
   workflow_dispatch:
 
-permissions:
-  contents: read
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 jobs:
   publish:
     name: Publish PPoS Dex data
-    env:
-      ALGO_MNEMONIC: ${{ secrets.ALGO_MNEMONIC }}
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        shell: bash
+    timeout-minutes: 30
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          python-version: 3.11.3
+          persist-credentials: false
 
-      - name: Set up Poetry
-        uses: abatilo/actions-poetry@v2.3.0
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
-          poetry-version: 1.6.1
+          enable-cache: true
 
-      - name: Install Python dependencies
-        run: poetry install
+      - name: Install dependencies
+        run: uv sync --locked --no-dev
 
       - name: Publish data
-        run: poetry run python3 ppos_dex.py publish
+        env:
+          ALGO_MNEMONIC: ${{ secrets.ALGO_MNEMONIC }}
+        run: uv run --no-sync python ppos_dex.py publish

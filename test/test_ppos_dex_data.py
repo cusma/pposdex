@@ -1,11 +1,14 @@
 import time
 
+import pytest
+from algokit_utils import Account
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
-from algokit_utils import Account
 
 from src.helpers import post_note
 from src.ppos_dex_data import SCHEMA, get_ppos_dex_data, post_ppos_dex_data
+
+pytestmark = pytest.mark.integration
 
 
 def test_ppos_dex_data(

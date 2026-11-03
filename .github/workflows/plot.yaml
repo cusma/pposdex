@@ -3,64 +3,50 @@ name: Update plots
 on:
   schedule:
     - cron: "42 0 * * *"
-
   workflow_dispatch:
 
-permissions:
-  contents: write
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 jobs:
   plots:
     name: PPoS Dex Plots
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write # force-pushes the generated images to the `images` branch
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          python-version: 3.11.3
+          persist-credentials: true # zizmor: ignore[artipacked] needed to push, no artifacts uploaded
 
-      - name: Set up Poetry
-        uses: abatilo/actions-poetry@v2.3.0
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
-          poetry-version: 1.6.1
+          enable-cache: true
 
-      - name: Install Python dependencies
-        run: poetry install
-
-      - name: Checkout local images branch
-        run: git checkout -b images
+      - name: Install dependencies
+        run: uv sync --locked --no-dev
 
       - name: Save timeseries
-        run: poetry run python3 ppos_dex.py timeseries --save
+        run: uv run --no-sync python ppos_dex.py timeseries --save
 
       - name: Save snapshots
-        run: poetry run python3 ppos_dex.py snapshot --save
+        run: uv run --no-sync python ppos_dex.py snapshot --save
 
-      - name: Delete remote images branch
-        run: git push origin -d images
-        continue-on-error: true
-
-      - name: Commit files
-        id: commit_files
-        if: always()
+      - name: Push images
         run: |
-          git config --local user.email "cosimo.bassi@gmail.com"
-          git config --local user.name "github-actions[bot]"
-          if [ -n "$(git status --porcelain)" ]; then
-            git commit -m "refreshed images 🤖" -a
-            echo "HAS_COMMITS=true" >> "$GITHUB_ENV"
-          else
-            echo "no changes - skipping "
-            echo "HAS_COMMITS=false" >> "$GITHUB_ENV"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch --create images
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No image changes - skipping"
+            exit 0
           fi
-
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        if: env.HAS_COMMITS != false
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: images
+          git commit --all --message "refreshed images 🤖"
+          git push --force origin images

@@ -11,14 +11,14 @@ PPoS Dex CLI provides the following utilities:
 
 ## Install
 
-PPoS Dex uses [Poetry](https://python-poetry.org/docs/#installation) for
-dependencies management.
+PPoS Dex uses [uv](https://docs.astral.sh/uv/getting-started/installation/)
+for Python and dependencies management.
 
 Clone [PPoS Dex](https://github.com/cusma/pposdex) repository, `cd` into it,
 and:
 
 ```bash
-poetry install
+uv sync
 ```
 
 You are all set!

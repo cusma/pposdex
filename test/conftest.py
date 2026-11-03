@@ -1,7 +1,4 @@
 import pytest
-
-from algosdk.v2client.algod import AlgodClient
-from algosdk.v2client.indexer import IndexerClient
 from algokit_utils import (
     Account,
     get_algod_client,
@@ -9,6 +6,8 @@ from algokit_utils import (
     get_indexer_client,
     get_localnet_default_account,
 )
+from algosdk.v2client.algod import AlgodClient
+from algosdk.v2client.indexer import IndexerClient
 
 
 @pytest.fixture(scope="session")

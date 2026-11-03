@@ -1,10 +1,13 @@
 import base64
 
+import pytest
+from algokit_utils import Account
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
-from algokit_utils import Account
 
-from src.helpers import get_algo_holders, get_address_txns_note, post_note
+from src.helpers import get_address_txns_note, get_algo_holders, post_note
+
+pytestmark = pytest.mark.integration
 
 
 def test_get_algo_holders(

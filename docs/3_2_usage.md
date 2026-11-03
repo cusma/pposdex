@@ -5,7 +5,7 @@
 Intreacting with PPoS Dex CLI is pretty easy, just ask for help:
 
 ```bash
-$ poetry run python3 ppos_dex.py --help
+$ uv run ppos_dex.py --help
 
 Algorand PPoS Decentralization Index.
 
@@ -37,7 +37,7 @@ Options:
 Use the `health` command to check Algorand Nods and Indexer availability:
 
 ```bash
-poetry run ppos_dex.py health [--localhost | --test]
+uv run ppos_dex.py health [--localhost | --test]
 ```
 
 ---

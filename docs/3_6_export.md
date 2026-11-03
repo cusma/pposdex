@@ -5,7 +5,7 @@
 Export PPoS Dex data to `csv` file for external analysis.
 
 ```shell
-poetry run ppos_dex.py export [--publisher=<p>] [--algo-threshold=<a>] [--start-block=<s>] [--end-block=<e>] [--localhost | --test]
+uv run ppos_dex.py export [--publisher=<p>] [--algo-threshold=<a>] [--start-block=<s>] [--end-block=<e>] [--localhost | --test]
 ```
 
 ## Options
