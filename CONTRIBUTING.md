@@ -26,7 +26,7 @@ uv run pre-commit install
 * Run the unit tests
 
 ```bash
-uv run pytest -m "not integration"
+uv run pytest
 ```
 
 * Run the integration tests (requires [AlgoKit](https://github.com/algorandfoundation/algokit-cli)
@@ -40,7 +40,7 @@ uv run pytest -m integration
 * If you change the CLI options, update the help included in the docs
 
 ```bash
-UPDATE_DOCS=1 uv run pytest test/test_docs.py
+UPDATE_DOCS=1 uv run pytest tests/unit/test_docs.py
 ```
 
 ## Documentation
@@ -52,6 +52,26 @@ The documentation is an [`mdBook`](https://rust-lang.github.io/mdBook/) in the
 ```bash
 mdbook serve --open
 ```
+
+The data plots are rendered when the docs are deployed. To include them in
+the preview, render them first:
+
+```bash
+uv run pposdex timeseries --save
+uv run pposdex snapshot --save
+```
+
+## Release
+
+Bump the version in `pyproject.toml` on `main`, then push a matching tag:
+
+```bash
+git tag v4.0.0
+git push origin v4.0.0
+```
+
+The release workflow runs the CI on the tag, checks it matches the version,
+and creates a GitHub release with the attested wheel and sdist.
 
 ## Contributors
 

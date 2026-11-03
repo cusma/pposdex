@@ -4,6 +4,7 @@ __pycache__/
 .coverage
 .mypy_cache/
 .pytest_cache/
+.hypothesis/
 .ruff_cache/
 
 # IDE
@@ -11,4 +12,7 @@ __pycache__/
 
 # Artifacts
 book/
+# Plots, rendered when the docs are deployed
+docs/images/snapshot/
+docs/images/timeseries/
 *.csv

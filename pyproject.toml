@@ -18,9 +18,10 @@ pposdex = "pposdex.cli:main"
 
 [dependency-groups]
 dev = [
+    "hypothesis>=6.140",
     "mypy>=1.18",
     "pre-commit>=4.3",
-    "pytest>=8.4",
+    "pytest>=9.0",
     "pytest-cov>=7.0",
     "ruff>=0.14",
 ]
@@ -45,18 +46,45 @@ python_version = "3.12"
 strict = true
 # py-algorand-sdk ships type hints, but many of its functions are unannotated
 untyped_calls_exclude = ["algosdk"]
+# Test folders are not packages: name their modules from these roots
+mypy_path = ["src", "tests"]
+explicit_package_bases = true
 
 [[tool.mypy.overrides]]
 module = ["msgpack"]
 ignore_missing_imports = true
 
-[tool.pytest.ini_options]
-minversion = "8.0"
-testpaths = ["test"]
-addopts = ["--strict-markers", "--cov", "--cov-report=term-missing"]
-markers = [
-    "integration: requires a running AlgoKit LocalNet",
-]
+[tool.pytest]
+minversion = "9.0"
+testpaths = ["tests"]
+# Shared test helpers, like the fake clients in tests/fakes.py
+pythonpath = ["tests"]
+# Integration tests need a running LocalNet: run them with `pytest -m integration`
+addopts = ["-ra", "--import-mode=importlib", "-m", "not integration", "--cov=pposdex"]
+strict = true
+filterwarnings = ["error"]
+markers = ["integration: requires a running AlgoKit LocalNet"]
 
 [tool.coverage.run]
 source = ["pposdex"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 95
+show_missing = true
+skip_covered = true
+exclude_also = ['if __name__ == "__main__":']
+
+[tool.rumdl]
+# mdBook's table of contents is not a regular page
+exclude = ["docs/SUMMARY.md"]
+# Also when pre-commit passes the file explicitly
+force-exclude = true
+
+[tool.rumdl.per-file-ignores]
+# Plots are rendered when the docs are deployed, they are not in the repository
+"docs/data/*.md" = ["MD057"]
+
+[tool.rumdl.MD013]
+code-blocks = false
+tables = false

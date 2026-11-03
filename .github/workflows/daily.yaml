@@ -1,0 +1,95 @@
+name: Daily
+
+on:
+  schedule:
+    # Off the top of the hour, when GitHub delays or drops scheduled runs
+    - cron: "13 0 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    # Never retried automatically: a retry could publish a duplicate data point
+    name: Publish PPoS Dex data
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: false
+
+      - name: Install dependencies
+        run: uv sync --locked --no-dev
+
+      - name: Publish data
+        env:
+          ALGO_MNEMONIC: ${{ secrets.ALGO_MNEMONIC }}
+        run: uv run --no-sync pposdex publish
+
+  pages:
+    # Refresh the plots even if publishing failed: they show the data up to now
+    name: Deploy docs
+    needs: publish
+    if: ${{ !cancelled() }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages.yaml
+
+  report:
+    name: Report failure
+    needs: [publish, pages]
+    if: ${{ failure() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+
+    steps:
+      - name: Open or update the failure issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PUBLISH: ${{ needs.publish.result }}
+          PAGES: ${{ needs.pages.result }}
+        run: |
+          title="Daily run failed"
+          body="[Run]($RUN_URL): publish ${PUBLISH}, docs deploy ${PAGES}"
+          number=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "in:title \"$title\"" --json number --jq '.[0].number // empty')
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --repo "$GITHUB_REPOSITORY" --body "$body"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$body"
+          fi
+
+  keepalive:
+    # GitHub disables scheduled workflows after 60 days without repository
+    # activity: re-enabling the workflow resets that timer
+    name: Keep the schedule alive
+    if: ${{ github.event_name == 'schedule' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+
+    steps:
+      - name: Re-enable this workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method PUT "repos/$GITHUB_REPOSITORY/actions/workflows/daily.yaml/enable"

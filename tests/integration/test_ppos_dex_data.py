@@ -1,13 +1,10 @@
 from collections.abc import Callable
 
-import pytest
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
 from pposdex.helpers import Account, post_note
 from pposdex.ppos_dex_data import get_ppos_dex_data, post_ppos_dex_data
-
-pytestmark = pytest.mark.integration
 
 
 def test_ppos_dex_data(
