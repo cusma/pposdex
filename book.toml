@@ -1,8 +1,16 @@
 [book]
+title = "PPoS Dex"
+description = "Algorand Pure Proof of Stake Decentralization Index"
 authors = ["cusma"]
 language = "en"
 src = "docs"
-title = "PPoS Dex"
+
+[build]
+# Fail on SUMMARY.md entries without a page instead of creating empty ones
+create-missing = false
 
 [output.html]
+site-url = "/pposdex/"
+git-repository-url = "https://github.com/cusma/pposdex"
+edit-url-template = "https://github.com/cusma/pposdex/edit/main/{path}"
 mathjax-support = true

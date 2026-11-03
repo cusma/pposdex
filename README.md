@@ -1,27 +1,17 @@
 # PPoS Dex
 
-PPoS Dex documentation is built with [`mdBook`](https://rust-lang.github.io/mdBook/).
+Algorand Pure Proof of Stake Decentralization Index.
 
-You can read it [remotely](https://cusma.github.io/pposdex/) or locally.
+Read the documentation [online](https://cusma.github.io/pposdex/).
 
-To read it locally you need to clone this repo and:
+## Documentation
 
-* Install Rust
-
-```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
-
-* Install `mdBook`
+The documentation is an [`mdBook`](https://rust-lang.github.io/mdBook/) in the
+`docs` folder. To preview it locally, install `mdBook` (a [prebuilt binary](https://github.com/rust-lang/mdBook/releases),
+`brew install mdbook` or `cargo install mdbook --locked`) and run:
 
 ```bash
-cargo install mdbook
-```
-
-* Serve the repo on [localhost:3000](http://localhost:3000)
-
-```bash
-mdbook serve
+mdbook serve --open
 ```
 
 ## Development
