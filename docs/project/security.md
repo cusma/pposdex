@@ -13,5 +13,5 @@ Moreover, Algorand [State Proofs](https://dev.algorand.co/concepts/protocol/stat
 secure Algorand's history with post-quantum resistant [Falcon signatures](https://falcon-sign.info/).
 
 A quantitative attestation of Algorand's security is represented by the fact that,
-at the time of writing (Sep 2023), Algorand never experienced a downtime nor a
-reorg since the genesis block (June 2019).
+at the time of writing (Oct 2026), Algorand has never experienced a downtime nor
+a reorg since the genesis block (June 2019).

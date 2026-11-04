@@ -4,8 +4,11 @@
 
 This project defines the index and provides a CLI tool to monitor it.
 
-The monitoring tool is fully trustless: anyone can autonomously read the Algorand
-blockchain, do some client-side math, and publish the index on-chain.
+The monitoring tool is trustless: anyone can autonomously read the Algorand
+blockchain, do some client-side math, and publish the index on-chain. The official
+Algod and Indexer APIs do not serve past account balances, though: past data points
+cannot be recomputed, and the published history is their only record. Third-party
+APIs keeping historical balances could fill this gap in the future.
 
 Open index data are published daily by the [PPoS Dex Oracle](https://lora.algokit.io/mainnet/account/WIPE4JSUWLXKZZK6GJ6VI32PX6ZWPKBRH5YFRJCHWOVC73P5RI4DGUQUWQ)
 and then plotted as [timeseries](../data/timeseries.md) and [snapshots](../data/snapshot.md).
