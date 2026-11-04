@@ -32,6 +32,8 @@ additional-js = ["theme/charts.js"]
 "/1_10_ppos_dex.html" = "project/ppos-dex.html"
 "/2_1_timeseries.html" = "data/timeseries.html"
 "/2_2_snapshot.html" = "data/snapshot.html"
+# Insights merged into Timeseries
+"/data/insights.html" = "timeseries.html"
 "/3_1_install.html" = "cli/install.html"
 "/3_2_usage.html" = "cli/usage.html"
 "/3_3_publish.html" = "cli/publish.html"

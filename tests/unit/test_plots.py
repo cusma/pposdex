@@ -10,6 +10,7 @@ import pytest
 from pposdex import plots
 from pposdex.plots import Line, TimeseriesChart, TimeseriesPanel
 from pposdex.ppos_dex_data import PPoSDexData
+from pposdex.theme import LIGHT, use
 
 TIMESERIES = [
     "algo_dynamics",
@@ -158,3 +159,25 @@ def test_snap_subtitle(make_data_point: Callable[..., PPoSDexData]) -> None:
     assert plots.snap_subtitle(data) == (
         "3 Nov 2026  ·  147,633 accounts holding at least 1,000 ALGO"
     )
+
+
+class TestPanelsWithData:
+    def test_metrics_not_published_yet_are_left_out(
+        self, data: list[PPoSDexData]
+    ) -> None:
+        chart = next(c for c in plots.TIMESERIES if c.name == "ppos_dex")
+        with use(LIGHT):
+            before = plots.timeseries_figure(chart, data[::-1], LIGHT)
+            data[0]["ppos_dex_v3"] = 7
+            after = plots.timeseries_figure(chart, data[::-1], LIGHT)
+        assert (len(before.axes), len(after.axes)) == (2, 3)
+        plt.close("all")
+
+    def test_chart_without_data_keeps_its_panels(self, data: list[PPoSDexData]) -> None:
+        panel = TimeseriesPanel("", (Line(lambda _: math.nan, ""),))
+        with use(LIGHT):
+            fig = plots.timeseries_figure(
+                TimeseriesChart("empty", "Empty", (panel,)), data, LIGHT
+            )
+        assert len(fig.axes) == 1
+        plt.close("all")

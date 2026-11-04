@@ -41,6 +41,10 @@ def decimal(value: float) -> str:
     return f"{value:.3g}"
 
 
+def count(value: float) -> str:
+    return f"{value:,.0f}"
+
+
 @dataclass(frozen=True)
 class Line:
     # A published metric, or a value derived from the data point
@@ -150,6 +154,14 @@ TIMESERIES = (
         panels=(
             TimeseriesPanel(DECENTRALIZATION, (Line("ppos_dex", "PPoS Dex V1"),)),
             TimeseriesPanel(DECENTRALIZATION, (Line("ppos_dex_v2", "PPoS Dex V2"),)),
+            TimeseriesPanel(
+                "Fewest online accounts holding more than 20% of the online stake",
+                (
+                    Line("ppos_dex_v3", "PPoS Dex V3"),
+                    Line("ppos_dex_v3_operators", "V3 Operators"),
+                ),
+                fmt=count,
+            ),
         ),
     ),
 )
@@ -307,20 +319,31 @@ def date_axis(ax: Axes) -> None:
     ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter(locator))
 
 
+def has_data(ppos_dex_data: list[PPoSDexData], value: Value) -> bool:
+    """Whether any data point has the value, like metrics added later"""
+    return any(not math.isnan(value(data)) for data in ppos_dex_data)
+
+
 def timeseries_figure(
     chart: TimeseriesChart, ppos_dex_data: list[PPoSDexData], theme: Theme
 ) -> Figure:
+    # Panels of metrics not published yet are left out
+    panels = [
+        panel
+        for panel in chart.panels
+        if any(has_data(ppos_dex_data, line.value) for line in panel.lines)
+    ] or list(chart.panels)
     fig, axes = plt.subplots(
-        len(chart.panels),
+        len(panels),
         1,
         sharex=True,
         squeeze=False,
-        figsize=(9, 1.2 + 3.2 * len(chart.panels)),
+        figsize=(9, 1.2 + 3.2 * len(panels)),
         layout="constrained",
     )
     title(fig, chart.title, theme)
     dates = [timestamp(d) for d in ppos_dex_data]
-    for ax, panel in zip(axes[:, 0], chart.panels, strict=True):
+    for ax, panel in zip(axes[:, 0], panels, strict=True):
         ax.set_title(panel.subtitle)
         shade_no_data(ax, dates, theme)
         ends: list[tuple[str, float, str]] = []

@@ -36,8 +36,10 @@ from pposdex.plots import (
     TimeseriesChart,
     TimeseriesPanel,
     Value,
+    count,
     date_axis,
     decimal,
+    has_data,
     no_data_periods,
     percent,
     plot_timeseries,
@@ -94,16 +96,14 @@ def online_algo(data: PPoSDexData) -> float:
     return circulating_algo(data) * data["ppos_online_stake"]
 
 
-def count(value: float) -> str:
-    return f"{value:,.0f}"
+def effective_holders(data: PPoSDexData) -> float:
+    """Equal holders with the same HHI as all the accounts"""
+    hhi = data.get("algo_hhi")
+    return 1 / hhi if hhi else math.nan
 
 
 def billions(value: float) -> str:
     return f"{value / 10**9:.2f}B"
-
-
-def signed(value: float) -> str:
-    return f"{'+' if value >= 0 else '-'}{percent(abs(value))}"
 
 
 @dataclass(frozen=True)
@@ -114,9 +114,6 @@ class Indicator:
     # Whether a higher value means more decentralization
     higher_is_better: bool
     fmt: Format = decimal
-    # A ratio moves with both its parts: (label, value) of numerator and
-    # denominator, to tell their changes apart
-    parts: tuple[tuple[str, Value], tuple[str, Value]] | None = None
 
     def value(self, data: PPoSDexData) -> float:
         return Line(self.key, self.label).value(data)
@@ -128,22 +125,17 @@ ABSOLUTE = (
     Indicator(online_algo, "Online Stake", True, billions),
     Indicator(effective_validators, "Effective Validators", True, count),
 )
-# The circulating supply is the denominator of the ALGO participation
+# What the network grows with: holders and supply
 CONTEXT = (
     Indicator(total_accounts, "Accounts", True, count),
     Indicator(circulating_algo, "Circulating Supply", True, billions),
 )
 INDICATORS = (
+    Indicator("ppos_dex_v3", "PPoS Dex V3", True, count),
+    Indicator("ppos_dex_v3_operators", "PPoS Dex V3 Operators", True, count),
     Indicator("ppos_dex_v2", "PPoS Dex V2", True),
     Indicator("ppos_dex", "PPoS Dex V1", True),
     Indicator("algo_dynamics", "ALGO Supply", True, percent),
-    Indicator(
-        "ppos_online_stake",
-        "ALGO Participation",
-        True,
-        percent,
-        parts=(("online", online_algo), ("circulating", circulating_algo)),
-    ),
     Indicator("ppos_gini", "Gini Index", False),
     Indicator("ppos_hhi", "HHI", False),
     Indicator("ppos_theil_l", "Theil L Index", False),
@@ -153,22 +145,6 @@ INDICATORS = (
 HEATMAP = (*ABSOLUTE, *CONTEXT, *INDICATORS)
 
 TIMESERIES = (
-    TimeseriesChart(
-        name="participation",
-        title="Online Accounts",
-        panels=(
-            TimeseriesPanel(
-                f"Accounts holding at least {cli.DEFAULT_ALGO_THRESHOLD:,} ALGO, "
-                "and those online for consensus (log scale)",
-                (
-                    Line(total_accounts, "All Accounts"),
-                    Line(online_accounts, "Online Accounts"),
-                ),
-                fmt=count,
-                log=True,
-            ),
-        ),
-    ),
     TimeseriesChart(
         name="effective_validators",
         title="Effective Validators",
@@ -197,6 +173,18 @@ TIMESERIES = (
                     Line(online_algo, "Online Stake"),
                 ),
                 fmt=billions,
+            ),
+        ),
+    ),
+    TimeseriesChart(
+        name="effective_holders",
+        title="Effective Holders",
+        panels=(
+            TimeseriesPanel(
+                f"How many equal holders the ALGO of the accounts holding at least "
+                f"{cli.DEFAULT_ALGO_THRESHOLD:,} ALGO is worth (HHI equivalent)",
+                (Line(effective_holders, "Effective Holders"),),
+                fmt=count,
             ),
         ),
     ),
@@ -229,17 +217,6 @@ def year_change(
     return change(old, new, higher_is_better)
 
 
-def parts_change(ppos_dex_data: list[PPoSDexData], indicator: Indicator) -> str:
-    """How the parts of a ratio changed in one year, e.g. online +5%, total +9%"""
-    changes = []
-    for label, value in indicator.parts or ():
-        delta = year_change(ppos_dex_data, value)
-        if delta is None:
-            return ""
-        changes.append(f"{label} {signed(delta)}")
-    return ", ".join(changes)
-
-
 def month(date: datetime) -> datetime:
     return datetime(date.year, date.month, 1)
 
@@ -248,8 +225,15 @@ def next_month(date: datetime) -> datetime:
     return month(month(date) + timedelta(days=32))
 
 
+def with_data(
+    indicators: tuple[Indicator, ...], ppos_dex_data: list[PPoSDexData]
+) -> tuple[Indicator, ...]:
+    """The indicators with some data, leaving out metrics not published yet"""
+    return tuple(i for i in indicators if has_data(ppos_dex_data, i.value))
+
+
 def monthly_changes(
-    ppos_dex_data: list[PPoSDexData],
+    ppos_dex_data: list[PPoSDexData], indicators: tuple[Indicator, ...] = HEATMAP
 ) -> tuple[list[datetime], list[list[float]]]:
     """Months, and the change of each heatmap row monthly average per month"""
     first, last = month(timestamp(ppos_dex_data[0])), timestamp(ppos_dex_data[-1])
@@ -261,7 +245,7 @@ def monthly_changes(
         by_month[month(timestamp(data))].append(data)
 
     rows = []
-    for indicator in HEATMAP:
+    for indicator in indicators:
         averages = []
         for m in months:
             values = [indicator.value(d) for d in by_month[m]]
@@ -414,8 +398,13 @@ def trajectory_figure(ppos_dex_data: list[PPoSDexData], theme: Theme) -> Figure:
 
 
 def heatmap_figure(ppos_dex_data: list[PPoSDexData], theme: Theme) -> Figure:
-    months, rows = monthly_changes(ppos_dex_data)
-    fig, ax = plt.subplots(figsize=(9, 1.8 + 0.34 * len(HEATMAP)), layout="constrained")
+    absolute = with_data(ABSOLUTE, ppos_dex_data)
+    context = with_data(CONTEXT, ppos_dex_data)
+    indicators = (*absolute, *context, *with_data(INDICATORS, ppos_dex_data))
+    months, rows = monthly_changes(ppos_dex_data, indicators)
+    fig, ax = plt.subplots(
+        figsize=(9, 1.8 + 0.34 * len(indicators)), layout="constrained"
+    )
     title(fig, "Monthly Change", theme)
     ax.set_title(
         "Change of each monthly average, towards more (blue) or less (red) "
@@ -424,7 +413,7 @@ def heatmap_figure(ppos_dex_data: list[PPoSDexData], theme: Theme) -> Figure:
     # Months without a change stay empty
     mesh = ax.pcolormesh(
         mdates.date2num([*months, next_month(months[-1])]),
-        range(len(HEATMAP) + 1),
+        range(len(indicators) + 1),
         rows,
         cmap=_colormap(theme.diverging, "change"),
         norm=TwoSlopeNorm(0, -MAX_CHANGE, MAX_CHANGE),
@@ -439,11 +428,11 @@ def heatmap_figure(ppos_dex_data: list[PPoSDexData], theme: Theme) -> Figure:
             zorder=0,
         )
     # Separate the absolute numbers from the ratios and indexes
-    for row in (len(ABSOLUTE), len(ABSOLUTE) + len(CONTEXT)):
+    for row in (len(absolute), len(absolute) + len(context)):
         ax.axhline(row, color=theme.baseline, linewidth=0.8)
     ax.set_yticks(
-        [row + 0.5 for row in range(len(HEATMAP))],
-        [i.label for i in HEATMAP],
+        [row + 0.5 for row in range(len(indicators))],
+        [i.label for i in indicators],
         fontsize=9,
     )
     ax.invert_yaxis()
@@ -470,7 +459,7 @@ def _tile(
 ) -> None:
     dates, values = series(ppos_dex_data, Line(indicator.key, ""))
     ax.plot(mdates.date2num(dates), values, color=theme.series[0], linewidth=1.2)
-    ax.set_title(indicator.label, fontsize=9, pad=34)
+    ax.set_title(indicator.label, fontsize=9, pad=22)
     if not indicator.higher_is_better:
         ax.invert_yaxis()
     ax.tick_params(axis="y", labelsize=7)
@@ -500,25 +489,25 @@ def _tile(
         better = "more" if delta >= 0 else "less"
         text = f"{arrow} {percent(abs(delta))} {better} decentralized"
         color = theme.good if delta >= 0 else theme.bad
-    parts = parts_change(ppos_dex_data, indicator)
-    for line, offset, line_color in ((text, 16, color), (parts, 4, theme.muted)):
-        ax.annotate(
-            line,
-            (1, 1),
-            xycoords="axes fraction",
-            xytext=(0, offset),
-            textcoords="offset points",
-            ha="right",
-            fontsize=8,
-            color=line_color,
-        )
+    ax.annotate(
+        text,
+        (1, 1),
+        xycoords="axes fraction",
+        xytext=(0, 4),
+        textcoords="offset points",
+        ha="right",
+        fontsize=8,
+        color=color,
+    )
     date_axis(ax)
     ax.tick_params(axis="x", labelsize=7)
 
 
 def glance_figure(ppos_dex_data: list[PPoSDexData], theme: Theme) -> Figure:
     # The absolute numbers on a row of their own, the indicators in two columns
-    rows = 1 + math.ceil(len(INDICATORS) / 2)
+    absolute = with_data(ABSOLUTE, ppos_dex_data)
+    indicators = with_data(INDICATORS, ppos_dex_data)
+    rows = 1 + math.ceil(len(indicators) / 2)
     fig = plt.figure(figsize=(9, 1.2 + 1.9 * rows), layout="constrained")
     grid = fig.add_gridspec(rows, 6)
     title(fig, "At a Glance", theme)
@@ -532,11 +521,11 @@ def glance_figure(ppos_dex_data: list[PPoSDexData], theme: Theme) -> Figure:
     )
     top = 1 - 0.75 / fig.get_figheight()
     fig.get_layout_engine().set(rect=(0, 0, 1, top))  # type: ignore[union-attr,call-arg]
-    cells = [grid[0, 2 * i : 2 * i + 2] for i in range(len(ABSOLUTE))] + [
-        grid[1 + i // 2, 3 * (i % 2) : 3 * (i % 2) + 3] for i in range(len(INDICATORS))
+    cells = [grid[0, 2 * i : 2 * i + 2] for i in range(len(absolute))] + [
+        grid[1 + i // 2, 3 * (i % 2) : 3 * (i % 2) + 3] for i in range(len(indicators))
     ]
     first: Axes | None = None
-    for cell, indicator in zip(cells, (*ABSOLUTE, *INDICATORS), strict=True):
+    for cell, indicator in zip(cells, (*absolute, *indicators), strict=True):
         ax = fig.add_subplot(cell, sharex=first)
         first = first or ax
         _tile(ax, ppos_dex_data, indicator, theme)
