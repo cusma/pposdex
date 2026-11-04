@@ -223,7 +223,7 @@ threaten the consensus. Given the validators' stakes sorted from the largest,
 Unlike the inequality indexes, it measures the stake against the security
 threshold of the consensus. Algorand, conservatively, neither stalls nor gets
 overcome while more than 80% of the online stake is honest, so the threshold to
-watch is \\(q = 20\\%\\): this is the [PPoS Dex v3](ppos-dex.md).
+watch is \\(q = 20\\%\\): this is the [PPoS Dex v3](ppos-dex.md#ppos-dex-v3).
 
 Accounts rekeyed to the same address, or registering their participation keys
 with the same validity window, are likely run by the same operator. Merging
