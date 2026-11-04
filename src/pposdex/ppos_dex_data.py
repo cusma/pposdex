@@ -1,5 +1,6 @@
 import base64
 import logging
+import math
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Literal, NotRequired, TypedDict, cast
@@ -11,13 +12,17 @@ from algosdk.v2client.indexer import IndexerClient
 
 from pposdex import helpers
 from pposdex import inequality_idx as idx
-from pposdex.helpers import Account, PPoSDexError
+from pposdex.helpers import Account, Json, PPoSDexError
 
 logger = logging.getLogger(__name__)
 
 d_N = 1  # noqa: N816 (math notation)
 d_T = 1  # noqa: N816 (math notation)
 MICROALGO_TOTAL_SUPPLY = 10**16
+# Conservatively, Algorand consensus neither stalls nor gets overcome while more
+# than 80% of the online stake is honest: a coalition holding more than 20% of it
+# is the threshold to watch
+CONSENSUS_SHARE = 0.2
 
 
 class PPoSDexData(TypedDict):
@@ -35,6 +40,9 @@ class PPoSDexData(TypedDict):
     ppos_hhi: NotRequired[float]
     ppos_dex: float
     ppos_dex_v2: NotRequired[float]
+    ppos_dex_v3: NotRequired[int]
+    ppos_dex_v3_operators: NotRequired[int]
+    round: NotRequired[int]
     timestamp: str
 
 
@@ -50,6 +58,8 @@ Metric = Literal[
     "ppos_hhi",
     "ppos_dex",
     "ppos_dex_v2",
+    "ppos_dex_v3",
+    "ppos_dex_v3_operators",
 ]
 
 
@@ -78,6 +88,9 @@ SCHEMA: dict[str, Field] = {
     "ppos_hhi": Field(float, min=0, max=1, required=False),
     "ppos_dex": Field(float, min=0, max=1),
     "ppos_dex_v2": Field(float, min=0, max=1, required=False),
+    "ppos_dex_v3": Field(int, min=1, required=False),
+    "ppos_dex_v3_operators": Field(int, min=1, required=False),
+    "round": Field(int, min=0, required=False),
     "timestamp": Field(str),
 }
 
@@ -86,11 +99,13 @@ def validate(data: object) -> PPoSDexData:
     """
     Validate a PPoS Dex data point against the SCHEMA
 
+    Unknown keys, like those added by newer versions, are ignored.
+
     Args:
         data: PPoS Dex data point
 
     Returns:
-        The validated data point
+        The validated data point, without unknown keys
 
     Raises:
         InvalidDataError: if the data point does not comply with the SCHEMA
@@ -100,7 +115,8 @@ def validate(data: object) -> PPoSDexData:
 
     unknown_keys = data.keys() - SCHEMA.keys()
     if unknown_keys:
-        raise InvalidDataError(f"Unknown keys: {sorted(map(str, unknown_keys))}")
+        logger.debug("Ignoring unknown keys: %s", sorted(map(str, unknown_keys)))
+        data = {key: value for key, value in data.items() if key in SCHEMA}
 
     for key, spec in SCHEMA.items():
         if key not in data:
@@ -118,6 +134,66 @@ def validate(data: object) -> PPoSDexData:
             raise InvalidDataError(f"{key}: {value} > {spec.max}")
 
     return cast(PPoSDexData, data)
+
+
+def online_accounts(data: PPoSDexData) -> float:
+    """Online accounts holding at least the threshold"""
+    return data["accounts"] * data["ppos_online_accounts"]
+
+
+def effective_validators(data: PPoSDexData) -> float:
+    """Equal-stake validators with the same stake entropy as the online ones
+
+    Theil T is the log of the online accounts minus the stake entropy H, so
+    the entropy equivalent number of validators exp(H) is N * exp(-T).
+    """
+    return online_accounts(data) * math.exp(-data["ppos_theil_t"])
+
+
+def equal_stake_validators(data: PPoSDexData) -> float:
+    """Equal-stake validators with the same HHI as the online ones"""
+    hhi = data.get("ppos_hhi")
+    return 1 / hhi if hhi else math.nan
+
+
+def operator_stakes(online_accounts: list[Json]) -> list[int]:
+    """
+    Stakes of the likely operators of online accounts
+
+    Accounts are merged when rekeyed to the same address, or when their
+    participation keys share the same validity window: likely registered
+    together by the same operator.
+
+    Args:
+        online_accounts: Online accounts, as returned by the Indexer
+
+    Returns:
+        Stake of each operator
+    """
+    operator = {account["address"]: account["address"] for account in online_accounts}
+
+    def find(address: str) -> str:
+        while operator[address] != address:
+            operator[address] = operator[operator[address]]
+            address = operator[address]
+        return address
+
+    first_by_link: dict[object, str] = {}
+    for account in online_accounts:
+        keys = account.get("participation") or {}
+        window = (keys.get("vote-first-valid"), keys.get("vote-last-valid"))
+        links = [("auth", account.get("auth-addr")), ("window", window)]
+        for link in links:
+            if link[1] is None or link[1] == (None, None):
+                continue
+            first = first_by_link.setdefault(link, account["address"])
+            operator[find(account["address"])] = find(first)
+
+    stakes: dict[str, int] = {}
+    for account in online_accounts:
+        root = find(account["address"])
+        stakes[root] = stakes.get(root, 0) + account["amount"]
+    return list(stakes.values())
 
 
 def post_ppos_dex_data(
@@ -144,10 +220,9 @@ def post_ppos_dex_data(
     holders = helpers.get_algo_holders(indexer_client, microalgo_threshold)
 
     stakes = [account["amount"] for account in holders]
+    online = [account for account in holders if account["status"] == "Online"]
     # Sorted: the indexes below sum the stakes in this order
-    online_stakes = sorted(
-        account["amount"] for account in holders if account["status"] == "Online"
-    )
+    online_stakes = sorted(account["amount"] for account in online)
 
     ledger = algod_client.ledger_supply()
     assert isinstance(ledger, dict)
@@ -163,6 +238,10 @@ def post_ppos_dex_data(
     ppos_hhi = idx.herfindahl_hirschman(online_stakes)
     ppos_dex_v1 = d_N * d_T * algo_dyn * algo_prt * accounts_prt * (1 - ppos_gini)
     ppos_dex_v2 = d_N * d_T * algo_dyn * algo_prt * (1 - ppos_hhi)
+    ppos_dex_v3 = idx.nakamoto_coefficient(online_stakes, CONSENSUS_SHARE)
+    ppos_dex_v3_operators = idx.nakamoto_coefficient(
+        operator_stakes(online), CONSENSUS_SHARE
+    )
 
     ppos_dex_data: PPoSDexData = {
         "algo_threshold": algo_threshold,
@@ -177,6 +256,9 @@ def post_ppos_dex_data(
         "ppos_hhi": ppos_hhi,
         "ppos_dex": ppos_dex_v1,
         "ppos_dex_v2": ppos_dex_v2,
+        "ppos_dex_v3": ppos_dex_v3,
+        "ppos_dex_v3_operators": ppos_dex_v3_operators,
+        "round": ledger["current_round"],
         "timestamp": str(datetime.now()),
     }
     ppos_dex_data = validate(ppos_dex_data)

@@ -209,7 +209,9 @@ def show_data(args: argparse.Namespace, ppos_dex_data: list[PPoSDexData]) -> Non
     elif args.command == "export":
         print("💾 Exporting PPoS Dex data to 'ppos_dex_data.csv'...\n")
         with open("ppos_dex_data.csv", "w", encoding="utf8", newline="") as f:
-            fc = csv.DictWriter(f, fieldnames=ppos_dex_data[0].keys())
+            # Older data points lack the fields added since
+            fields = [k for k in pposdex.SCHEMA if any(k in d for d in ppos_dex_data)]
+            fc = csv.DictWriter(f, fieldnames=fields)
             fc.writeheader()
             fc.writerows(ppos_dex_data)
 

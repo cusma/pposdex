@@ -2,7 +2,9 @@
 Inequality Indexes
 """
 
+import itertools
 import math
+from collections.abc import Sequence
 
 
 def scalar_product(vector_1: list[float], vector_2: list[float]) -> float:
@@ -22,7 +24,7 @@ def scalar_product(vector_1: list[float], vector_2: list[float]) -> float:
     return sum(x_1 * x_2 for x_1, x_2 in zip(vector_1, vector_2, strict=True))
 
 
-def _check_not_empty(distribution: list[float]) -> None:
+def _check_not_empty(distribution: Sequence[float]) -> None:
     if not distribution:
         raise ValueError("Distribution must not be empty")
 
@@ -118,6 +120,33 @@ def theil_t(distribution: list[float]) -> float:
     for amount in distribution:
         epsilon += (amount / mean_amount) * math.log(amount / mean_amount)
     return epsilon / n
+
+
+def nakamoto_coefficient(distribution: Sequence[float], share: float = 1 / 3) -> int:
+    """
+    Nakamoto Coefficient
+
+    Args:
+        distribution: Wealth distribution of the population
+        share: Share of the total wealth to exceed
+
+    Returns:
+        Nakamoto Coefficient (NC), the fewest members of the population
+            holding together more than `share` of the total wealth
+            1 <= NC <= N
+
+    Raises:
+        ValueError: if the share is not between 0 and 1, or there is no wealth
+    """
+    _check_not_empty(distribution)
+    if not 0 <= share < 1:
+        raise ValueError("Share must be between 0 and 1")
+    total = sum(distribution)
+    if total <= 0:
+        raise ValueError("Distribution must hold some wealth")
+    # Largest holders first, until they exceed the share
+    held = itertools.accumulate(sorted(distribution, reverse=True))
+    return next(n for n, wealth in enumerate(held, start=1) if wealth > share * total)
 
 
 def herfindahl_hirschman(distribution: list[float]) -> float:

@@ -6,16 +6,17 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pytest
 
-from pposdex import insights
+from pposdex import insights, plots
+from pposdex import ppos_dex_data as pposdex
 from pposdex.insights import Indicator
 from pposdex.ppos_dex_data import PPoSDexData
 
 CHARTS = [
     "at_a_glance",
+    "effective_holders",
     "effective_validators",
     "monthly_change",
     "online_stake",
-    "participation",
     "trajectory",
 ]
 
@@ -75,28 +76,38 @@ def test_show(
 class TestDerivedMetrics:
     def test_online_accounts(self, make_data_point: Callable[..., PPoSDexData]) -> None:
         data = make_data_point(accounts=1000, ppos_online_accounts=0.1)
-        assert insights.online_accounts(data) == pytest.approx(100)
+        assert pposdex.online_accounts(data) == pytest.approx(100)
 
     def test_effective_validators(
         self, make_data_point: Callable[..., PPoSDexData]
     ) -> None:
         # Equal stakes: Theil T is 0, all online accounts count
         equal = make_data_point(accounts=100, ppos_online_accounts=1, ppos_theil_t=0)
-        assert insights.effective_validators(equal) == pytest.approx(100)
+        assert pposdex.effective_validators(equal) == pytest.approx(100)
         unequal = make_data_point(
             accounts=100, ppos_online_accounts=1, ppos_theil_t=math.log(4)
         )
-        assert insights.effective_validators(unequal) == pytest.approx(25)
+        assert pposdex.effective_validators(unequal) == pytest.approx(25)
 
     def test_equal_stake_validators(
         self, make_data_point: Callable[..., PPoSDexData]
     ) -> None:
-        assert insights.equal_stake_validators(
+        assert pposdex.equal_stake_validators(
             make_data_point(ppos_hhi=0.02)
         ) == pytest.approx(50)
         data = make_data_point()
         del data["ppos_hhi"]
-        assert math.isnan(insights.equal_stake_validators(data))
+        assert math.isnan(pposdex.equal_stake_validators(data))
+
+    def test_effective_holders(
+        self, make_data_point: Callable[..., PPoSDexData]
+    ) -> None:
+        assert insights.effective_holders(
+            make_data_point(algo_hhi=0.0125)
+        ) == pytest.approx(80)
+        data = make_data_point()
+        del data["algo_hhi"]
+        assert math.isnan(insights.effective_holders(data))
 
     def test_algo(self, make_data_point: Callable[..., PPoSDexData]) -> None:
         data = make_data_point(algo_dynamics=0.5, ppos_online_stake=0.2)
@@ -105,7 +116,7 @@ class TestDerivedMetrics:
 
     @pytest.mark.parametrize(
         ("value", "expected"),
-        [(insights.count, "1,410"), (insights.billions, "0.00B")],
+        [(plots.count, "1,410"), (insights.billions, "0.00B")],
     )
     def test_formats(self, value: Callable[[float], str], expected: str) -> None:
         assert value(1410) == expected
@@ -138,32 +149,6 @@ class TestYearChange:
         del data[2]["ppos_hhi"]
         hhi = Indicator("ppos_hhi", "HHI", higher_is_better=False)
         assert insights.year_change(data[::-1], hhi.value) is None
-
-
-class TestPartsChange:
-    @pytest.fixture
-    def stake(self) -> Indicator:
-        return next(i for i in insights.INDICATORS if i.key == "ppos_online_stake")
-
-    def test_ratio(self, data: list[PPoSDexData], stake: Indicator) -> None:
-        # Twice the circulating supply, with the same share online
-        data[0]["algo_dynamics"] *= 2
-        assert insights.parts_change(data[::-1], stake) == (
-            "online +100%, circulating +100%"
-        )
-
-    def test_not_a_ratio(self, data: list[PPoSDexData]) -> None:
-        assert insights.parts_change(data[::-1], DEX) == ""
-
-    def test_no_data_a_year_before(
-        self, data: list[PPoSDexData], stake: Indicator
-    ) -> None:
-        assert insights.parts_change(data[:2][::-1], stake) == ""
-
-
-@pytest.mark.parametrize(("value", "expected"), [(0.05, "+5.0%"), (-0.2, "-20%")])
-def test_signed(value: float, expected: str) -> None:
-    assert insights.signed(value) == expected
 
 
 def test_weekly(make_data_point: Callable[..., PPoSDexData]) -> None:

@@ -39,8 +39,18 @@ def test_missing_key(data_point: dict[str, object], key: str) -> None:
         validate(data_point)
 
 
-def test_unknown_key(data_point: dict[str, object]) -> None:
+def test_unknown_key_is_ignored(data_point: dict[str, object]) -> None:
+    # Data points published by newer versions stay readable
+    expected = dict(data_point)
     data_point["unknown"] = 1
+    assert validate(data_point) == expected
+
+
+@pytest.mark.parametrize("key", ["ppos_dex_v3", "ppos_dex_v3_operators", "round"])
+def test_optional_count(data_point: dict[str, object], key: str) -> None:
+    data_point[key] = 13
+    assert validate(data_point)[key] == 13  # type: ignore[literal-required]
+    data_point[key] = 0.5
     with pytest.raises(InvalidDataError):
         validate(data_point)
 

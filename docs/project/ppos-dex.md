@@ -44,18 +44,42 @@ ideal condition, _never reaching it_.
 
 \\[ PPoS DEX = d_N \cdot d_T \cdot S_{dyn} \cdot S_{prt} \cdot (1 - HHI(S)) \\]
 
+> [!NOTE]
+> On Algorand data, each version mostly follows a single factor: since 2023, 90%
+> of the variation of v1 comes from the accounts participation, and 96% of the
+> variation of v2 from the ALGO participation.
+
+## PPoS DEX v3
+
+Instead of the distance from an ideal, v3 measures the stake against the
+security threshold of the consensus. Algorand, conservatively, neither stalls
+nor gets overcome while more than 80% of the online stake is honest: v3 is the
+[Nakamoto Coefficient](stake.md#nakamoto-coefficient) at 20%, the fewest online
+accounts holding together more than 20% of the online stake.
+
+\\[ PPoS DEX = NC_{20\\%}(S) \\]
+
+The higher, the more decentralized. Being a count, v3 is not a per-unit index,
+and it does not include the Nodes Hardware and Network Topology factors.
+
+The Nakamoto Coefficient of operators, merging the accounts likely run by the
+same operator, is published alongside it.
+
 ## Metrics summary
 
-| METRIC                 | SYMBOL           | DESCRIPTION                                                                                           |
-|------------------------|------------------|-------------------------------------------------------------------------------------------------------|
-| ALGO Dynamics          | \\(S_{dyn}\\)    | 0 = no ALGO circulation, 1 = complete ALGO circulation                                                |
-| ALGO Participation     | \\(S_{prt}\\)    | 0 = no PPoS participation, 1 = complete PPoS participation                                            |
-| Accounts Participation | \\(A_{prt}\\)    | 0 = no PPoS accounts participation, 1 = complete PPoS accounts participation                          |
-| ALGO HHI               | \\(1 - HHI(A)\\) | Considers all ALGO stakes, whether they participate in the PPoS or not                                |
-| PPoS Gini              | \\(1 - GI(S)\\)  | PPoS staking inequality, regardless the number of participating accounts                              |
-| PPoS Theil’L           | \\(TL(S)\\)      | PPoS staking inequality, sensitive to differences at the lower end of the distribution (small stakes) |
-| PPoS Theil’T           | \\(TT(S)\\)      | PPoS staking inequality, sensitive to differences at the high end of the distribution (large stakes)  |
-| PPoS HHI               | \\(1 - HHI(S)\\) | PPoS staking inequality, takes the number of participating accounts in consideration                  |
+| METRIC                  | SYMBOL              | DESCRIPTION                                                                                           |
+|-------------------------|---------------------|-------------------------------------------------------------------------------------------------------|
+| ALGO Dynamics           | \\(S_{dyn}\\)       | 0 = no ALGO circulation, 1 = complete ALGO circulation                                                |
+| ALGO Participation      | \\(S_{prt}\\)       | 0 = no PPoS participation, 1 = complete PPoS participation                                            |
+| Accounts Participation  | \\(A_{prt}\\)       | 0 = no PPoS accounts participation, 1 = complete PPoS accounts participation                          |
+| ALGO HHI                | \\(1 - HHI(A)\\)    | Considers all ALGO stakes, whether they participate in the PPoS or not                                |
+| PPoS Gini               | \\(1 - GI(S)\\)     | PPoS staking inequality, regardless the number of participating accounts                              |
+| PPoS Theil’L            | \\(TL(S)\\)         | PPoS staking inequality, sensitive to differences at the lower end of the distribution (small stakes) |
+| PPoS Theil’T            | \\(TT(S)\\)         | PPoS staking inequality, sensitive to differences at the high end of the distribution (large stakes)  |
+| PPoS HHI                | \\(1 - HHI(S)\\)    | PPoS staking inequality, takes the number of participating accounts in consideration                  |
+| Effective Validators    | \\(N_H, N_{HHI}\\)  | Equal-stake validators the PPoS stake is worth, by entropy and by HHI                                 |
+| PPoS Nakamoto           | \\(NC_{20\\%}(S)\\) | Fewest online accounts holding more than 20% of the online stake (PPoS Dex v3)                        |
+| PPoS Nakamoto Operators | \\(NC_{20\\%}(O)\\) | Fewest likely operators holding more than 20% of the online stake                                     |
 
 > [!NOTE]
 > **Minimum balance filter**
