@@ -18,6 +18,11 @@ contributions are welcome).
 The ALGO has a _total supply of 10B_, hardcoded in the genesis block, so the
 _Stake Dynamics_ applies to ALGO.
 
+The circulating supply is measured as the ledger's _participating_ supply (the
+Algod `total-money`): the genesis supply minus the balances of the accounts
+flagged as non-participating. It counts custodial, treasury and exchange
+balances as circulating, so it is larger than the economic circulating supply.
+
 We say Algorand Validating Stake is _“completely decentralized”_ iff:
 
 1. All the ALGO genesis supply is circulating in the ecosystem (\\(S_{dyn}\\));
@@ -61,4 +66,7 @@ ideal condition, _never reaching it_.
 > Dex CLI applies an optional _"minimum balance filter"_, to ignore accounts with
 > balances lower than a threshold (default 1000 ALGO). Such a filtering operation
 > has a _noise-canceling_ effect that makes the data retrieval and process lighter,
-> **without compromising data statistical significancy of the indexes**.
+> **without compromising data statistical significance of the stake indexes**:
+> less than 0.001% of the online stake belongs to accounts below the default
+> threshold. The metrics counting accounts, like the Accounts Participation and
+> the Gini Index, do depend on the threshold instead.

@@ -19,6 +19,9 @@ hardware requirements and neglectable energy consumption.
 Users participating in Algorand PPoS do not delegate their votes, do not need a
 minimum stake to take part in the PPoS, and do not bond their ALGOs.
 
+Protocol staking rewards, are paid only to accounts holding between 30,000 and 70,000,000
+ALGO.
+
 The cryptographic sortition is used to:
 
 - Randomly and secretly elect a block proposer;

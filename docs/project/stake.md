@@ -40,6 +40,9 @@ over the _circulating supply_ (\\( S_c\\)).
 \\(S_P\\) can theoretically range from 0 (no participation in PoS validation)
 to 1 (complete participation in PoS validation).
 
+How the circulating supply is measured depends on the Blockchain: see the
+[PPoS Dex](ppos-dex.md) for Algorand.
+
 ## Stake Inequality Index
 
 The _Stake Inequality Index_ (\\(S_I\\)) measures validators' inequality. We can
@@ -76,13 +79,13 @@ sensitivities:
 * _Theil's L_ is more sensitive to differences at the lower end of the distribution
 (small stakes):
 
-\\[ T_L = \frac{1}{N} \sum_{i=1}^{N} \frac{y_i}{\mu} \ln{\left(\frac{y_i}{\mu}
-\right)} \\]
+\\[ T_L = \frac{1}{N} \sum_{i=1}^{N} \ln{\left(\frac{\mu}{y_i}\right)} \\]
 
 * _Theil's T_ is more sensitive to differences at the top of the distribution (large
 stakes):
 
-\\[ T_T = \frac{1}{N} \sum_{i=1}^{N} \ln{\left(\frac{\mu}{y_i}\right)} \\]
+\\[ T_T = \frac{1}{N} \sum_{i=1}^{N} \frac{y_i}{\mu} \ln{\left(\frac{y_i}{\mu}
+\right)} \\]
 
 where \\(y_i\\) is the validator's stake and \\(\mu\\) is the mean stake:
 
