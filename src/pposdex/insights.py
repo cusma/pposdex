@@ -46,7 +46,13 @@ from pposdex.plots import (
     series,
     timestamp,
 )
-from pposdex.ppos_dex_data import Metric, PPoSDexData
+from pposdex.ppos_dex_data import (
+    Metric,
+    PPoSDexData,
+    effective_validators,
+    equal_stake_validators,
+    online_accounts,
+)
 from pposdex.theme import Theme, output, title
 
 INSIGHTS_DIR = Path("./docs/images/insights")
@@ -65,26 +71,6 @@ NO_CHANGE = 0.0005
 def total_accounts(data: PPoSDexData) -> float:
     """Accounts holding at least the threshold"""
     return data["accounts"]
-
-
-def online_accounts(data: PPoSDexData) -> float:
-    """Online accounts holding at least the threshold"""
-    return data["accounts"] * data["ppos_online_accounts"]
-
-
-def effective_validators(data: PPoSDexData) -> float:
-    """Equal-stake validators with the same stake entropy as the online ones
-
-    Theil T is the log of the online accounts minus the stake entropy H, so
-    the entropy equivalent number of validators exp(H) is N * exp(-T).
-    """
-    return online_accounts(data) * math.exp(-data["ppos_theil_t"])
-
-
-def equal_stake_validators(data: PPoSDexData) -> float:
-    """Equal-stake validators with the same HHI as the online ones"""
-    hhi = data.get("ppos_hhi")
-    return 1 / hhi if hhi else math.nan
 
 
 def circulating_algo(data: PPoSDexData) -> float:

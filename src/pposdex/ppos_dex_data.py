@@ -1,5 +1,6 @@
 import base64
 import logging
+import math
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Literal, NotRequired, TypedDict, cast
@@ -133,6 +134,26 @@ def validate(data: object) -> PPoSDexData:
             raise InvalidDataError(f"{key}: {value} > {spec.max}")
 
     return cast(PPoSDexData, data)
+
+
+def online_accounts(data: PPoSDexData) -> float:
+    """Online accounts holding at least the threshold"""
+    return data["accounts"] * data["ppos_online_accounts"]
+
+
+def effective_validators(data: PPoSDexData) -> float:
+    """Equal-stake validators with the same stake entropy as the online ones
+
+    Theil T is the log of the online accounts minus the stake entropy H, so
+    the entropy equivalent number of validators exp(H) is N * exp(-T).
+    """
+    return online_accounts(data) * math.exp(-data["ppos_theil_t"])
+
+
+def equal_stake_validators(data: PPoSDexData) -> float:
+    """Equal-stake validators with the same HHI as the online ones"""
+    hhi = data.get("ppos_hhi")
+    return 1 / hhi if hhi else math.nan
 
 
 def operator_stakes(online_accounts: list[Json]) -> list[int]:

@@ -16,7 +16,13 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.ticker import FuncFormatter, NullFormatter, PercentFormatter
 
-from pposdex.ppos_dex_data import Metric, PPoSDexData
+from pposdex.ppos_dex_data import (
+    Metric,
+    PPoSDexData,
+    effective_validators,
+    equal_stake_validators,
+    online_accounts,
+)
 from pposdex.theme import Theme, output, title
 
 TIMESERIES_DIR = Path("./docs/images/timeseries")
@@ -77,11 +83,15 @@ class TimeseriesChart:
 @dataclass(frozen=True)
 class Bar:
     label: str
-    key: Metric
+    # A published metric, or a value derived from the data point
+    key: Metric | Value
     x_max: Callable[[PPoSDexData], float]
     fmt: Format = decimal
     # Other keys the bar needs, it is not drawn if any of them is missing
     requires: tuple[Metric, ...] = ()
+
+    def value(self, data: PPoSDexData) -> float:
+        return Line(self.key, self.label).value(data)
 
 
 @dataclass(frozen=True)
@@ -170,11 +180,8 @@ SNAPSHOTS = (
     SnapshotChart(
         name="algo_dynamics",
         title="ALGO Dynamics",
-        subtitle="100% = full circulation or complete participation",
-        bars=(
-            Bar("ALGO Supply", "algo_dynamics", _x_max_unit, percent),
-            Bar("ALGO Participation", "ppos_online_stake", _x_max_unit, percent),
-        ),
+        subtitle="100% = full circulation",
+        bars=(Bar("ALGO Supply", "algo_dynamics", _x_max_unit, percent),),
     ),
     SnapshotChart(
         name="ppos_inequality",
@@ -205,6 +212,23 @@ SNAPSHOTS = (
         bars=(
             Bar("PPoS Dex v1", "ppos_dex", _x_max_unit),
             Bar("PPoS Dex v2", "ppos_dex_v2", _x_max_unit),
+        ),
+    ),
+    SnapshotChart(
+        name="validators",
+        title="Validators",
+        subtitle=(
+            "Online accounts, the equal-stake validators they are worth, and the "
+            "fewest holding more than 20% of the online stake"
+        ),
+        bars=(
+            Bar("Online Accounts", online_accounts, online_accounts, count),
+            Bar("Entropy Equivalent", effective_validators, online_accounts, count),
+            Bar("HHI Equivalent", equal_stake_validators, online_accounts, count),
+            Bar("PPoS Dex V3", "ppos_dex_v3", online_accounts, count),
+            Bar(
+                "PPoS Dex V3 Operators", "ppos_dex_v3_operators", online_accounts, count
+            ),
         ),
     ),
 )
@@ -385,7 +409,8 @@ def snapshot_figure(chart: SnapshotChart, data: PPoSDexData, theme: Theme) -> Fi
     bars = [
         bar
         for bar in chart.bars
-        if all(data.get(key) is not None for key in (bar.key, *bar.requires))
+        if not math.isnan(bar.value(data))
+        and all(data.get(key) is not None for key in bar.requires)
     ]
     fig, ax = plt.subplots(figsize=(9, 1.5 + 0.8 * len(bars)), layout="constrained")
     title(fig, chart.title, theme)
@@ -394,7 +419,7 @@ def snapshot_figure(chart: SnapshotChart, data: PPoSDexData, theme: Theme) -> Fi
     ax.set_xlim(0, 1)
     ax.set_ylim(len(bars) - 0.4, -0.9)
     for row, bar in enumerate(bars):
-        value: float = data[bar.key]
+        value = bar.value(data)
         x_max = bar.x_max(data)
         ax.barh(row, 1, height=0.22, color=theme.track)
         ax.barh(row, value / x_max, height=0.22, color=theme.series[0])

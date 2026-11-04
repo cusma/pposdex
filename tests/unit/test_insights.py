@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import pytest
 
 from pposdex import insights, plots
+from pposdex import ppos_dex_data as pposdex
 from pposdex.insights import Indicator
 from pposdex.ppos_dex_data import PPoSDexData
 
@@ -75,28 +76,28 @@ def test_show(
 class TestDerivedMetrics:
     def test_online_accounts(self, make_data_point: Callable[..., PPoSDexData]) -> None:
         data = make_data_point(accounts=1000, ppos_online_accounts=0.1)
-        assert insights.online_accounts(data) == pytest.approx(100)
+        assert pposdex.online_accounts(data) == pytest.approx(100)
 
     def test_effective_validators(
         self, make_data_point: Callable[..., PPoSDexData]
     ) -> None:
         # Equal stakes: Theil T is 0, all online accounts count
         equal = make_data_point(accounts=100, ppos_online_accounts=1, ppos_theil_t=0)
-        assert insights.effective_validators(equal) == pytest.approx(100)
+        assert pposdex.effective_validators(equal) == pytest.approx(100)
         unequal = make_data_point(
             accounts=100, ppos_online_accounts=1, ppos_theil_t=math.log(4)
         )
-        assert insights.effective_validators(unequal) == pytest.approx(25)
+        assert pposdex.effective_validators(unequal) == pytest.approx(25)
 
     def test_equal_stake_validators(
         self, make_data_point: Callable[..., PPoSDexData]
     ) -> None:
-        assert insights.equal_stake_validators(
+        assert pposdex.equal_stake_validators(
             make_data_point(ppos_hhi=0.02)
         ) == pytest.approx(50)
         data = make_data_point()
         del data["ppos_hhi"]
-        assert math.isnan(insights.equal_stake_validators(data))
+        assert math.isnan(pposdex.equal_stake_validators(data))
 
     def test_effective_holders(
         self, make_data_point: Callable[..., PPoSDexData]

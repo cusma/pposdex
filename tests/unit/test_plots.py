@@ -23,6 +23,7 @@ SNAPSHOT = [
     "algo_dynamics",
     "ppos_dex",
     "ppos_inequality",
+    "validators",
 ]
 
 
@@ -181,3 +182,17 @@ class TestPanelsWithData:
             )
         assert len(fig.axes) == 1
         plt.close("all")
+
+
+def test_validators_snapshot_shows_v3_once_published(
+    make_data_point: Callable[..., PPoSDexData],
+) -> None:
+    chart = next(c for c in plots.SNAPSHOTS if c.name == "validators")
+    with use(LIGHT):
+        before = plots.snapshot_figure(chart, make_data_point(), LIGHT)
+        after = plots.snapshot_figure(
+            chart, make_data_point(ppos_dex_v3=7, ppos_dex_v3_operators=2), LIGHT
+        )
+    # Each bar is a track and its fill
+    assert (len(before.axes[0].patches), len(after.axes[0].patches)) == (6, 10)
+    plt.close("all")
