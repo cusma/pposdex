@@ -26,12 +26,15 @@ The published data point is printed once confirmed, for example:
     'algo_threshold': 1000,
     'ppos_dex': 0.00018605998214704048,
     'ppos_dex_v2': 0.197653743427405,
+    'ppos_dex_v3': 7,
+    'ppos_dex_v3_operators': 2,
     'ppos_gini': 0.9030210736028383,
     'ppos_hhi': 0.01606794676611987,
     'ppos_online_accounts': 0.009550710207067525,
     'ppos_online_stake': 0.20464292567467565,
     'ppos_theil_l': 2.266361842976268,
     'ppos_theil_t': 2.4749568856442137,
+    'round': 66605064,
     'timestamp': '2026-11-01 03:31:36.875492'}
 ```
 

@@ -28,7 +28,11 @@ class FakeAlgod(AlgodClient):
         return {"last-round": 1000}
 
     def ledger_supply(self, *args: Any, **kwargs: Any) -> Json:
-        return {"online-money": ONLINE_MONEY, "total-money": TOTAL_MONEY}
+        return {
+            "current_round": 1000,
+            "online-money": ONLINE_MONEY,
+            "total-money": TOTAL_MONEY,
+        }
 
     def suggested_params(self, *args: Any, **kwargs: Any) -> Any:
         return transaction.SuggestedParams(

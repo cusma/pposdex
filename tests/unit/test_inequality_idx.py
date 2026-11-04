@@ -119,6 +119,40 @@ class TestInvalidInput:
         assert distribution == [3.0, 1.0, 2.0]
 
 
+class TestNakamoto:
+    @pytest.mark.parametrize(
+        ("distribution", "share", "expected"),
+        [
+            (LARGE_EQUAL[:10], 1 / 3, 4),
+            (LARGE_EQUAL[:9], 1 / 3, 4),
+            (INEQUAL, 1 / 3, 3),
+            (INEQUAL, 1 / 2, 4),
+            (VERY_INEQUAL, 1 / 3, 1),
+            (VERY_INEQUAL, 0.9, 6),
+        ],
+    )
+    def test_value(
+        self, distribution: tuple[float, ...], share: float, expected: int
+    ) -> None:
+        assert idx.nakamoto_coefficient(list(distribution), share) == expected
+
+    def test_default_share_is_a_third(self) -> None:
+        assert idx.nakamoto_coefficient(list(INEQUAL)) == 3
+
+    @pytest.mark.parametrize(
+        ("distribution", "share", "match"),
+        [
+            ([], 1 / 3, "empty"),
+            ([1.0, 2.0], 1, "Share"),
+            ([1.0, 2.0], -0.1, "Share"),
+            ([0.0, 0.0], 1 / 3, "wealth"),
+        ],
+    )
+    def test_invalid(self, distribution: list[float], share: float, match: str) -> None:
+        with pytest.raises(ValueError, match=match):
+            idx.nakamoto_coefficient(distribution, share)
+
+
 class TestProperties:
     @given(stakes)
     def test_gini_bounds(self, distribution: list[float]) -> None:
@@ -144,6 +178,17 @@ class TestProperties:
         assert idx.theil_l(distribution) == pytest.approx(0, abs=1e-12)
         assert idx.theil_t(distribution) == pytest.approx(0, abs=1e-12)
         assert idx.herfindahl_hirschman(distribution) == pytest.approx(1 / n)
+
+    @given(stakes, st.floats(0, 0.99))
+    def test_nakamoto_bounds(self, distribution: list[float], share: float) -> None:
+        assert 1 <= idx.nakamoto_coefficient(distribution, share) <= len(distribution)
+
+    @given(stakes, st.floats(0, 0.98), st.floats(0, 0.01))
+    def test_nakamoto_grows_with_share(
+        self, distribution: list[float], share: float, more: float
+    ) -> None:
+        nakamoto = idx.nakamoto_coefficient
+        assert nakamoto(distribution, share) <= nakamoto(distribution, share + more)
 
     @INDEXES
     @given(distribution=stakes, data=st.data())

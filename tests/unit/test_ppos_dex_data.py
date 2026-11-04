@@ -44,6 +44,12 @@ class TestPost:
         assert data["ppos_theil_l"] == idx.theil_l(online)
         assert data["ppos_theil_t"] == idx.theil_t(online)
         assert data["ppos_hhi"] == idx.herfindahl_hirschman(online)
+        # Fake accounts share no keys: every account is its own operator
+        assert data["ppos_dex_v3"] == idx.nakamoto_coefficient(
+            online, pposdex.CONSENSUS_SHARE
+        )
+        assert data["ppos_dex_v3_operators"] == data["ppos_dex_v3"]
+        assert data["round"] == 1000
         # The published note is the same data point, msgpack encoded
         (signed,) = algod.sent
         assert msgpack.unpackb(signed.transaction.note) == data
@@ -61,6 +67,36 @@ class TestPost:
         with pytest.raises(pposdex.InvalidDataError, match="algo_dynamics"):
             pposdex.post_ppos_dex_data(algod, indexer, publisher, 1000)
         assert not algod.sent
+
+
+def account(
+    address: str, amount: int, auth: str | None = None, window: int | None = None
+) -> Json:
+    keys = (
+        {"vote-first-valid": window, "vote-last-valid": window + 100}
+        if window
+        else None
+    )
+    return {
+        "address": address,
+        "amount": amount,
+        "auth-addr": auth,
+        "participation": keys,
+    }
+
+
+def test_operator_stakes() -> None:
+    accounts = [
+        account("A", 1, auth="X"),
+        account("B", 2, auth="X"),
+        account("C", 4, window=10),
+        account("D", 8, window=10),
+        account("E", 16),
+        # Rekeyed elsewhere, but registered with C and D
+        account("F", 32, auth="Y", window=10),
+        account("G", 64, window=20),
+    ]
+    assert sorted(pposdex.operator_stakes(accounts)) == [3, 16, 44, 64]
 
 
 class TestGet:
