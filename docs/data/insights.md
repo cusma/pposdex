@@ -32,59 +32,9 @@ network.
 
 ## Effective Validators
 
-Counting the online accounts tells how many validators there are, not how much
-each one weighs in consensus: a thousand accounts where one holds almost all the
-stake are barely more decentralized than a single validator.
-
-The _effective number of validators_ answers a more telling question: how many
-validators, all holding the _same_ stake, would be exactly as decentralized as
-the actual ones? With equal stakes it is the number of online accounts, and it
-drops as the stake concentrates, down to 1 when a single account holds it all.
-
-### Entropy Equivalent
-
-The entropy of the online stake measures how uncertain it is which validator
-holds a randomly picked ALGO. Given the stake shares \\(s_i\\) of the \\(N\\)
-online accounts:
-
-\\[ H(S) = - \sum_{i=1}^{N} s_i \ln s_i \\]
-
-With \\(n\\) equal stakes the entropy is \\(\ln n\\), so a distribution with
-entropy \\(H\\) is as diverse as \\(e^H\\) equal validators: its _entropy
-equivalent_. Since the Theil T index is how far the entropy is from its
-maximum, \\(T_T(S) = \ln N - H(S)\\), it is computed from the published data as:
-
-\\[ N_{H} = e^{H(S)} = N \cdot e^{-T_T(S)} \\]
-
-### HHI Equivalent
-
-The Herfindahl-Hirschman index is the sum of the squared stake shares: \\(n\\)
-equal stakes have \\(HHI = 1/n\\), so the _HHI equivalent_ is:
-
-\\[ N_{HHI} = \frac{1}{HHI(S)} \\]
-
-Squaring the shares weighs the largest stakes more, so the HHI equivalent is
-always the lowest of the three counts:
-
-\\[ N \geq N_{H} \geq N_{HHI} \\]
-
-### Example
-
-Four validators, one holding 70% of the stake and three holding 10% each:
-
-| Count                | Value                                               |
-|----------------------|-----------------------------------------------------|
-| Online accounts      | \\(N = 4\\)                                         |
-| Entropy equivalent   | \\(N_{H} = e^{0.940} \approx 2.56\\)                |
-| HHI equivalent       | \\(N_{HHI} = 1 / 0.52 \approx 1.92\\)               |
-
-Four validators, as decentralized as about two and a half equal ones by entropy,
-or two by HHI, which is most sensitive to the dominant one.
-
-> [!NOTE]
-> An entity can control many accounts: the effective numbers count accounts
-> holding at least the threshold, and are an upper bound for the entities
-> behind them.
+The online accounts, and how many validators with equal stake they are worth:
+see the [effective number of validators](../project/stake.md#effective-number-of-validators)
+for how the entropy and HHI equivalents are computed.
 
 ![Insights Effective Validators](../images/insights/effective_validators.svg)
 

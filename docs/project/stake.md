@@ -43,6 +43,10 @@ to 1 (complete participation in PoS validation).
 How the circulating supply is measured depends on the Blockchain: see the
 [PPoS Dex](ppos-dex.md) for Algorand.
 
+> [!NOTE]
+> On Algorand, \\(S_{dyn}\\) has reached 0.98 and barely moves anymore: the
+> stake participation \\(S_{p}\\) drives \\(S_P\\).
+
 ## Stake Inequality Index
 
 The _Stake Inequality Index_ (\\(S_I\\)) measures validators' inequality. We can
@@ -69,6 +73,13 @@ where \\( y_1 \le y_2 \le ... \le y_N\\) are the sorted validators' stake.
 \\(GI\\) can theoretically range from 0 (_complete equality_) to 1 (_complete inequality_),
 therefore it _one’s complement_ \\((1 - GI)\\) is a good candidate for the \\(DEX\\)
 index.
+
+> [!NOTE]
+> On Algorand, the Gini Index tracks how many small validators take part more
+> than how concentrated the stake is: it rises when small validators join. It
+> stayed flat through the January 2025 surge, when online accounts grew fivefold
+> and the [effective number of validators](#effective-number-of-validators)
+> tripled.
 
 ### Theil Indexes
 
@@ -100,6 +111,11 @@ ones.
 > [!NOTE]
 > _Theil’s Indexes_ are not upper bounded, so are not good candidates for the \\(DEX\\)
 > index. For sake of completeness we will evaluate them separately.
+>
+> Theil's T is the gap between the maximum entropy, \\(\ln N\\), and the entropy
+> of the stake: it grows with the number of validators, even when the stake
+> spreads across more of them. The [entropy equivalent](#entropy-equivalent)
+> turns it into a count that does not.
 
 ### Herfindahl–Hirschman Index
 
@@ -123,6 +139,9 @@ for the \\(DEX\\) index.
 > accounts and the _absolute number of validators accounts_. Therefore, in order
 > to avoid double counting of the _account participation_ factor, \\(A_P = 1\\)
 > when \\(S_I = 1 - HHI\\).
+>
+> On Algorand, \\(1 - HHI\\) stays between 0.96 and 0.99, so it barely moves:
+> the [HHI equivalent](#hhi-equivalent) reads its changes better.
 
 ### Example 1
 
@@ -150,6 +169,82 @@ All the stake is equally distributed among 100 validators:
 
 \\[ HHI = 100 \cdot {0.01}^2 = 0.001 \\]
 
+### Effective Number of Validators
+
+Counting the validators tells how many there are, not how much each one weighs
+in consensus: a thousand validators where one holds almost all the stake are
+barely more decentralized than a single validator.
+
+The _effective number of validators_ answers a more telling question: how many
+validators, all holding the _same_ stake, would be exactly as decentralized as
+the actual ones? With equal stakes it is the number of validators, and it drops
+as the stake concentrates, down to 1 when a single validator holds it all.
+
+#### Entropy Equivalent
+
+The entropy of the stake measures how uncertain it is which validator holds a
+randomly picked unit of stake. Given the stake shares \\(s_i\\) of the \\(N\\)
+validators:
+
+\\[ H(S) = - \sum_{i=1}^{N} s_i \ln s_i \\]
+
+With \\(n\\) equal stakes the entropy is \\(\ln n\\), so a distribution with
+entropy \\(H\\) is as diverse as \\(e^H\\) equal validators: its _entropy
+equivalent_. Since the Theil T index is how far the entropy is from its maximum,
+\\(T_T(S) = \ln N - H(S)\\), it can be computed as:
+
+\\[ N_{H} = e^{H(S)} = N \cdot e^{-T_T(S)} \\]
+
+#### HHI Equivalent
+
+\\(n\\) equal stakes have \\(HHI = 1/n\\), so the _HHI equivalent_ is:
+
+\\[ N_{HHI} = \frac{1}{HHI(S)} \\]
+
+Squaring the shares weighs the largest stakes more, so the HHI equivalent is
+always the lowest of the three counts:
+
+\\[ N \geq N_{H} \geq N_{HHI} \\]
+
+> [!NOTE]
+> A participant can control many accounts: counting accounts, the effective
+> numbers are an upper bound for the participants behind them.
+
+### Nakamoto Coefficient
+
+The _Nakamoto Coefficient_ (\\(NC\\)) counts the fewest validators holding
+together more than a share \\(q\\) of the stake: the smallest coalition able to
+threaten the consensus. Given the validators' stakes sorted from the largest,
+\\( y_1 \ge y_2 \ge ... \ge y_N\\):
+
+\\[ NC_q(S) = \min \left\\{ k : \sum_{i=1}^{k} y_i > q \sum_{i=1}^{N} y_i
+\right\\} \\]
+
+Unlike the inequality indexes, it measures the stake against the security
+threshold of the consensus. Algorand, conservatively, neither stalls nor gets
+overcome while more than 80% of the online stake is honest, so the threshold to
+watch is \\(q = 20\\%\\): this is the [PPoS Dex v3](ppos-dex.md).
+
+Accounts rekeyed to the same address, or registering their participation keys
+with the same validity window, are likely run by the same operator. Merging
+them gives the _Nakamoto Coefficient of operators_: a heuristic, lower than or
+equal to the accounts one.
+
+### Example 5
+
+Four validators, one holding 70% of the stake and three holding 10% each:
+
+| Metric               | Value                                 |
+|----------------------|---------------------------------------|
+| Validators           | \\(N = 4\\)                           |
+| Entropy equivalent   | \\(N_{H} = e^{0.940} \approx 2.56\\)  |
+| HHI equivalent       | \\(N_{HHI} = 1 / 0.52 \approx 1.92\\) |
+| Nakamoto Coefficient | \\(NC_{20\\%} = 1\\)                   |
+
+Four validators, as decentralized as about two and a half equal ones by entropy,
+or two by HHI, which is most sensitive to the dominant one, and a single one
+able to threaten the consensus.
+
 ## Account Participation Index
 
 The _Account Participation Index_ (\\(A_P\\)) represents the fraction of _validator
@@ -159,6 +254,11 @@ accounts_ (\\(A_v\\)) over the _total accounts_ (\\( A_{tot}\\)):
 
 It can theoretically range from 0 (no account participating in PoS validation)
 to 1 (all existing accounts participating in PoS validation).
+
+> [!NOTE]
+> On Algorand, the accounts holding ALGO grow faster than the online ones: the
+> index fell from 1.6% to 1% between 2021 and 2026, while the online accounts
+> grew sixfold.
 
 > [!IMPORTANT]
 > In _account-based_ Blockchains (like Algorand), accounts are identified by _public
