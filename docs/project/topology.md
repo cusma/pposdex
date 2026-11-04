@@ -12,11 +12,11 @@ So, _how_ nodes are connected to each other, forming a network, is the second re
 factor of decentralization, commonly known as _Network Topology_.
 
 The message passing through the network can be achieved by routing the traffic
-with different techniques. In Algorand, at the time of writing (Sep 2023), information
-is spread across the network through “message gossiping” handled by the Relay Nodes.
-Relay Nodes route blocks to all connected nodes, finding highly efficient communication
-paths and reducing communication hops. Complementary fully P2P communications paths
-are under active research.
+with different techniques. In Algorand, information is spread across the network
+through “message gossiping”, handled by the Relay Nodes and by a peer-to-peer
+network running alongside them. Relay Nodes route blocks to all connected nodes,
+finding highly efficient communication paths and reducing communication hops,
+while the peer-to-peer network adds direct communication paths between nodes.
 
 Paths of communication are therefore essential to ensure that no one is excluded
 from the communication: everybody should be able to _talk_ and _listen_ to each
