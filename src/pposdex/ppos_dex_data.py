@@ -172,8 +172,13 @@ def validate(data: object) -> PPoSDexData:
     return cast(PPoSDexData, data)
 
 
+def total_accounts(data: PPoSDexData) -> float:
+    """Accounts holding more than the threshold"""
+    return data["accounts"]
+
+
 def online_accounts(data: PPoSDexData) -> float:
-    """Online accounts holding at least the threshold"""
+    """Online accounts holding more than the threshold"""
     return data["accounts"] * data["ppos_online_accounts"]
 
 

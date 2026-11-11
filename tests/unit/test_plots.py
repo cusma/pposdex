@@ -4,24 +4,28 @@ from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import pytest
 
 from pposdex import plots
 from pposdex.plots import Line, TimeseriesChart, TimeseriesPanel
-from pposdex.ppos_dex_data import PPoSDexData
+from pposdex.ppos_dex_data import SCHEMA, PPoSDexData
 from pposdex.theme import LIGHT, use
 
 TIMESERIES = [
+    "accounts_prt",
     "algo_dynamics",
     "algo_inequality",
     "ppos_dex",
+    "ppos_dex_v3",
     "ppos_inequality_b",
     "ppos_inequality_unb",
 ]
 SNAPSHOT = [
     "algo_dynamics",
     "ppos_dex",
+    "ppos_dex_v3",
     "ppos_inequality",
     "validators",
 ]
@@ -158,7 +162,7 @@ def test_log_panel(
 def test_snap_subtitle(make_data_point: Callable[..., PPoSDexData]) -> None:
     data = make_data_point(accounts=147633)
     assert plots.snap_subtitle(data) == (
-        "3 Nov 2026  ·  147,633 accounts holding at least 1,000 ALGO"
+        "3 Nov 2026  ·  147,633 accounts holding more than 1,000 ALGO"
     )
 
 
@@ -166,12 +170,24 @@ class TestPanelsWithData:
     def test_metrics_not_published_yet_are_left_out(
         self, data: list[PPoSDexData]
     ) -> None:
-        chart = next(c for c in plots.TIMESERIES if c.name == "ppos_dex")
+        chart = next(c for c in plots.TIMESERIES if c.name == "ppos_dex_v3")
+        data[0]["ppos_dex_v3_liveness"] = 7
         with use(LIGHT):
-            before = plots.timeseries_figure(chart, data[::-1], LIGHT)
-            data[0]["ppos_dex_v3_liveness"] = 7
-            after = plots.timeseries_figure(chart, data[::-1], LIGHT)
-        assert (len(before.axes), len(after.axes)) == (2, 3)
+            accounts = plots.timeseries_figure(chart, data[::-1], LIGHT)
+            data[0]["ppos_dex_v3_liveness_operators"] = 2
+            operators = plots.timeseries_figure(chart, data[::-1], LIGHT)
+        assert (len(accounts.axes), len(operators.axes)) == (1, 2)
+        plt.close("all")
+
+    def test_chart_starts_with_its_first_data(self, data: list[PPoSDexData]) -> None:
+        chart = next(c for c in plots.TIMESERIES if c.name == "ppos_dex_v3")
+        # Published since 2 Nov 2026, the oldest data point is from 2021
+        data[0]["ppos_dex_v3_liveness"] = 7
+        data[1]["ppos_dex_v3_liveness"] = 7
+        with use(LIGHT):
+            fig = plots.timeseries_figure(chart, data[::-1], LIGHT)
+        start = mdates.num2date(fig.axes[0].get_xlim()[0]).replace(tzinfo=None)
+        assert start > datetime(2026, 10, 1)
         plt.close("all")
 
     def test_chart_without_data_keeps_its_panels(self, data: list[PPoSDexData]) -> None:
@@ -184,17 +200,18 @@ class TestPanelsWithData:
         plt.close("all")
 
 
-def test_validators_snapshot_shows_v3_once_published(
+def test_v3_snapshot_shows_the_published_coefficients(
     make_data_point: Callable[..., PPoSDexData],
 ) -> None:
-    chart = next(c for c in plots.SNAPSHOTS if c.name == "validators")
+    chart = next(c for c in plots.SNAPSHOTS if c.name == "ppos_dex_v3")
+    # Published by 4.0.0, the liveness coefficient alone
+    legacy = make_data_point(ppos_dex_v3_liveness=7, ppos_dex_v3_liveness_operators=2)
+    coefficients = {key: 7 for key in SCHEMA if key.startswith("ppos_dex_v3")}
     with use(LIGHT):
-        before = plots.snapshot_figure(chart, make_data_point(), LIGHT)
-        after = plots.snapshot_figure(
-            chart,
-            make_data_point(ppos_dex_v3_liveness=7, ppos_dex_v3_liveness_operators=2),
-            LIGHT,
-        )
+        figures = [
+            plots.snapshot_figure(chart, data, LIGHT)
+            for data in (make_data_point(), legacy, make_data_point(**coefficients))
+        ]
     # Each bar is a track and its fill
-    assert (len(before.axes[0].patches), len(after.axes[0].patches)) == (6, 10)
+    assert [len(fig.axes[0].patches) for fig in figures] == [0, 4, 16]
     plt.close("all")

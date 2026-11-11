@@ -14,7 +14,13 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-from matplotlib.ticker import FuncFormatter, NullFormatter, PercentFormatter
+from matplotlib.ticker import (
+    FuncFormatter,
+    LogLocator,
+    MaxNLocator,
+    NullFormatter,
+    PercentFormatter,
+)
 
 from pposdex.ppos_dex_data import (
     Metric,
@@ -22,6 +28,7 @@ from pposdex.ppos_dex_data import (
     effective_validators,
     equal_stake_validators,
     online_accounts,
+    total_accounts,
 )
 from pposdex.theme import Theme, output, title
 
@@ -130,6 +137,27 @@ TIMESERIES = (
         ),
     ),
     TimeseriesChart(
+        name="accounts_prt",
+        title="Accounts Participation",
+        panels=(
+            TimeseriesPanel(
+                subtitle="100% = complete participation",
+                lines=(Line("ppos_online_accounts", "Accounts Participation"),),
+                fmt=percent,
+            ),
+            TimeseriesPanel(
+                "The accounts holding more than the threshold, all and online "
+                "(log scale)",
+                (
+                    Line(total_accounts, "All Accounts"),
+                    Line(online_accounts, "Online Accounts"),
+                ),
+                fmt=count,
+                log=True,
+            ),
+        ),
+    ),
+    TimeseriesChart(
         name="algo_inequality",
         title="ALGO Inequality",
         panels=(TimeseriesPanel(EQUALITY, (Line("algo_hhi", "HHI"),)),),
@@ -162,18 +190,48 @@ TIMESERIES = (
         name="ppos_dex",
         title="PPoS Dex",
         panels=(
-            TimeseriesPanel(DECENTRALIZATION, (Line("ppos_dex", "PPoS Dex V1"),)),
-            TimeseriesPanel(DECENTRALIZATION, (Line("ppos_dex_v2", "PPoS Dex V2"),)),
+            TimeseriesPanel(DECENTRALIZATION, (Line("ppos_dex", "PPoS Dex v1"),)),
+            TimeseriesPanel(DECENTRALIZATION, (Line("ppos_dex_v2", "PPoS Dex v2"),)),
+        ),
+    ),
+    TimeseriesChart(
+        name="ppos_dex_v3",
+        title="PPoS Dex v3",
+        panels=(
             TimeseriesPanel(
-                "Fewest online accounts holding more than 20% of the online stake",
+                "v3: fewest online accounts holding more than 10%, 20%, 1/3 and 90% "
+                "of the online stake (log scale)",
                 (
-                    Line("ppos_dex_v3_liveness", "PPoS Dex V3"),
-                    Line("ppos_dex_v3_liveness_operators", "V3 Operators"),
+                    Line("ppos_dex_v3_veto", "Veto"),
+                    Line("ppos_dex_v3_liveness", "Liveness"),
+                    Line("ppos_dex_v3_nakamoto", "Nakamoto"),
+                    Line("ppos_dex_v3_upgrade", "Upgrade"),
                 ),
                 fmt=count,
+                log=True,
+            ),
+            TimeseriesPanel(
+                "v3 by operator: the same, merging the accounts likely run by the "
+                "same operator (log scale)",
+                (
+                    Line("ppos_dex_v3_veto_operators", "Veto"),
+                    Line("ppos_dex_v3_liveness_operators", "Liveness"),
+                    Line("ppos_dex_v3_nakamoto_operators", "Nakamoto"),
+                    Line("ppos_dex_v3_upgrade_operators", "Upgrade"),
+                ),
+                fmt=count,
+                log=True,
             ),
         ),
     ),
+)
+
+# PPoS Dex v3 coefficients: by account, by likely operator, and their label
+V3_COEFFICIENTS: tuple[tuple[Metric, Metric, str], ...] = (
+    ("ppos_dex_v3_veto", "ppos_dex_v3_veto_operators", "Veto, 10%"),
+    ("ppos_dex_v3_liveness", "ppos_dex_v3_liveness_operators", "Liveness, 20%"),
+    ("ppos_dex_v3_nakamoto", "ppos_dex_v3_nakamoto_operators", "Nakamoto, 1/3"),
+    ("ppos_dex_v3_upgrade", "ppos_dex_v3_upgrade_operators", "Upgrade, 90%"),
 )
 
 SNAPSHOTS = (
@@ -186,7 +244,8 @@ SNAPSHOTS = (
     SnapshotChart(
         name="ppos_inequality",
         title="Validators Stake Inequality",
-        subtitle=EQUALITY,
+        # Unlike the other scorecards, longer bars are less decentralized
+        subtitle=f"{EQUALITY}: the shorter the bar, the more equal the online stake",
         bars=(
             Bar("Gini Index", "ppos_gini", _x_max_unit),
             Bar("HHI", "ppos_hhi", _x_max_unit),
@@ -217,21 +276,24 @@ SNAPSHOTS = (
     SnapshotChart(
         name="validators",
         title="Validators",
-        subtitle=(
-            "Online accounts, the equal-stake validators they are worth, and the "
-            "fewest holding more than 20% of the online stake"
-        ),
+        subtitle="Online accounts, and the equal-stake validators they are worth",
         bars=(
             Bar("Online Accounts", online_accounts, online_accounts, count),
             Bar("Entropy Equivalent", effective_validators, online_accounts, count),
             Bar("HHI Equivalent", equal_stake_validators, online_accounts, count),
-            Bar("PPoS Dex V3", "ppos_dex_v3_liveness", online_accounts, count),
-            Bar(
-                "PPoS Dex V3 Operators",
-                "ppos_dex_v3_liveness_operators",
-                online_accounts,
-                count,
-            ),
+        ),
+    ),
+    SnapshotChart(
+        name="ppos_dex_v3",
+        title="PPoS Dex v3",
+        subtitle=(
+            "Fewest online accounts holding more than each share of the online "
+            "stake, by account and by likely operator"
+        ),
+        bars=tuple(
+            Bar(f"{label}{by}", key, online_accounts, count)
+            for accounts, operators, label in V3_COEFFICIENTS
+            for key, by in ((accounts, ""), (operators, ", operators"))
         ),
     ),
 )
@@ -330,6 +392,11 @@ def _value_axis(ax: Axes, panel: TimeseriesPanel, values: list[float]) -> None:
         finite = [v for v in values if v > 0]
         if finite:
             ax.set_ylim(min(finite) / 1.5, max(finite) * 1.5)
+        # Less than a decade has no 1-2-5 ticks: whole numbers then
+        wide = finite and max(finite) / min(finite) >= 10
+        ax.yaxis.set_major_locator(
+            LogLocator(subs=(1, 2, 5)) if wide else MaxNLocator(4, integer=True)
+        )
     else:
         ax.set_ylim(0, panel.y_max)
         if panel.y_max is None:
@@ -360,6 +427,17 @@ def timeseries_figure(
         for panel in chart.panels
         if any(has_data(ppos_dex_data, line.value) for line in panel.lines)
     ] or list(chart.panels)
+    # Charts of metrics published later start with them
+    lines = [line for panel in panels for line in panel.lines]
+    first = next(
+        (
+            i
+            for i, data in enumerate(ppos_dex_data)
+            if any(not math.isnan(line.value(data)) for line in lines)
+        ),
+        0,
+    )
+    ppos_dex_data = ppos_dex_data[first:]
     fig, axes = plt.subplots(
         len(panels),
         1,
@@ -404,7 +482,7 @@ def snap_subtitle(data: PPoSDexData) -> str:
     date = f"{timestamp(data):%-d %b %Y}"
     return (
         f"{date}  ·  {data['accounts']:,} accounts holding "
-        f"at least {data['algo_threshold']:,} ALGO"
+        f"more than {data['algo_threshold']:,} ALGO"
     )
 
 
