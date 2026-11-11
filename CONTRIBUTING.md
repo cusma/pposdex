@@ -61,10 +61,11 @@ uv run pposdex timeseries --save
 uv run pposdex snapshot --save
 uv run python -m pposdex.insights
 uv run python -m pposdex.examples
+uv run python -m pposdex.diagrams
 ```
 
-Each chart is saved as SVG in a light and a dark variant: the docs show the
-one matching the selected theme.
+Each chart and diagram is saved as SVG in a light and a dark variant: the docs
+show the one matching the selected theme.
 
 ## Release
 
