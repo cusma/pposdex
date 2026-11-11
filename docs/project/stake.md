@@ -220,10 +220,19 @@ threaten the consensus. Given the validators' stakes sorted from the largest,
 \\[ NC_q(S) = \min \left\\{ k : \sum_{i=1}^{k} y_i > q \sum_{i=1}^{N} y_i
 \right\\} \\]
 
-Unlike the inequality indexes, it measures the stake against the security
-threshold of the consensus. Algorand, conservatively, neither stalls nor gets
-overcome while more than 80% of the online stake is honest, so the threshold to
-watch is \\(q = 20\\%\\): this is the [PPoS Dex v3](ppos-dex.md#ppos-dex-v3).
+Unlike the inequality indexes, it measures the stake against the thresholds of
+the consensus. On Algorand, four thresholds matter:
+
+| Coefficient | Threshold        | Meaning                                                                            |
+|-------------|------------------|------------------------------------------------------------------------------------|
+| Veto        | \\(NC_{10\\%}\\) | A coalition above it can block protocol upgrades                                   |
+| Liveness    | \\(NC_{20\\%}\\) | A coalition above it can stall the consensus by not voting, conservatively         |
+| Nakamoto    | \\(NC_{33\\%}\\) | A coalition above it breaks the honest majority assumption of the consensus        |
+| Upgrade     | \\(NC_{90\\%}\\) | How many accounts it takes to reach the broad supermajority protocol upgrades need |
+
+Together they are the [PPoS Dex v3](ppos-dex.md#ppos-dex-v3). The higher the
+threshold, the more accounts it takes:
+\\(NC_{10\\%} \le NC_{20\\%} \le NC_{33\\%} \le NC_{90\\%}\\).
 
 Accounts rekeyed to the same address, or registering their participation keys
 with the same validity window, are likely run by the same operator. Merging
@@ -234,16 +243,17 @@ equal to the accounts one.
 
 Four validators, one holding 70% of the stake and three holding 10% each:
 
-| Metric               | Value                                 |
-|----------------------|---------------------------------------|
-| Validators           | \\(N = 4\\)                           |
-| Entropy equivalent   | \\(N_{H} = e^{0.940} \approx 2.56\\)  |
-| HHI equivalent       | \\(N_{HHI} = 1 / 0.52 \approx 1.92\\) |
-| Nakamoto Coefficient | \\(NC_{20\\%} = 1\\)                   |
+| Metric                | Value                                          |
+|-----------------------|------------------------------------------------|
+| Validators            | \\(N = 4\\)                                    |
+| Entropy equivalent    | \\(N_{H} = e^{0.940} \approx 2.56\\)           |
+| HHI equivalent        | \\(N_{HHI} = 1 / 0.52 \approx 1.92\\)          |
+| Nakamoto Coefficients | \\(NC_{10\\%} = NC_{20\\%} = NC_{33\\%} = 1\\) |
+|                       | \\(NC_{90\\%} = 4\\)                           |
 
 Four validators, as decentralized as about two and a half equal ones by entropy,
-or two by HHI, which is most sensitive to the dominant one, and a single one
-able to threaten the consensus.
+or two by HHI, which is most sensitive to the dominant one: a single one is able
+to threaten the consensus, while all four must agree to upgrade it.
 
 ## Account Participation Index
 

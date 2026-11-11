@@ -30,7 +30,8 @@ V3_SHARES = {
     "liveness": 0.2,
     # More than 1/3 of the online stake breaks the honest majority assumption
     "nakamoto": 1 / 3,
-    # More than 90% of the online stake can approve protocol upgrades alone
+    # Protocol upgrades need the broad agreement of more than 90% of the online
+    # stake: how many accounts that supermajority takes
     "upgrade": 0.9,
 }
 # Published by 4.0.0, before v3 had more than the liveness coefficient

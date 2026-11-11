@@ -52,34 +52,44 @@ ideal condition, _never reaching it_.
 ## PPoS DEX v3
 
 Instead of the distance from an ideal, v3 measures the stake against the
-security threshold of the consensus. Algorand, conservatively, neither stalls
-nor gets overcome while more than 80% of the online stake is honest: v3 is the
-[Nakamoto Coefficient](stake.md#nakamoto-coefficient) at 20%, the fewest online
-accounts holding together more than 20% of the online stake.
+thresholds of the consensus: it is a set of four
+[Nakamoto Coefficients](stake.md#nakamoto-coefficient), the fewest online
+accounts holding together more than a share of the online stake.
 
-\\[ PPoS DEX = NC_{20\\%}(S) \\]
+\\[ PPoS DEX = \left( NC_{10\\%}, NC_{20\\%}, NC_{33\\%}, NC_{90\\%} \right) \\]
 
-The higher, the more decentralized. Being a count, v3 is not a per-unit index,
-and it does not include the Nodes Hardware and Network Topology factors.
+- _Veto_, \\(NC_{10\\%}\\): a coalition above it can block protocol upgrades;
+- _Liveness_, \\(NC_{20\\%}\\): a coalition above it can stall the consensus;
+- _Nakamoto_, \\(NC_{33\\%}\\): a coalition above it breaks the honest majority
+  assumption;
+- _Upgrade_, \\(NC_{90\\%}\\): how many accounts it takes to reach the broad
+  supermajority that protocol upgrades need.
 
-The Nakamoto Coefficient of operators, merging the accounts likely run by the
-same operator, is published alongside it.
+The higher each coefficient, the more decentralized. Being counts, they are not
+per-unit indexes, and they do not include the Nodes Hardware and Network
+Topology factors.
+
+The same coefficients of operators, merging the accounts likely run by the same
+operator, are published alongside them.
 
 ## Metrics summary
 
-| METRIC                  | SYMBOL              | DESCRIPTION                                                                                           |
-|-------------------------|---------------------|-------------------------------------------------------------------------------------------------------|
-| ALGO Dynamics           | \\(S_{dyn}\\)       | 0 = no ALGO circulation, 1 = complete ALGO circulation                                                |
-| ALGO Participation      | \\(S_{prt}\\)       | 0 = no PPoS participation, 1 = complete PPoS participation                                            |
-| Accounts Participation  | \\(A_{prt}\\)       | 0 = no PPoS accounts participation, 1 = complete PPoS accounts participation                          |
-| ALGO HHI                | \\(1 - HHI(A)\\)    | Considers all ALGO stakes, whether they participate in the PPoS or not                                |
-| PPoS Gini               | \\(1 - GI(S)\\)     | PPoS staking inequality, regardless the number of participating accounts                              |
-| PPoS Theil’L            | \\(TL(S)\\)         | PPoS staking inequality, sensitive to differences at the lower end of the distribution (small stakes) |
-| PPoS Theil’T            | \\(TT(S)\\)         | PPoS staking inequality, sensitive to differences at the high end of the distribution (large stakes)  |
-| PPoS HHI                | \\(1 - HHI(S)\\)    | PPoS staking inequality, takes the number of participating accounts in consideration                  |
-| Effective Validators    | \\(N_H, N_{HHI}\\)  | Equal-stake validators the PPoS stake is worth, by entropy and by HHI                                 |
-| PPoS Nakamoto           | \\(NC_{20\\%}(S)\\) | Fewest online accounts holding more than 20% of the online stake (PPoS Dex v3)                        |
-| PPoS Nakamoto Operators | \\(NC_{20\\%}(O)\\) | Fewest likely operators holding more than 20% of the online stake                                     |
+| METRIC                 | SYMBOL              | DESCRIPTION                                                                                           |
+|------------------------|---------------------|-------------------------------------------------------------------------------------------------------|
+| ALGO Dynamics          | \\(S_{dyn}\\)       | 0 = no ALGO circulation, 1 = complete ALGO circulation                                                |
+| ALGO Participation     | \\(S_{prt}\\)       | 0 = no PPoS participation, 1 = complete PPoS participation                                            |
+| Accounts Participation | \\(A_{prt}\\)       | 0 = no PPoS accounts participation, 1 = complete PPoS accounts participation                          |
+| ALGO HHI               | \\(1 - HHI(A)\\)    | Considers all ALGO stakes, whether they participate in the PPoS or not                                |
+| PPoS Gini              | \\(1 - GI(S)\\)     | PPoS staking inequality, regardless the number of participating accounts                              |
+| PPoS Theil’L           | \\(TL(S)\\)         | PPoS staking inequality, sensitive to differences at the lower end of the distribution (small stakes) |
+| PPoS Theil’T           | \\(TT(S)\\)         | PPoS staking inequality, sensitive to differences at the high end of the distribution (large stakes)  |
+| PPoS HHI               | \\(1 - HHI(S)\\)    | PPoS staking inequality, takes the number of participating accounts in consideration                  |
+| Effective Validators   | \\(N_H, N_{HHI}\\)  | Equal-stake validators the PPoS stake is worth, by entropy and by HHI                                 |
+| PPoS Veto              | \\(NC_{10\\%}(S)\\) | Fewest online accounts holding more than 10% of the online stake: able to block upgrades              |
+| PPoS Liveness          | \\(NC_{20\\%}(S)\\) | Fewest online accounts holding more than 20% of the online stake: able to stall the consensus         |
+| PPoS Nakamoto          | \\(NC_{33\\%}(S)\\) | Fewest online accounts holding more than 1/3 of the online stake: able to break its honest majority   |
+| PPoS Upgrade           | \\(NC_{90\\%}(S)\\) | Fewest online accounts holding more than 90% of the online stake: the supermajority upgrades need     |
+| PPoS Dex v3 Operators  | \\(NC_{q}(O)\\)     | The four coefficients, merging the online accounts likely run by the same operator                    |
 
 > [!NOTE]
 > **Minimum balance filter**
