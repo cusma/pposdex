@@ -1,6 +1,7 @@
-# Plot PPoS Dex snapshot
+# Snapshot
 
-Take a snapshot of latest published PPoS Dex data.
+Plot the latest published PPoS Dex data point, as in the
+[Snapshot](../data/snapshot.md).
 
 ```text
 $ uv run pposdex snapshot --help

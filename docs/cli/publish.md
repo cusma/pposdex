@@ -1,9 +1,9 @@
-# Publish PPoS Dex data points
+# Publish
 
-Contribute publishing trustless PPoS Dex data points on Algorand blockchain paying
-just the minimum transaction fee (currently 0.001 ALGO).
+Anyone can publish trustless PPoS Dex data points on the Algorand blockchain,
+paying just the minimum transaction fee (currently 0.001 ALGO).
 
-Set your publisher _mnemonic_ as environment variable:
+Set the _mnemonic_ of your publisher account as an environment variable:
 
 ```bash
 export ALGO_MNEMONIC=...
@@ -45,6 +45,5 @@ The published data point is printed once confirmed, for example:
 ```
 
 > [!WARNING]
-> Lower values of `--algo-threshold` require more querying efforts. You should
-> avoid lowering the default threshold, especially if you are using third party
-> API services.
+> Lower values of `--algo-threshold` require many more queries. Avoid lowering
+> the default threshold, especially when using third-party API services.

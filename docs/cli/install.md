@@ -1,19 +1,12 @@
-# PPoS Dex CLI
+# Install
 
-PPoS Dex CLI provides the following utilities:
+The PPoS Dex CLI publishes PPoS Dex data points on-chain, plots their trend
+(timeseries) and latest state (snapshot), and exports them to `.csv` for your
+own analysis.
 
-1. Publishing PPoS Dex data point;
-1. Monitoring PPoS Dex trend (timeseries);
-1. Monitoring PPoS Dex latest state (snapshot);
-1. Exporting PPoS Dex data to `.csv` for external analysis.
-
-## Install
-
-PPoS Dex uses [uv](https://docs.astral.sh/uv/getting-started/installation/)
-for Python and dependencies management.
-
-Clone [PPoS Dex](https://github.com/cusma/pposdex) repository, `cd` into it,
-and:
+PPoS Dex uses [uv](https://docs.astral.sh/uv/getting-started/installation/) to
+manage Python and its dependencies. Clone the
+[PPoS Dex](https://github.com/cusma/pposdex) repository, `cd` into it, and run:
 
 ```bash
 uv sync
@@ -21,10 +14,10 @@ uv sync
 
 You are all set!
 
-## Node setup
+## Node Setup
 
-PPoS Dex interacts both with Algorand Node and an Indexer. Every command
-accepts a network option:
+PPoS Dex reads the blockchain from an Algorand node and an Indexer. Every
+command accepts a network option:
 
 | Option | Network | Node and Indexer |
 | --- | --- | --- |
@@ -32,7 +25,8 @@ accepts a network option:
 | `-t`, `--test` | TestNet | [Nodely APIs](https://nodely.io/docs/free/start) |
 | `-l`, `--localhost` | LocalNet | [AlgoKit](https://github.com/algorandfoundation/algokit-cli) LocalNet on `localhost` |
 
-To use AlgoKit LocalNet, start it before running PPoS Dex:
+To use AlgoKit LocalNet, start it before running PPoS Dex, and check it is up
+with the [`health`](health.md) command:
 
 ```bash
 uvx algokit localnet start

@@ -1,24 +1,23 @@
 # Usage
 
-Interacting with PPoS Dex CLI is pretty easy, just ask for help:
+Ask the PPoS Dex CLI for help:
 
 ```text
 $ uv run pposdex --help
 {{#include help/pposdex.txt}}
 ```
 
-Each command has its own `--help` too, see the next pages.
+| Command | Use it to |
+| --- | --- |
+| [`publish`](publish.md) | Publish a PPoS Dex data point on-chain |
+| [`timeseries`](timeseries.md) | Plot the published data points over time |
+| [`snapshot`](snapshot.md) | Plot the latest published data point |
+| [`export`](export.md) | Export the published data points to `.csv` |
+| [`health`](health.md) | Check the Algorand node and Indexer are available |
 
-All commands use Algorand MainNet by default, select another network with
-`--test` or `--localhost` (see [Node setup](install.md#node-setup)). Use
-`--verbose` to show more details (e.g. Indexer requests retries and published
+Each command has its own `--help` too, shown in its page.
+
+All commands use Algorand MainNet by default: select another network with
+`--test` or `--localhost` (see [Node Setup](install.md#node-setup)). Use
+`--verbose` to show more details (e.g. Indexer request retries and published
 transactions), or `--quiet` to show errors only.
-
-## Health
-
-Use the `health` command to check Algorand Nodes and Indexer availability:
-
-```text
-$ uv run pposdex health --help
-{{#include help/health.txt}}
-```
