@@ -45,9 +45,9 @@ ideal condition, _never reaching it_.
 \\[ PPoS DEX = d_N \cdot d_T \cdot S_{dyn} \cdot S_{prt} \cdot (1 - HHI(S)) \\]
 
 > [!NOTE]
-> On Algorand data, each version mostly follows a single factor: since 2023, 90%
-> of the variation of v1 comes from the accounts participation, and 96% of the
-> variation of v2 from the ALGO participation.
+> On Algorand data, each version mostly follows a single factor: from 2023 to
+> 2026, 90% of the variation of v1 comes from the accounts participation, and
+> 96% of the variation of v2 from the ALGO participation.
 
 ## PPoS DEX v3
 

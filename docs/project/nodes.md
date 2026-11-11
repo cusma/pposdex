@@ -58,7 +58,7 @@ reasonable to set:
 
 The chart shows the curve for \\(\lambda = 10^4\\), next to
 \\(\lambda = 10^3\\) and \\(\lambda = 10^5\\), and the range of nodes
-Algorand has today (see [below](#full-time-nodes-on-algorand)). With
+Algorand had in 2024–2026 (see [below](#full-time-nodes-on-algorand)). With
 \\(\lambda = 10^4\\), the Nodes Hardware Decentralization stays low up to a
 few thousand nodes, and saturates past twenty thousand:
 
@@ -151,14 +151,14 @@ accounts, and an operator can run many nodes. The
 online accounts likely run by the same operator, from the stake side.
 
 The two examples [above](#a-necessary-condition) call for two different
-counts, neither of which can be observed today: the nodes hosting online stake,
-for the validators, and the nodes accepting transactions, for the access to the
-network. A refined \\(d_N\\) should count them separately.
+counts, neither of which could be observed as of 2026: the nodes hosting online
+stake, for the validators, and the nodes accepting transactions, for the access
+to the network. A refined \\(d_N\\) should count them separately.
 
 ### Full-Time Nodes on Algorand
 
-The estimate ranged from about 1,200 to 3,700 full-time nodes since 2024: see
-the [Nodely dashboard](https://g.nodely.io/d/network/network). With
+The estimate ranged from about 1,200 to 3,700 full-time nodes between 2024 and
+2026: see the [Nodely dashboard](https://g.nodely.io/d/network/network). With
 \\(\lambda = 10^4\\), that is a Nodes Hardware Decentralization \\(d_N\\)
 between 0.01 and 0.13: how to calibrate the inflection point remains an open
 question.
