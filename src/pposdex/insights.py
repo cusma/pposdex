@@ -21,6 +21,7 @@ from matplotlib.axis import Axis
 from matplotlib.collections import LineCollection
 from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
 from matplotlib.figure import Figure
+from matplotlib.patches import Rectangle
 from matplotlib.ticker import (
     FuncFormatter,
     LogLocator,
@@ -33,6 +34,7 @@ from pposdex import cli, networks
 from pposdex import ppos_dex_data as pposdex
 from pposdex.plots import (
     NO_DATA,
+    RECOMPUTED_NOTE,
     Format,
     Line,
     TimeseriesChart,
@@ -44,16 +46,18 @@ from pposdex.plots import (
     has_data,
     no_data_periods,
     percent,
+    plot_series,
     plot_timeseries,
-    series,
     timestamp,
 )
 from pposdex.ppos_dex_data import (
+    V3_METRICS,
     Metric,
     PPoSDexData,
     effective_validators,
     equal_stake_validators,
     evenness,
+    is_recomputed,
     online_accounts,
     top_evenness,
     total_accounts,
@@ -274,6 +278,25 @@ def monthly_changes(
     return months, rows
 
 
+def recomputed_cells(
+    ppos_dex_data: list[PPoSDexData],
+    indicators: tuple[Indicator, ...],
+    months: list[datetime],
+) -> list[tuple[int, int]]:
+    """The (row, month) heatmap cells changing from or to a month average with
+    recomputed values"""
+    recomputed_months = [
+        {month(timestamp(d)) for d in ppos_dex_data if is_recomputed(d, i.key)}
+        for i in indicators
+    ]
+    return [
+        (row, n)
+        for row, marked in enumerate(recomputed_months)
+        for n in range(1, len(months))
+        if months[n] in marked or months[n - 1] in marked
+    ]
+
+
 def _colormap(colors: tuple[str, ...], name: str) -> LinearSegmentedColormap:
     return LinearSegmentedColormap.from_list(name, list(colors))
 
@@ -432,6 +455,29 @@ def heatmap_figure(ppos_dex_data: list[PPoSDexData], theme: Theme) -> Figure:
         norm=TwoSlopeNorm(0, -MAX_CHANGE, MAX_CHANGE),
         edgecolors="none",
     )
+    hatched = [
+        (row, n)
+        for row, n in recomputed_cells(ppos_dex_data, indicators, months)
+        if not math.isnan(rows[row][n])
+    ]
+    edges = mdates.date2num([*months, next_month(months[-1])])
+    for row, n in hatched:
+        ax.add_patch(
+            Rectangle(
+                (edges[n], row),
+                edges[n + 1] - edges[n],
+                1,
+                fill=False,
+                hatch="//////",
+                edgecolor=theme.muted,
+                linewidth=0,
+            )
+        )
+    if hatched:
+        ax.set_title(
+            f"{ax.get_title('left')}\nHatched: from values recomputed from the ledger",
+            linespacing=1.6,
+        )
     for start, end in no_data_periods([timestamp(d) for d in ppos_dex_data]):
         ax.axvspan(
             mdates.date2num(start),
@@ -479,15 +525,16 @@ def since_first(
 
 def _tile(
     ax: Axes, ppos_dex_data: list[PPoSDexData], indicator: Indicator, theme: Theme
-) -> None:
-    dates, values = series(ppos_dex_data, Line(indicator.key, ""))
-    ax.plot(mdates.date2num(dates), values, color=theme.series[0], linewidth=1.2)
+) -> bool:
+    """Draw the tile: whether its yearly change compares with a recomputed value"""
+    line = Line(indicator.key, "")
+    plot_series(ax, ppos_dex_data, line, color=theme.series[0], linewidth=1.2)
     if indicator.operators:
         # Operators as a lighter line under the accounts
-        _, operators = series(ppos_dex_data, Line(indicator.operators, ""))
-        ax.plot(
-            mdates.date2num(dates),
-            operators,
+        plot_series(
+            ax,
+            ppos_dex_data,
+            Line(indicator.operators, ""),
             color=theme.series[0],
             alpha=0.45,
             linewidth=1,
@@ -529,6 +576,10 @@ def _tile(
                 color=theme.ink_secondary,
             )
     delta = year_change(ppos_dex_data, indicator.value, indicator.higher_is_better)
+    past = year_ago(ppos_dex_data)
+    against_recomputed = (
+        delta is not None and past is not None and is_recomputed(past, indicator.key)
+    )
     if delta is None:
         text, color = "no data a year ago", theme.muted
     elif abs(delta) < NO_CHANGE:
@@ -538,6 +589,8 @@ def _tile(
         better = "more" if delta >= 0 else "less"
         text = f"{arrow} {percent(abs(delta))} {better} decentralized"
         color = theme.good if delta >= 0 else theme.bad
+    if against_recomputed:
+        text += " *"
     ax.annotate(
         text,
         (1, 1),
@@ -550,6 +603,7 @@ def _tile(
     )
     date_axis(ax)
     ax.tick_params(axis="x", labelsize=7)
+    return against_recomputed
 
 
 def glance_figure(ppos_dex_data: list[PPoSDexData], theme: Theme) -> Figure:
@@ -573,15 +627,24 @@ def glance_figure(ppos_dex_data: list[PPoSDexData], theme: Theme) -> Figure:
         grid[1 + i // 2, 3 * (i % 2) : 3 * (i % 2) + 3] for i in range(len(indicators))
     ]
     first: Axes | None = None
+    starred = False
     for cell, indicator in zip(cells, (*absolute, *indicators), strict=True):
         data = since_first(ppos_dex_data, indicator)
         # Metrics published in the last year get their own time axis
         if timestamp(data[0]) > timestamp(ppos_dex_data[-1]) - YEAR:
-            _tile(fig.add_subplot(cell), data, indicator, theme)
+            starred |= _tile(fig.add_subplot(cell), data, indicator, theme)
             continue
         ax = fig.add_subplot(cell, sharex=first)
         first = first or ax
-        _tile(ax, ppos_dex_data, indicator, theme)
+        starred |= _tile(ax, ppos_dex_data, indicator, theme)
+    if any(is_recomputed(d, k) for d in ppos_dex_data for k in V3_METRICS):
+        note = f"{RECOMPUTED_NOTE.capitalize()}"
+        if starred:
+            note += "; * compared with a value recomputed a year ago"
+        fig.text(0.99, 0.01, note, ha="right", color=theme.muted, fontsize=8)
+        # Room for the note under the tiles
+        bottom = 0.3 / fig.get_figheight()
+        fig.get_layout_engine().set(rect=(0, bottom, 1, top - bottom))  # type: ignore[union-attr,call-arg]
     return fig
 
 
@@ -611,7 +674,7 @@ def main() -> None:  # pragma: no cover
         end_block=None,
         algo_threshold=cli.DEFAULT_ALGO_THRESHOLD,
     )
-    render(ppos_dex_data, save=True)
+    render(pposdex.with_recomputed(ppos_dex_data), save=True)
 
 
 if __name__ == "__main__":

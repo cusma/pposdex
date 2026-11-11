@@ -247,3 +247,24 @@ class TestStakes:
         assert sorted(p.name for p in (images / "snapshot").iterdir()) == svgs(
             ["stakes"]
         )
+
+
+def test_recomputed_values_are_dashed(
+    make_data_point: Callable[..., PPoSDexData],
+) -> None:
+    published = make_data_point(
+        timestamp="2026-11-02 00:00:00.000000", ppos_dex_v3_liveness=7
+    )
+    recomputed = make_data_point(
+        timestamp="2026-11-01 00:00:00.000000", ppos_dex_v3_liveness=6
+    )
+    recomputed["recomputed"] = ["ppos_dex_v3_liveness"]
+    chart = next(c for c in plots.TIMESERIES if c.name == "ppos_dex_v3")
+    with use(LIGHT):
+        fig = plots.timeseries_figure(chart, [recomputed, published], LIGHT)
+    ax = fig.axes[0]
+    styles = {line.get_linestyle() for line in ax.lines}
+    title = ax.get_title("left")
+    plt.close(fig)
+    assert {"-", "--"} <= styles
+    assert plots.RECOMPUTED_NOTE.capitalize() in title

@@ -1,8 +1,10 @@
 import base64
+import csv
 import logging
 import math
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import Literal, NotRequired, TypedDict, cast
 
 import msgpack
@@ -66,6 +68,8 @@ class PPoSDexData(TypedDict):
     ppos_dex_v3_upgrade_operators: NotRequired[int]
     round: NotRequired[int]
     timestamp: str
+    # Never published: the metrics of the point recomputed from the ledger
+    recomputed: NotRequired[list[str]]
 
 
 # PPoS Dex data point keys holding a metric
@@ -89,6 +93,22 @@ Metric = Literal[
     "ppos_dex_v3_upgrade",
     "ppos_dex_v3_upgrade_operators",
 ]
+
+
+V3_METRICS: tuple[Metric, ...] = (
+    "ppos_dex_v3_veto",
+    "ppos_dex_v3_veto_operators",
+    "ppos_dex_v3_liveness",
+    "ppos_dex_v3_liveness_operators",
+    "ppos_dex_v3_nakamoto",
+    "ppos_dex_v3_nakamoto_operators",
+    "ppos_dex_v3_upgrade",
+    "ppos_dex_v3_upgrade_operators",
+)
+
+# The v3 of the points published before it, recomputed from the ledger state
+# at their round by `scripts/backfill_v3.py`
+RECOMPUTED_PATH = Path("./data/ppos_dex_v3_backfill.csv")
 
 
 class InvalidDataError(ValueError):
@@ -175,6 +195,36 @@ def validate(data: object) -> PPoSDexData:
 def total_accounts(data: PPoSDexData) -> float:
     """Accounts holding more than the threshold"""
     return data["accounts"]
+
+
+def with_recomputed(
+    ppos_dex_data: list[PPoSDexData], path: Path = RECOMPUTED_PATH
+) -> list[PPoSDexData]:
+    """The data points, with the v3 metrics they lack recomputed from the ledger
+
+    Published values are kept: only the missing ones are filled, and listed in
+    the `recomputed` field of the point.
+    """
+    if not path.exists():
+        return ppos_dex_data
+    with path.open(encoding="utf8") as f:
+        rows = {row["timestamp"]: row for row in csv.DictReader(f)}
+    filled = []
+    for data in ppos_dex_data:
+        row = rows.get(data["timestamp"])
+        missing = [m for m in V3_METRICS if m not in data and row and row.get(m)]
+        if row is None or not missing:
+            filled.append(data)
+            continue
+        point = cast(PPoSDexData, {**data, **{m: int(row[m]) for m in missing}})
+        point["recomputed"] = [str(m) for m in missing]
+        filled.append(point)
+    return filled
+
+
+def is_recomputed(data: PPoSDexData, key: object) -> bool:
+    """Whether the metric of the point was recomputed, not published"""
+    return key in data.get("recomputed", ())
 
 
 def online_accounts(data: PPoSDexData) -> float:

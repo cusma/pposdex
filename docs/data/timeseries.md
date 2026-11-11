@@ -69,10 +69,11 @@ outweigh the rest.
 
 ### PPoS Dex v3
 
-The [PPoS Dex v3](../project/ppos-dex.md#ppos-dex-v3) since its first
-publication: the fewest online accounts holding more than 10% (veto), 20%
+The [PPoS Dex v3](../project/ppos-dex.md#ppos-dex-v3): the fewest online accounts holding more than 10% (veto), 20%
 (liveness), 1/3 (Nakamoto) and 90% (upgrade) of the online stake, by account and
-counting the accounts likely run by the same operator as one.
+counting the accounts likely run by the same operator as one. The values before
+its publication are [recomputed from the
+ledger](../project/ppos-dex.md#recomputed-history), and dashed.
 
 ![Timeseries PPoS Dex v3](../images/timeseries/ppos_dex_v3.svg)
 

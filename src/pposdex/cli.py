@@ -208,7 +208,7 @@ def show_data(
     if args.command == "timeseries":
         if args.save:
             print("💾 Saving timeseries in './docs/images/timeseries'...\n")
-        plots.timeseries(ppos_dex_data, args.save)
+        plots.timeseries(pposdex.with_recomputed(ppos_dex_data), args.save)
     elif args.command == "snapshot":
         if args.save:
             print("💾 Saving snapshots in './docs/images/snapshot'...\n")

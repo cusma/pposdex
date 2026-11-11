@@ -72,6 +72,29 @@ Topology factors.
 The same coefficients of operators, merging the accounts likely run by the same
 operator, are published alongside them.
 
+### Recomputed History
+
+The v3 coefficients are published since the CLI 4.0.0 (liveness) and 4.1.0 (all
+four). For the data points published before, they are recomputed from the
+ledger: the state of every online account at the round of each point, as
+[Nodely Time Travel](https://nodely.io/docs/access/time-travel/) answers it.
+
+Only a key registration takes an account online, so the accounts that ever
+registered their keys, and those online from genesis, are the candidates.
+Each recomputed point is checked against the ledger and the published data:
+
+- the online stake of the recomputed accounts equals the ledger online stake at
+  the round;
+- the online accounts, and their Gini Index, match the published ones, but for
+  the accounts changing in the few rounds between the reading of the publisher
+  and its note.
+
+Recomputed values are not published on-chain: the charts draw them dashed,
+the monthly change hatched. The
+[script](https://github.com/cusma/pposdex/blob/main/scripts/backfill_v3.py)
+and the [data](https://github.com/cusma/pposdex/blob/main/data/ppos_dex_v3_backfill.csv),
+with the checks of each point, are in the repository.
+
 ## Metrics summary
 
 | METRIC                 | SYMBOL              | DESCRIPTION                                                                                           |

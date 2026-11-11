@@ -1,6 +1,8 @@
 import base64
+import csv
 import logging
 from collections.abc import Callable
+from pathlib import Path
 
 import msgpack
 import pytest
@@ -142,3 +144,40 @@ class TestGet:
         indexer.notes[PUBLISHER] = [msgpack.packb(make_data_point(algo_threshold=1))]
         with pytest.raises(PPoSDexError, match="No valid PPoS Dex data"):
             pposdex.get_ppos_dex_data(indexer, PUBLISHER, 1000, 1)
+
+
+class TestWithRecomputed:
+    @staticmethod
+    def write(path: Path, rows: list[dict[str, object]]) -> Path:
+        with path.open("w", encoding="utf8", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=["timestamp", *pposdex.V3_METRICS])
+            writer.writeheader()
+            writer.writerows(rows)
+        return path
+
+    def test_fills_only_the_missing_metrics(
+        self, tmp_path: Path, make_data_point: Callable[..., PPoSDexData]
+    ) -> None:
+        old = make_data_point(timestamp="2021-01-01 00:00:00.0")
+        v4 = make_data_point(timestamp="2026-11-01 00:00:00.0", ppos_dex_v3_liveness=7)
+        new = make_data_point(timestamp="2026-11-02 00:00:00.0")
+        values: dict[str, object] = dict.fromkeys(pposdex.V3_METRICS, 5)
+        path = self.write(
+            tmp_path / "recomputed.csv",
+            [{"timestamp": d["timestamp"], **values} for d in (old, v4)],
+        )
+        filled = pposdex.with_recomputed([new, v4, old], path)
+        assert filled[0] is new
+        assert filled[1]["ppos_dex_v3_liveness"] == 7
+        assert filled[1].get("ppos_dex_v3_veto") == 5
+        assert not pposdex.is_recomputed(filled[1], "ppos_dex_v3_liveness")
+        assert pposdex.is_recomputed(filled[1], "ppos_dex_v3_veto")
+        assert set(filled[2].get("recomputed", [])) == set(pposdex.V3_METRICS)
+        # The published points are left as they are
+        assert "recomputed" not in v4
+
+    def test_without_the_file(
+        self, tmp_path: Path, make_data_point: Callable[..., PPoSDexData]
+    ) -> None:
+        data = [make_data_point()]
+        assert pposdex.with_recomputed(data, tmp_path / "missing.csv") is data

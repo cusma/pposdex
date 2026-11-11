@@ -29,6 +29,7 @@ from pposdex.ppos_dex_data import (
     PPoSDexData,
     effective_validators,
     equal_stake_validators,
+    is_recomputed,
     online_accounts,
     operator_stakes,
     total_accounts,
@@ -311,9 +312,13 @@ def no_data_periods(dates: list[datetime]) -> list[tuple[datetime, datetime]]:
 
 
 def series(
-    ppos_dex_data: list[PPoSDexData], line: Line
+    ppos_dex_data: list[PPoSDexData], line: Line, recomputed: bool | None = None
 ) -> tuple[list[datetime], list[float]]:
-    """Dates and values of a metric, broken where data is missing"""
+    """Dates and values of a metric, broken where data is missing
+
+    With `recomputed`, only the values recomputed from the ledger, or only the
+    published ones.
+    """
     dates: list[datetime] = []
     values: list[float] = []
     for data in ppos_dex_data:
@@ -322,8 +327,29 @@ def series(
             dates.append(dates[-1] + (date - dates[-1]) / 2)
             values.append(math.nan)
         dates.append(date)
-        values.append(line.value(data))
+        keep = recomputed is None or is_recomputed(data, line.key) == recomputed
+        values.append(line.value(data) if keep else math.nan)
     return dates, values
+
+
+# Values recomputed from the ledger, rather than published, are dashed
+RECOMPUTED_STYLE = {"linestyle": (0, (2, 1.5))}
+RECOMPUTED_NOTE = "dashed: recomputed from the ledger"
+
+
+def plot_series(
+    ax: Axes, ppos_dex_data: list[PPoSDexData], line: Line, **style: object
+) -> bool:
+    """Plot a metric, its recomputed values dashed: whether there are any"""
+    if not any(is_recomputed(d, line.key) for d in ppos_dex_data):
+        dates, values = series(ppos_dex_data, line)
+        ax.plot(mdates.date2num(dates), values, **style)  # type: ignore[arg-type]
+        return False
+    for recomputed in (False, True):
+        dates, values = series(ppos_dex_data, line, recomputed)
+        extra = RECOMPUTED_STYLE if recomputed else {}
+        ax.plot(mdates.date2num(dates), values, **(style | extra))  # type: ignore[arg-type]
+    return True
 
 
 def dodge(positions: list[float], gap: float) -> list[float]:
@@ -452,17 +478,19 @@ def timeseries_figure(
     title(fig, chart.title, theme)
     dates = [timestamp(d) for d in ppos_dex_data]
     for ax, panel in zip(axes[:, 0], panels, strict=True):
-        ax.set_title(panel.subtitle)
         shade_no_data(ax, dates, theme)
         ends: list[tuple[str, float, str]] = []
         values: list[float] = []
+        recomputed = False
         for line, color in zip(panel.lines, theme.series, strict=False):
-            x, y = series(ppos_dex_data, line)
-            ax.plot(x, y, color=color)
+            recomputed |= plot_series(ax, ppos_dex_data, line, color=color)
+            _, y = series(ppos_dex_data, line)
             values += y
             last = next((v for v in reversed(y) if not math.isnan(v)), None)
             if last is not None:
                 ends.append((line.label, last, color))
+        note = f"\n{RECOMPUTED_NOTE.capitalize()}" if recomputed else ""
+        ax.set_title(panel.subtitle + note, linespacing=1.6)
         _value_axis(ax, panel, values)
         date_axis(ax)
         label_line_ends(ax, ends, panel.fmt, theme)
