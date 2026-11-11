@@ -52,10 +52,66 @@ given the context of the analysis, we think adequate and reasonable to set:
 
 ![Cumulative Distribution](../images/info/cumulative_distribution.png)
 
+## Counting the Nodes
+
+Algorand nodes are pseudonymous: anyone can run one, and no registry lists
+them. They can only be observed, from the relays they connect to: as of 2025,
+each node keeps a connection to four relays at a time, and regularly swaps the
+slowest for a random one. Counting the distinct IP addresses a few relays see
+is no longer reliable: home nodes change address, and short-lived bots connect
+and leave.
+
+[Nodely](https://nodely.io/blog/algorand-node-counting/) estimates instead the
+_full-time node equivalents_: a node online half of the time counts as half a
+node. Every hour, a sample of relays records the nodes connected to them, and
+the _Chao-1_ estimator infers from it how many nodes no relay saw.
+
+### Chao-1 Estimator
+
+Ecologists face the same problem when counting the species of an environment:
+some are too rare to be found in a sample. Anne Chao's estimator uses the
+rarest ones found to estimate those missed. Given the \\(S_{obs}\\) nodes
+observed, of which \\(F_1\\) were seen by a single relay and \\(F_2\\) by
+exactly two:
+
+\\[ S_{Chao1} = S_{obs} + \frac{F_1^2}{2 F_2} \\]
+
+Many nodes seen by a single relay mean many more were likely seen by none: the
+estimate grows. Few of them mean the relays saw almost every node: it stays
+close to \\(S_{obs}\\). For example, 2,000 nodes observed in an hour, 300 by a
+single relay and 200 by two, estimate:
+
+\\[ S_{Chao1} = 2000 + \frac{300^2}{2 \cdot 200} = 2225 \\]
+
+The estimate is a lower bound, and does not depend on how many relays observe.
+Nodely averages the hourly estimates over 7 days, to smooth out the hours of
+the day.
+
 > [!NOTE]
-> Since monitoring the number of connected validators nodes would require additional
-> effort and resources, for the scope of this project we consider a _perfect_ Nodes
-> Hardware Decentralization (\\( d_N = 1 \\)), leaving the refinement of the calculation
-> of this decentralization factor to future works.
+> The estimate counts IP addresses, not machines: nodes sharing an address
+> (behind NAT) count as one, and nodes changing it within the hour as many.
+> Nodes connected only to private relays are missed, and the relays observing
+> may not be representative of the whole network.
+
+### Full-Time Nodes on Algorand
+
+The estimate ranged from about 1,200 to 3,700 full-time nodes since 2024: see
+the [Nodely dashboard](https://g.nodely.io/d/network/network). With \\(\lambda = 10^4\\), that is a Nodes
+Hardware Decentralization \\(d_N\\) between 0.01 and 0.13: how to calibrate
+the inflection point remains an open question.
+
+> [!NOTE]
+> PPoS Dex v1 and v2 consider a _perfect_ Nodes Hardware Decentralization
+> (\\( d_N = 1 \\)), leaving the refinement of the calculation of this
+> decentralization factor to future works.
 >
 > [Community contribution are welcome!](https://github.com/cusma/pposdex)
+
+## Node Versions
+
+Algorand upgrades its consensus protocol when more than 90% of the
+[stake](stake.md#nakamoto-coefficient) agrees. Nodes still running a version
+that does not support the live protocol cannot follow the consensus anymore:
+the share of nodes on an incompatible version tells how many fell behind the
+last upgrade. Nodely's [upgrade stats](https://g.nodely.io/d/bea312nluusxse/upgrade-stats)
+show it.

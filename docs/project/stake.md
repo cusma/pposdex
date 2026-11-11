@@ -243,6 +243,15 @@ with the same validity window, are likely run by the same operator. Merging
 them gives the _Nakamoto Coefficient of operators_: a heuristic, lower than or
 equal to the accounts one.
 
+> [!TIP]
+> [Related projects](../data/related-projects.md) look at these thresholds from
+> other angles: [Valar Decentralization](https://decentralization.valar.solutions/)
+> names the operators the heuristic cannot see, like custodians and staking
+> providers running many accounts; [Partlife](https://partlife.app/) shows when
+> the participation keys of the online accounts expire, a risk to liveness; and
+> [Ⱥ Surf Upgrades](https://algo.surf/upgrades) shows how each consensus upgrade
+> reached its supermajority.
+
 ### Examples
 
 Six stake distributions, from a single dominant validator to 100 equal ones:
