@@ -1,6 +1,6 @@
 [project]
 name = "pposdex"
-version = "4.0.0"
+version = "4.1.0"
 description = "Algorand Pure Proof of Stake Decentralization Index"
 license = "MIT"
 license-files = ["LICENSE"]
