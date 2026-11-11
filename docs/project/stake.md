@@ -143,32 +143,6 @@ for the \\(DEX\\) index.
 > On Algorand, \\(1 - HHI\\) stays between 0.96 and 0.99, so it barely moves:
 > the [HHI equivalent](#hhi-equivalent) reads its changes better.
 
-### Example 1
-
-The largest validator holds 80% of the stake, the next 5 largest validators hold
-2% each, the reminder is equally distributed among 10 validators:
-
-\\[ HHI = {0.80}^2 + 5 \cdot {0.02}^2 + 10 \cdot {0.01}^2 = 0.643 \\]
-
-### Example 2
-
-The 6 largest validators hold 15% of the stake each, the reminder is equally distributed
-among 10 validators:
-
-\\[ HHI = 6 \cdot {0.15}^2 + 10 \cdot {0.01}^2 = 0.136 \\]
-
-### Example 3
-
-All the stake is equally distributed among 20 validators:
-
-\\[ HHI = 20 \cdot {0.05}^2 = 0.005 \\]
-
-### Example 4
-
-All the stake is equally distributed among 100 validators:
-
-\\[ HHI = 100 \cdot {0.01}^2 = 0.001 \\]
-
 ### Effective Number of Validators
 
 Counting the validators tells how many there are, not how much each one weighs
@@ -239,21 +213,37 @@ with the same validity window, are likely run by the same operator. Merging
 them gives the _Nakamoto Coefficient of operators_: a heuristic, lower than or
 equal to the accounts one.
 
-### Example 5
+### Examples
 
-Four validators, one holding 70% of the stake and three holding 10% each:
+Four stake distributions, from a single dominant validator to 100 equal ones:
 
-| Metric                | Value                                          |
-|-----------------------|------------------------------------------------|
-| Validators            | \\(N = 4\\)                                    |
-| Entropy equivalent    | \\(N_{H} = e^{0.940} \approx 2.56\\)           |
-| HHI equivalent        | \\(N_{HHI} = 1 / 0.52 \approx 1.92\\)          |
-| Nakamoto Coefficients | \\(NC_{10\\%} = NC_{20\\%} = NC_{33\\%} = 1\\) |
-|                       | \\(NC_{90\\%} = 4\\)                           |
+1. _One at 80%_: the largest validator holds 80% of the stake, the next 5 hold
+   2% each, the remaining 10 hold 1% each;
+1. _Six at 15%_: the 6 largest validators hold 15% each, the remaining 10 hold
+   1% each;
+1. _20 equal_: 20 validators hold 5% each;
+1. _100 equal_: 100 validators hold 1% each.
 
-Four validators, as decentralized as about two and a half equal ones by entropy,
-or two by HHI, which is most sensitive to the dominant one: a single one is able
-to threaten the consensus, while all four must agree to upgrade it.
+Compared by every metric:
+
+| Metric                       | 1. One at 80% | 2. Six at 15% | 3. 20 equal | 4. 100 equal |
+|------------------------------|--------------:|--------------:|------------:|-------------:|
+| Validators \\(N\\)           |            16 |            16 |          20 |          100 |
+| Gini \\(GI\\)                |         0.769 |         0.525 |           0 |            0 |
+| Theil L \\(T_L\\)            |          1.34 |          0.82 |           0 |            0 |
+| Theil T \\(T_T\\)            |          1.74 |          0.61 |           0 |            0 |
+| HHI                          |         0.643 |         0.136 |        0.05 |         0.01 |
+| Entropy equivalent \\(N_H\\) |           2.8 |           8.7 |          20 |          100 |
+| HHI equivalent \\(N_{HHI}\\) |           1.6 |           7.4 |          20 |          100 |
+| Veto \\(NC_{10\\%}\\)        |             1 |             1 |           3 |           11 |
+| Liveness \\(NC_{20\\%}\\)    |             1 |             2 |           5 |           21 |
+| Nakamoto \\(NC_{33\\%}\\)    |             1 |             3 |           7 |           34 |
+| Upgrade \\(NC_{90\\%}\\)     |             7 |             7 |          19 |           91 |
+
+The inequality indexes cannot tell 20 equal validators from 100: both are
+perfectly equal. The effective numbers and the Nakamoto Coefficients can: they
+grow with how many validators share the stake, from less than 3 to 100, and from
+a single validator able to threaten the consensus to dozens.
 
 ## Account Participation Index
 
