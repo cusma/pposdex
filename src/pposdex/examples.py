@@ -174,10 +174,77 @@ def effective_figure(theme: Theme) -> Figure:
     return fig
 
 
+# Nodes Hardware Decentralization: speed of growth and inflection point
+NODES_K = 2
+NODES_LAMBDA = 10_000
+# Full-time node equivalents estimated by Nodely since 2024
+OBSERVED_NODES = (1_200, 3_700)
+
+
+def nodes_hardware(
+    nodes: float, lam: float = NODES_LAMBDA, k: float = NODES_K
+) -> float:
+    return 1 - math.exp(-((nodes / lam) ** k))
+
+
+def nodes_figure(theme: Theme) -> Figure:
+    fig, ax = plt.subplots(figsize=(9, 4.6), layout="constrained")
+    title(fig, "Nodes Hardware Decentralization", theme)
+    ax.set_title(
+        f"By number of nodes, with k = {NODES_K}: "
+        "the inflection point λ is a judgment call"
+    )
+    nodes = [10 ** (2 + i / 100) for i in range(351)]
+    low, high = OBSERVED_NODES
+    ax.axvspan(low, high, color=theme.track, zorder=0)
+    ax.annotate(
+        f"Algorand today\n{count(low)} to {count(high)} nodes",
+        (math.sqrt(low * high), 0.5),
+        ha="center",
+        va="center",
+        color=theme.ink_secondary,
+        fontsize=9,
+    )
+    for lam, style, width, color in (
+        (1_000, (0, (4, 3)), 1.2, theme.muted),
+        (NODES_LAMBDA, "-", 2.2, theme.series[0]),
+        (100_000, (0, (4, 3)), 1.2, theme.muted),
+    ):
+        ax.plot(
+            nodes,
+            [nodes_hardware(n, lam) for n in nodes],
+            linestyle=style,
+            linewidth=width,
+            color=color,
+            zorder=2,
+        )
+        y = nodes_hardware(lam, lam)
+        ax.plot([lam], [y], "o", color=color, markersize=5, zorder=3)
+        ax.annotate(
+            f"λ = {count(lam)}",
+            (lam, y),
+            xytext=(8, -4),
+            textcoords="offset points",
+            ha="left",
+            va="top",
+            color=theme.ink if lam == NODES_LAMBDA else theme.muted,
+            fontsize=9,
+            fontweight="bold" if lam == NODES_LAMBDA else "normal",
+        )
+    ax.set_xscale("log")
+    ax.set_xlim(nodes[0], nodes[-1])
+    ax.set_ylim(0, 1.02)
+    ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _: count(v)))
+    ax.xaxis.set_minor_formatter(NullFormatter())
+    ax.set_xlabel("Nodes (log scale)")
+    return fig
+
+
 FIGURES: tuple[tuple[str, Callable[[Theme], Figure]], ...] = (
     ("stakes", treemap_figure),
     ("coalitions", coalition_figure),
     ("effective_numbers", effective_figure),
+    ("nodes_hardware", nodes_figure),
 )
 
 

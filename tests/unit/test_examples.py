@@ -61,3 +61,18 @@ def test_show(images: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     examples.render()
     assert len(shown) == len(examples.FIGURES)
     assert not images.exists()
+
+
+# The Nodes Hardware Decentralization table of the docs
+NODES_TABLE = {1_000: 0.01, 3_000: 0.09, 5_000: 0.22, 10_000: 0.63, 20_000: 0.98}
+
+
+@pytest.mark.parametrize(("nodes", "expected"), NODES_TABLE.items())
+def test_nodes_hardware_matches_the_docs(nodes: int, expected: float) -> None:
+    assert round(examples.nodes_hardware(nodes), 2) == expected
+
+
+def test_observed_nodes_match_the_docs() -> None:
+    low, high = examples.OBSERVED_NODES
+    assert round(examples.nodes_hardware(low), 2) == 0.01
+    assert round(examples.nodes_hardware(high), 2) == 0.13

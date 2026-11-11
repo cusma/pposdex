@@ -1,11 +1,12 @@
-# Export PPoS Dex data
+# Export
 
-Export PPoS Dex data to `csv` file for external analysis.
+Export the published PPoS Dex data points to a `.csv` file, for your own
+analysis.
 
 ```text
 $ uv run pposdex export --help
 {{#include help/export.txt}}
 ```
 
-Data points published with the selected `--algo-threshold` are written to
+The data points published with the selected `--algo-threshold` are written to
 `ppos_dex_data.csv`, in the current directory.

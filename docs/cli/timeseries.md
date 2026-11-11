@@ -1,6 +1,7 @@
-# Plot PPoS Dex timeseries
+# Timeseries
 
-Plot PPoS Dex timeseries published to evaluate trends.
+Plot the published PPoS Dex data points over time, as in the
+[Timeseries](../data/timeseries.md), to follow their trends.
 
 ```text
 $ uv run pposdex timeseries --help
