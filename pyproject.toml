@@ -86,6 +86,7 @@ force-exclude = true
 "docs/data/*.md" = ["MD057"]
 "docs/project/stake.md" = ["MD057"]
 "docs/project/nodes.md" = ["MD057"]
+"docs/project/topology.md" = ["MD057"]
 
 [tool.rumdl.MD013]
 code-blocks = false

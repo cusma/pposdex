@@ -31,7 +31,7 @@ Let's try to visualize some examples of communication paths between two generic
 nodes \\(N_1\\) and \\(N_2\\), connected through graphs that are intuitively
 different from each other:
 
-![Topology examples](../images/info/topologies.svg)
+![Topology examples](../images/diagrams/topologies.svg)
 
 We can intuitively glimpse the difference between networks \\(A\\), \\(B\\),
 \\(C\\) and \\(D\\) with respect to the concept of "topology decentralization".
@@ -97,7 +97,7 @@ the DHT (see below): relaying is no longer limited to the relays in the DNS
 list. _Hybrid_ relays and nodes use both networks, and a hybrid node keeps up
 to 4 outgoing links on each.
 
-![Algorand topology](../images/info/algorand_topology.svg)
+![Algorand topology](../images/diagrams/algorand_topology.svg)
 
 In the example above, the nodes on the left use WebSocket only, with 4 links to
 the relays each. The nodes on the right mix WebSocket and P2P links, some of

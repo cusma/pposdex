@@ -1,7 +1,7 @@
 // Show the dark variant of the PPoS Dex charts and diagrams on the dark themes
 (() => {
   const DARK_THEMES = ["coal", "navy", "ayu"];
-  const CHART = /\/images\/(timeseries|snapshot|insights|examples|info)\/[a-z0-9_]+\.svg$/;
+  const CHART = /\/images\/(timeseries|snapshot|insights|examples|diagrams)\/[a-z0-9_]+\.svg$/;
   const charts = [...document.querySelectorAll("main img")].filter((img) =>
     CHART.test(img.getAttribute("src")),
   );
