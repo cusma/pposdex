@@ -19,6 +19,7 @@
 
 - [Timeseries](data/timeseries.md)
 - [Snapshot](data/snapshot.md)
+- [Related Projects](data/related-projects.md)
 
 # CLI
 

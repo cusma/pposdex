@@ -68,11 +68,29 @@ of the _Central Point Dominance_ so:
 
 \\[ d_T = 1 - CPD \\]
 
+## Infrastructure Diversity
+
+Graph metrics measure how the nodes are connected, not where they run. Nodes
+hosted by the same network (the same cloud provider or Internet service
+provider) can fail together in an outage, or be cut off together by its
+policies; nodes in the same country answer to the same jurisdiction.
+
+The same question as the [Nakamoto Coefficient](stake.md#nakamoto-coefficient)
+applies to infrastructure, counting nodes instead of stake: how few hosting
+networks, or countries, host more than 10%, 20% and 1/3 of the nodes? The
+[Nodely dashboard](https://g.nodely.io/d/network/network) shows the nodes by
+hosting network and by country.
+
+> [!IMPORTANT]
+> Nodes are not weighted by stake: a node with no stake online counts as much as
+> one with millions of ALGO. Infrastructure diversity tells how resilient the
+> network that relays the messages is, not who votes.
+
 > [!NOTE]
-> Network Topology Decentralization does not consider the degree of _geo-delocalization_
-> of the physical infrastructure. More insights on this topic can be found in
-> [Analyzing Algorand Blockchain Data with Databricks
-> Delta](https://databricks.com/blog/2020/10/08/analyzing-algorand-blockchain-data-with-databricks-delta.html).
+> Network Topology Decentralization does not consider the infrastructure
+> diversity. More insights on the geo-delocalization of the physical
+> infrastructure can be found in [Analyzing Algorand Blockchain Data with
+> Databricks Delta](https://databricks.com/blog/2020/10/08/analyzing-algorand-blockchain-data-with-databricks-delta.html).
 > For the scope of this project we consider a _perfect_ Network Topology Decentralization
 > (\\( d_T = 1 \\)), leaving the refinement of the calculation of this decentralization
 > factor to future works.

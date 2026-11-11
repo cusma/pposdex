@@ -19,6 +19,8 @@ by HHI.
 Who holds the online stake, by account and by [likely
 operator](../project/ppos-dex.md#ppos-dex-v3): the same view as the
 [examples](../project/stake.md#examples), with the real validators.[^live]
+[Valar Decentralization](https://decentralization.valar.solutions/) shows the
+same stake by named operator and staking solution.
 
 ![Snapshot Online Stake](../images/snapshot/stakes.svg)
 
