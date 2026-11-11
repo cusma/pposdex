@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 740" width="1000" height="740" font-family="Helvetica, Arial, sans-serif">
+<title>Example network topologies</title>
+<g stroke="#333333" stroke-width="1.5" fill="none">
+<line x1="76.0" y1="150.0" x2="94.0" y2="150.0"/>
+<line x1="142.0" y1="150.0" x2="160.0" y2="150.0"/>
+<line x1="208.0" y1="150.0" x2="226.0" y2="150.0"/>
+<line x1="274.0" y1="150.0" x2="292.0" y2="150.0"/>
+<line x1="340.0" y1="150.0" x2="358.0" y2="150.0"/>
+<line x1="406.0" y1="150.0" x2="424.0" y2="150.0"/>
+</g>
+<circle cx="52.0" cy="150.0" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<text x="52.0" y="156.0" font-size="18" font-style="italic" text-anchor="middle" fill="#222222">N<tspan font-size="12" dy="4">1</tspan></text>
+<circle cx="118.0" cy="150.0" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<circle cx="184.0" cy="150.0" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<circle cx="250.0" cy="150.0" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<circle cx="316.0" cy="150.0" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<circle cx="382.0" cy="150.0" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<circle cx="448.0" cy="150.0" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<text x="448.0" y="156.0" font-size="18" font-style="italic" text-anchor="middle" fill="#222222">N<tspan font-size="12" dy="4">2</tspan></text>
+<text x="250" y="290" font-size="24" font-weight="bold" text-anchor="middle" fill="#222222">Network A</text>
+<g stroke="#333333" stroke-width="1.5" fill="none">
+<line x1="781.6" y1="48.4" x2="825.9" y2="69.8"/>
+<line x1="852.9" y1="103.6" x2="863.9" y2="151.5"/>
+<line x1="854.2" y1="193.7" x2="823.6" y2="232.1"/>
+<line x1="784.6" y1="250.9" x2="735.4" y2="250.9"/>
+<line x1="696.4" y1="232.1" x2="665.8" y2="193.7"/>
+<line x1="656.1" y1="151.5" x2="667.1" y2="103.6"/>
+<line x1="694.1" y1="69.8" x2="738.4" y2="48.4"/>
+</g>
+<circle cx="760.0" cy="38.0" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<circle cx="847.6" cy="80.2" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<circle cx="869.2" cy="174.9" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<circle cx="808.6" cy="250.9" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<text x="808.6" y="256.9" font-size="18" font-style="italic" text-anchor="middle" fill="#222222">N<tspan font-size="12" dy="4">2</tspan></text>
+<circle cx="711.4" cy="250.9" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<circle cx="650.8" cy="174.9" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<circle cx="672.4" cy="80.2" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<text x="672.4" y="86.2" font-size="18" font-style="italic" text-anchor="middle" fill="#222222">N<tspan font-size="12" dy="4">1</tspan></text>
+<text x="760" y="330" font-size="24" font-weight="bold" text-anchor="middle" fill="#222222">Network B</text>
+<g stroke="#333333" stroke-width="1.5" fill="none">
+<line x1="274.0" y1="520.0" x2="336.0" y2="520.0"/>
+<line x1="262.0" y1="540.8" x2="293.0" y2="594.5"/>
+<line x1="238.0" y1="540.8" x2="207.0" y2="594.5"/>
+<line x1="226.0" y1="520.0" x2="164.0" y2="520.0"/>
+<line x1="238.0" y1="499.2" x2="207.0" y2="445.5"/>
+<line x1="262.0" y1="499.2" x2="293.0" y2="445.5"/>
+</g>
+<circle cx="250.0" cy="520.0" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<circle cx="360.0" cy="520.0" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<circle cx="305.0" cy="615.3" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<text x="305.0" y="621.3" font-size="18" font-style="italic" text-anchor="middle" fill="#222222">N<tspan font-size="12" dy="4">2</tspan></text>
+<circle cx="195.0" cy="615.3" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<circle cx="140.0" cy="520.0" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<circle cx="195.0" cy="424.7" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<text x="195.0" y="430.7" font-size="18" font-style="italic" text-anchor="middle" fill="#222222">N<tspan font-size="12" dy="4">1</tspan></text>
+<circle cx="305.0" cy="424.7" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<text x="250" y="700" font-size="24" font-weight="bold" text-anchor="middle" fill="#222222">Network C</text>
+<g stroke="#333333" stroke-width="1.5" fill="none">
+<line x1="739.6" y1="427.7" x2="700.4" y2="452.3"/>
+<line x1="780.7" y1="427.2" x2="824.3" y2="452.8"/>
+<line x1="704.0" y1="465.0" x2="821.0" y2="465.0"/>
+<line x1="682.7" y1="488.8" x2="697.3" y2="616.2"/>
+<line x1="823.4" y1="475.5" x2="671.6" y2="549.5"/>
+<line x1="851.1" y1="488.2" x2="863.9" y2="536.8"/>
+<line x1="674.0" y1="560.0" x2="846.0" y2="560.0"/>
+<line x1="671.7" y1="570.2" x2="798.3" y2="629.8"/>
+<line x1="848.3" y1="570.2" x2="721.7" y2="629.8"/>
+<line x1="724.0" y1="640.0" x2="796.0" y2="640.0"/>
+</g>
+<circle cx="760.0" cy="415.0" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<circle cx="680.0" cy="465.0" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<text x="680.0" y="471.0" font-size="18" font-style="italic" text-anchor="middle" fill="#222222">N<tspan font-size="12" dy="4">1</tspan></text>
+<circle cx="845.0" cy="465.0" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<circle cx="650.0" cy="560.0" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<circle cx="870.0" cy="560.0" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<circle cx="700.0" cy="640.0" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<circle cx="820.0" cy="640.0" r="24" fill="none" stroke="#333333" stroke-width="1.5"/>
+<text x="820.0" y="646.0" font-size="18" font-style="italic" text-anchor="middle" fill="#222222">N<tspan font-size="12" dy="4">2</tspan></text>
+<text x="760" y="715" font-size="24" font-weight="bold" text-anchor="middle" fill="#222222">Network D</text>
+</svg>
