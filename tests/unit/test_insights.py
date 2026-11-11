@@ -15,6 +15,7 @@ CHARTS = [
     "at_a_glance",
     "effective_holders",
     "effective_validators",
+    "evenness",
     "monthly_change",
     "online_stake",
     "trajectory",
@@ -42,6 +43,9 @@ def data(make_data_point: Callable[..., PPoSDexData]) -> list[PPoSDexData]:
             ppos_dex=dex,
             accounts=accounts,
             ppos_online_accounts=0.1,
+            # Consistent: worth fewer validators by HHI than by entropy
+            ppos_theil_t=0.5,
+            ppos_hhi=0.2,
         )
         for day, dex, accounts in days
     ]
@@ -58,7 +62,7 @@ def test_render_short_history(
     data: list[PPoSDexData], images: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     # No data a year before, and an odd number of tiles at a glance
-    monkeypatch.setattr(insights, "INDICATORS", insights.INDICATORS[:3])
+    monkeypatch.setattr(insights, "TILES", insights.DEX[:1])
     insights.render(data[:2], True)
     assert (images / "insights" / "at_a_glance.svg").exists()
 
@@ -98,6 +102,19 @@ class TestDerivedMetrics:
         data = make_data_point()
         del data["ppos_hhi"]
         assert math.isnan(pposdex.equal_stake_validators(data))
+
+    def test_evenness(self, make_data_point: Callable[..., PPoSDexData]) -> None:
+        # 100 online accounts worth 25 by entropy and 20 by HHI
+        data = make_data_point(
+            accounts=100,
+            ppos_online_accounts=1,
+            ppos_theil_t=math.log(4),
+            ppos_hhi=0.05,
+        )
+        assert pposdex.evenness(data) == pytest.approx(0.25)
+        assert pposdex.top_evenness(data) == pytest.approx(0.8)
+        del data["ppos_hhi"]
+        assert math.isnan(pposdex.top_evenness(data))
 
     def test_effective_holders(
         self, make_data_point: Callable[..., PPoSDexData]
@@ -159,7 +176,7 @@ def test_weekly(make_data_point: Callable[..., PPoSDexData]) -> None:
         for day, accounts in zip(days, (100, 300, 500), strict=True)
     ]
     dates, xs, ys = insights.weekly(
-        data, insights.total_accounts, insights.total_accounts
+        data, pposdex.total_accounts, pposdex.total_accounts
     )
     assert xs[0] == ys[0] == 200
     assert math.isnan(xs[1])
@@ -188,3 +205,34 @@ def test_monthly_changes(data: list[PPoSDexData]) -> None:
 )
 def test_next_month(date: datetime, expected: datetime) -> None:
     assert insights.next_month(date) == expected
+
+
+def test_since_first(data: list[PPoSDexData]) -> None:
+    chronological = data[::-1]
+    liveness = Indicator("ppos_dex_v3_liveness", "Liveness", True)
+    chronological[-1]["ppos_dex_v3_liveness"] = 7
+    assert insights.since_first(chronological, liveness) == chronological[-1:]
+    # Without any data point to start from, all of them
+    upgrade = Indicator("ppos_dex_v3_upgrade", "Upgrade", True)
+    assert insights.since_first(chronological, upgrade) == chronological
+
+
+def test_render_v3_with_operators(data: list[PPoSDexData], images: Path) -> None:
+    # Published since the last two data points, the operators since the latest
+    for point in data[:2]:
+        point["ppos_dex_v3_liveness"] = 7
+    data[0]["ppos_dex_v3_liveness_operators"] = 2
+    data[1]["ppos_dex_v3_upgrade"] = 135
+    data[0]["ppos_dex_v3_veto"] = 4
+    data[0]["ppos_dex_v3_veto_operators"] = 1
+    insights.render(data, True)
+    svg = (images / "insights" / "at_a_glance.svg").read_text()
+    assert "· 2 operators" in svg
+    assert "· 1 operator<" in svg
+    _, rows = insights.monthly_changes(data[::-1])
+    labels = [i.label for i in insights.HEATMAP]
+    # The v3 coefficients by account only: operators stay in tiles and charts
+    assert "PPoS Dex v3 Liveness" in labels
+    assert not any("Operators" in label for label in labels)
+    assert len(rows) == len(insights.HEATMAP) == 12
+    assert (images / "insights" / "at_a_glance.svg").exists()

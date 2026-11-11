@@ -13,9 +13,9 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 
 # Colorblind-safe categorical slots, validated on the mdBook light and dark
-# themes backgrounds: at most three series per chart
-LIGHT_SERIES = ("#2a78d6", "#eb6834", "#1baf7a")
-DARK_SERIES = ("#3987e5", "#d95926", "#199e70")
+# themes backgrounds: at most six series per chart
+LIGHT_SERIES = ("#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300")
+DARK_SERIES = ("#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300")
 
 # Browsers render the system font. None is installed for matplotlib, which lays
 # out the text with its own DejaVu Sans: the same on every machine
@@ -34,7 +34,7 @@ class Theme:
     baseline: str
     # Empty bar tracks and periods without data
     track: str
-    series: tuple[str, str, str]
+    series: tuple[str, str, str, str, str, str]
     # Time progression, from the oldest to the newest data
     sequential: tuple[str, ...]
     # Less decentralized, no change, more decentralized

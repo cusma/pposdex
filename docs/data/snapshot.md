@@ -1,22 +1,64 @@
 # PPoS Snapshot
 
-## ALGO Dynamics
+The latest PPoS Dex data point published, in the same order as the
+[Timeseries](timeseries.md).
 
-![Snapshot ALGO Dynamics](../images/snapshot/algo_dynamics.svg)
+## The Network
 
-## PPoS Inequality
+### Validators
 
-![Snapshot PPoS Inequality](../images/snapshot/ppos_inequality.svg)
+The online accounts, and the [effective number of
+validators](../project/stake.md#effective-number-of-validators) they are worth:
+how many validators with equal stake would be as decentralized, by entropy and
+by HHI.
+
+![Snapshot Validators](../images/snapshot/validators.svg)
+
+### Online Stake
+
+Who holds the online stake, by account and by [likely
+operator](../project/ppos-dex.md#ppos-dex-v3): the same view as the
+[examples](../project/stake.md#examples), with the real validators.[^live]
+
+![Snapshot Online Stake](../images/snapshot/stakes.svg)
+
+[^live]: The published data has no stake of each account: this chart reads it
+    live from the Indexer when the docs are deployed.
 
 ## PPoS Dex
 
+### PPoS Dex v3
+
+The four [PPoS Dex v3](../project/ppos-dex.md#ppos-dex-v3) coefficients, by
+account and by likely operator, on the scale of the online accounts.
+
+![Snapshot PPoS Dex v3](../images/snapshot/ppos_dex_v3.svg)
+
+### PPoS Dex v1 and v2
+
+The [PPoS Dex v1](../project/ppos-dex.md#ppos-dex-v1) and
+[v2](../project/ppos-dex.md#ppos-dex-v2): how far the stake is from a platonic
+ideal of decentralization, where every ALGO and every account takes part in
+consensus with equal stakes. Real networks only tend to that ideal, so their
+[trend](timeseries.md#ppos-dex-v1-and-v2) tells more than a single value.
+
 ![Snapshot PPoS Dex](../images/snapshot/ppos_dex.svg)
 
-## Validators
+## Index Components
 
-The online accounts, the [effective number of
-validators](../project/stake.md#effective-number-of-validators) they are worth,
-and the [PPoS Dex v3](../project/ppos-dex.md#ppos-dex-v3): the fewest online
-accounts holding more than 20% of the online stake.
+### ALGO Dynamics
 
-![Snapshot Validators](../images/snapshot/validators.svg)
+The ALGO Supply \\(S_{dyn}\\) of the
+[Stake Participation Index](../project/stake.md#stake-participation-index): the
+share of the genesis supply in circulation.
+
+![Snapshot ALGO Dynamics](../images/snapshot/algo_dynamics.svg)
+
+### PPoS Inequality
+
+The [Stake Inequality Index](../project/stake.md#stake-inequality-index) of the
+online stake: the Gini, HHI and Theil indexes. The Gini and Theil T indexes rise
+as small validators join: see the
+[tips on reading them](timeseries.md#online-stake-inequality).
+
+![Snapshot PPoS Inequality](../images/snapshot/ppos_inequality.svg)

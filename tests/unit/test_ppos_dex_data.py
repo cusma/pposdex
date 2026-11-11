@@ -45,10 +45,18 @@ class TestPost:
         assert data["ppos_theil_t"] == idx.theil_t(online)
         assert data["ppos_hhi"] == idx.herfindahl_hirschman(online)
         # Fake accounts share no keys: every account is its own operator
-        assert data["ppos_dex_v3"] == idx.nakamoto_coefficient(
-            online, pposdex.CONSENSUS_SHARE
-        )
-        assert data["ppos_dex_v3_operators"] == data["ppos_dex_v3"]
+        v3 = {
+            name: idx.nakamoto_coefficient(online, share)
+            for name, share in pposdex.V3_SHARES.items()
+        }
+        assert data["ppos_dex_v3_veto"] == data["ppos_dex_v3_veto_operators"]
+        assert data["ppos_dex_v3_veto"] == v3["veto"]
+        assert data["ppos_dex_v3_liveness"] == v3["liveness"]
+        assert data["ppos_dex_v3_nakamoto"] == v3["nakamoto"]
+        assert data["ppos_dex_v3_upgrade"] == v3["upgrade"]
+        assert data["ppos_dex_v3_upgrade_operators"] == v3["upgrade"]
+        # The coefficients grow with their thresholds
+        assert v3["veto"] <= v3["liveness"] <= v3["nakamoto"] <= v3["upgrade"]
         assert data["round"] == 1000
         # The published note is the same data point, msgpack encoded
         (signed,) = algod.sent

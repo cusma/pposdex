@@ -19,10 +19,26 @@ logger = logging.getLogger(__name__)
 d_N = 1  # noqa: N816 (math notation)
 d_T = 1  # noqa: N816 (math notation)
 MICROALGO_TOTAL_SUPPLY = 10**16
-# Conservatively, Algorand consensus neither stalls nor gets overcome while more
-# than 80% of the online stake is honest: a coalition holding more than 20% of it
-# is the threshold to watch
-CONSENSUS_SHARE = 0.2
+# PPoS Dex v3: the fewest online accounts holding more than these shares of the
+# online stake, the thresholds that matter to Algorand consensus
+V3_SHARES = {
+    # Protocol upgrades need 90% of the proposed blocks to approve them: more
+    # than 10% of the online stake can block them
+    "veto": 0.1,
+    # Conservatively, consensus stalls when more than 20% of the online stake
+    # does not vote
+    "liveness": 0.2,
+    # More than 1/3 of the online stake breaks the honest majority assumption
+    "nakamoto": 1 / 3,
+    # Protocol upgrades need the broad agreement of more than 90% of the online
+    # stake: how many accounts that supermajority takes
+    "upgrade": 0.9,
+}
+# Published by 4.0.0, before v3 had more than the liveness coefficient
+LEGACY_KEYS = {
+    "ppos_dex_v3": "ppos_dex_v3_liveness",
+    "ppos_dex_v3_operators": "ppos_dex_v3_liveness_operators",
+}
 
 
 class PPoSDexData(TypedDict):
@@ -40,8 +56,14 @@ class PPoSDexData(TypedDict):
     ppos_hhi: NotRequired[float]
     ppos_dex: float
     ppos_dex_v2: NotRequired[float]
-    ppos_dex_v3: NotRequired[int]
-    ppos_dex_v3_operators: NotRequired[int]
+    ppos_dex_v3_veto: NotRequired[int]
+    ppos_dex_v3_veto_operators: NotRequired[int]
+    ppos_dex_v3_liveness: NotRequired[int]
+    ppos_dex_v3_liveness_operators: NotRequired[int]
+    ppos_dex_v3_nakamoto: NotRequired[int]
+    ppos_dex_v3_nakamoto_operators: NotRequired[int]
+    ppos_dex_v3_upgrade: NotRequired[int]
+    ppos_dex_v3_upgrade_operators: NotRequired[int]
     round: NotRequired[int]
     timestamp: str
 
@@ -58,8 +80,14 @@ Metric = Literal[
     "ppos_hhi",
     "ppos_dex",
     "ppos_dex_v2",
-    "ppos_dex_v3",
-    "ppos_dex_v3_operators",
+    "ppos_dex_v3_veto",
+    "ppos_dex_v3_veto_operators",
+    "ppos_dex_v3_liveness",
+    "ppos_dex_v3_liveness_operators",
+    "ppos_dex_v3_nakamoto",
+    "ppos_dex_v3_nakamoto_operators",
+    "ppos_dex_v3_upgrade",
+    "ppos_dex_v3_upgrade_operators",
 ]
 
 
@@ -88,8 +116,14 @@ SCHEMA: dict[str, Field] = {
     "ppos_hhi": Field(float, min=0, max=1, required=False),
     "ppos_dex": Field(float, min=0, max=1),
     "ppos_dex_v2": Field(float, min=0, max=1, required=False),
-    "ppos_dex_v3": Field(int, min=1, required=False),
-    "ppos_dex_v3_operators": Field(int, min=1, required=False),
+    "ppos_dex_v3_veto": Field(int, min=1, required=False),
+    "ppos_dex_v3_veto_operators": Field(int, min=1, required=False),
+    "ppos_dex_v3_liveness": Field(int, min=1, required=False),
+    "ppos_dex_v3_liveness_operators": Field(int, min=1, required=False),
+    "ppos_dex_v3_nakamoto": Field(int, min=1, required=False),
+    "ppos_dex_v3_nakamoto_operators": Field(int, min=1, required=False),
+    "ppos_dex_v3_upgrade": Field(int, min=1, required=False),
+    "ppos_dex_v3_upgrade_operators": Field(int, min=1, required=False),
     "round": Field(int, min=0, required=False),
     "timestamp": Field(str),
 }
@@ -99,7 +133,8 @@ def validate(data: object) -> PPoSDexData:
     """
     Validate a PPoS Dex data point against the SCHEMA
 
-    Unknown keys, like those added by newer versions, are ignored.
+    Keys published by older versions are renamed, and unknown keys, like those
+    added by newer versions, are ignored.
 
     Args:
         data: PPoS Dex data point
@@ -113,6 +148,7 @@ def validate(data: object) -> PPoSDexData:
     if not isinstance(data, dict):
         raise InvalidDataError(f"Expected a mapping, got {type(data).__name__}")
 
+    data = {LEGACY_KEYS.get(key, key): value for key, value in data.items()}
     unknown_keys = data.keys() - SCHEMA.keys()
     if unknown_keys:
         logger.debug("Ignoring unknown keys: %s", sorted(map(str, unknown_keys)))
@@ -136,8 +172,13 @@ def validate(data: object) -> PPoSDexData:
     return cast(PPoSDexData, data)
 
 
+def total_accounts(data: PPoSDexData) -> float:
+    """Accounts holding more than the threshold"""
+    return data["accounts"]
+
+
 def online_accounts(data: PPoSDexData) -> float:
-    """Online accounts holding at least the threshold"""
+    """Online accounts holding more than the threshold"""
     return data["accounts"] * data["ppos_online_accounts"]
 
 
@@ -154,6 +195,25 @@ def equal_stake_validators(data: PPoSDexData) -> float:
     """Equal-stake validators with the same HHI as the online ones"""
     hhi = data.get("ppos_hhi")
     return 1 / hhi if hhi else math.nan
+
+
+def evenness(data: PPoSDexData) -> float:
+    """Entropy equivalent validators as a share of the online accounts
+
+    1 when all the online accounts hold the same stake. It is exp(-T): small
+    validators joining lower it, as they raise Theil T.
+    """
+    return math.exp(-data["ppos_theil_t"])
+
+
+def top_evenness(data: PPoSDexData) -> float:
+    """HHI equivalent validators as a share of the entropy equivalent ones
+
+    1 when all the online accounts hold the same stake, lower the more the
+    largest validators outweigh the rest. Small validators change it less than
+    the overall evenness.
+    """
+    return equal_stake_validators(data) / effective_validators(data)
 
 
 def operator_stakes(online_accounts: list[Json]) -> list[int]:
@@ -238,10 +298,15 @@ def post_ppos_dex_data(
     ppos_hhi = idx.herfindahl_hirschman(online_stakes)
     ppos_dex_v1 = d_N * d_T * algo_dyn * algo_prt * accounts_prt * (1 - ppos_gini)
     ppos_dex_v2 = d_N * d_T * algo_dyn * algo_prt * (1 - ppos_hhi)
-    ppos_dex_v3 = idx.nakamoto_coefficient(online_stakes, CONSENSUS_SHARE)
-    ppos_dex_v3_operators = idx.nakamoto_coefficient(
-        operator_stakes(online), CONSENSUS_SHARE
-    )
+    operators = operator_stakes(online)
+    # Each coefficient by account, and by likely operator
+    v3 = {
+        name: (
+            idx.nakamoto_coefficient(online_stakes, share),
+            idx.nakamoto_coefficient(operators, share),
+        )
+        for name, share in V3_SHARES.items()
+    }
 
     ppos_dex_data: PPoSDexData = {
         "algo_threshold": algo_threshold,
@@ -256,8 +321,14 @@ def post_ppos_dex_data(
         "ppos_hhi": ppos_hhi,
         "ppos_dex": ppos_dex_v1,
         "ppos_dex_v2": ppos_dex_v2,
-        "ppos_dex_v3": ppos_dex_v3,
-        "ppos_dex_v3_operators": ppos_dex_v3_operators,
+        "ppos_dex_v3_veto": v3["veto"][0],
+        "ppos_dex_v3_veto_operators": v3["veto"][1],
+        "ppos_dex_v3_liveness": v3["liveness"][0],
+        "ppos_dex_v3_liveness_operators": v3["liveness"][1],
+        "ppos_dex_v3_nakamoto": v3["nakamoto"][0],
+        "ppos_dex_v3_nakamoto_operators": v3["nakamoto"][1],
+        "ppos_dex_v3_upgrade": v3["upgrade"][0],
+        "ppos_dex_v3_upgrade_operators": v3["upgrade"][1],
         "round": ledger["current_round"],
         "timestamp": str(datetime.now()),
     }

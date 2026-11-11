@@ -143,32 +143,6 @@ for the \\(DEX\\) index.
 > On Algorand, \\(1 - HHI\\) stays between 0.96 and 0.99, so it barely moves:
 > the [HHI equivalent](#hhi-equivalent) reads its changes better.
 
-### Example 1
-
-The largest validator holds 80% of the stake, the next 5 largest validators hold
-2% each, the reminder is equally distributed among 10 validators:
-
-\\[ HHI = {0.80}^2 + 5 \cdot {0.02}^2 + 10 \cdot {0.01}^2 = 0.643 \\]
-
-### Example 2
-
-The 6 largest validators hold 15% of the stake each, the reminder is equally distributed
-among 10 validators:
-
-\\[ HHI = 6 \cdot {0.15}^2 + 10 \cdot {0.01}^2 = 0.136 \\]
-
-### Example 3
-
-All the stake is equally distributed among 20 validators:
-
-\\[ HHI = 20 \cdot {0.05}^2 = 0.005 \\]
-
-### Example 4
-
-All the stake is equally distributed among 100 validators:
-
-\\[ HHI = 100 \cdot {0.01}^2 = 0.001 \\]
-
 ### Effective Number of Validators
 
 Counting the validators tells how many there are, not how much each one weighs
@@ -210,6 +184,36 @@ always the lowest of the three counts:
 > A participant can control many accounts: counting accounts, the effective
 > numbers are an upper bound for the participants behind them.
 
+#### Stake Evenness
+
+The effective numbers grow both with how many validators there are and with how
+evenly they share the stake. Their ratios keep the evenness alone: a network ten
+times larger, with stakes shared the same way, has the same ratios.
+
+The _overall evenness_ is the entropy equivalent as a share of the validators:
+
+\\[ E = \frac{N_H}{N} = e^{-T_T(S)} \\]
+
+so the entropy equivalent is the number of validators times their evenness,
+\\(N_H = N \cdot E\\). The _top evenness_ is the HHI equivalent as a share of the
+entropy equivalent:
+
+\\[ E_{top} = \frac{N_{HHI}}{N_H} \\]
+
+Both are 1 when all the validators hold the same stake, and lower the less even
+the stake is. Small validators joining lower the overall evenness, as they
+raise the Theil T index, and the top evenness less: the HHI weighs them little,
+so the top evenness tells how much the largest validators outweigh the rest. In
+ecology, where they measure the diversity of species, these ratios are the
+evenness of the Hill numbers.
+
+> [!IMPORTANT]
+> Evenness is not decentralization: it ignores how many validators there are.
+> 20 equal validators are as even as 100, and a single validator holding 80% of
+> the stake is more even at the top than one holding 30% among 70 small ones:
+> see the [examples](#examples). Read it next to the effective numbers, not as
+> a score.
+
 ### Nakamoto Coefficient
 
 The _Nakamoto Coefficient_ (\\(NC\\)) counts the fewest validators holding
@@ -220,30 +224,81 @@ threaten the consensus. Given the validators' stakes sorted from the largest,
 \\[ NC_q(S) = \min \left\\{ k : \sum_{i=1}^{k} y_i > q \sum_{i=1}^{N} y_i
 \right\\} \\]
 
-Unlike the inequality indexes, it measures the stake against the security
-threshold of the consensus. Algorand, conservatively, neither stalls nor gets
-overcome while more than 80% of the online stake is honest, so the threshold to
-watch is \\(q = 20\\%\\): this is the [PPoS Dex v3](ppos-dex.md#ppos-dex-v3).
+Unlike the inequality indexes, it measures the stake against the thresholds of
+the consensus. On Algorand, four thresholds matter:
+
+| Coefficient | Threshold        | Meaning                                                                            |
+|-------------|------------------|------------------------------------------------------------------------------------|
+| Veto        | \\(NC_{10\\%}\\) | A coalition above it can block protocol upgrades                                   |
+| Liveness    | \\(NC_{20\\%}\\) | A coalition above it can stall the consensus by not voting, conservatively         |
+| Nakamoto    | \\(NC_{33\\%}\\) | A coalition above it breaks the honest majority assumption of the consensus        |
+| Upgrade     | \\(NC_{90\\%}\\) | How many accounts it takes to reach the broad supermajority protocol upgrades need |
+
+Together they are the [PPoS Dex v3](ppos-dex.md#ppos-dex-v3). The higher the
+threshold, the more accounts it takes:
+\\(NC_{10\\%} \le NC_{20\\%} \le NC_{33\\%} \le NC_{90\\%}\\).
 
 Accounts rekeyed to the same address, or registering their participation keys
 with the same validity window, are likely run by the same operator. Merging
 them gives the _Nakamoto Coefficient of operators_: a heuristic, lower than or
 equal to the accounts one.
 
-### Example 5
+### Examples
 
-Four validators, one holding 70% of the stake and three holding 10% each:
+Six stake distributions, from a single dominant validator to 100 equal ones:
 
-| Metric               | Value                                 |
-|----------------------|---------------------------------------|
-| Validators           | \\(N = 4\\)                           |
-| Entropy equivalent   | \\(N_{H} = e^{0.940} \approx 2.56\\)  |
-| HHI equivalent       | \\(N_{HHI} = 1 / 0.52 \approx 1.92\\) |
-| Nakamoto Coefficient | \\(NC_{20\\%} = 1\\)                   |
+1. _One at 80%_: the largest validator holds 80% of the stake, the next 5 hold
+   2% each, the remaining 10 hold 1% each;
+1. _Six at 15%_: the 6 largest validators hold 15% each, the remaining 10 hold
+   1% each;
+1. _20 equal_: 20 validators hold 5% each;
+1. _One at 30%_: the largest validator holds 30% of the stake, the remaining 70
+   hold 1% each: a whale among many small validators;
+1. _20 large, 80 small_: 20 validators hold 4% each, 80 hold 0.25% each: a long
+   tail, the shape of real networks;
+1. _100 equal_: 100 validators hold 1% each.
 
-Four validators, as decentralized as about two and a half equal ones by entropy,
-or two by HHI, which is most sensitive to the dominant one, and a single one
-able to threaten the consensus.
+![Examples: who holds the stake, each validator a rectangle sized by its stake](../images/examples/stakes.svg)
+
+Compared by every metric:
+
+| Metric                       | 1. One at 80% | 2. Six at 15% | 3. 20 equal | 4. One at 30% | 5. 20 large, 80 small | 6. 100 equal |
+|------------------------------|--------------:|--------------:|------------:|--------------:|----------------------:|-------------:|
+| Validators \\(N\\)           |            16 |            16 |          20 |            71 |                   100 |          100 |
+| Gini \\(GI\\)                |         0.769 |         0.525 |           0 |         0.286 |                 0.600 |            0 |
+| Theil L \\(T_L\\)            |          1.34 |          0.82 |           0 |          0.29 |                  0.83 |            0 |
+| Theil T \\(T_T\\)            |          1.74 |          0.61 |           0 |          0.68 |                  0.83 |            0 |
+| HHI                          |         0.643 |         0.136 |        0.05 |         0.097 |                0.0325 |         0.01 |
+| Entropy equivalent \\(N_H\\) |           2.8 |           8.7 |          20 |          36.0 |                  43.5 |          100 |
+| HHI equivalent \\(N_{HHI}\\) |           1.6 |           7.4 |          20 |          10.3 |                  30.8 |          100 |
+| Overall evenness \\(E\\)     |          0.18 |          0.55 |           1 |          0.51 |                  0.44 |            1 |
+| Top evenness \\(E_{top}\\)   |          0.56 |          0.84 |           1 |          0.29 |                  0.71 |            1 |
+| Veto \\(NC_{10\\%}\\)        |             1 |             1 |           3 |             1 |                     3 |           11 |
+| Liveness \\(NC_{20\\%}\\)    |             1 |             2 |           5 |             1 |                     6 |           21 |
+| Nakamoto \\(NC_{33\\%}\\)    |             1 |             3 |           7 |             5 |                     9 |           34 |
+| Upgrade \\(NC_{90\\%}\\)     |             7 |             7 |          19 |            62 |                    61 |           91 |
+
+The Nakamoto Coefficients are where the stake of the largest validators crosses
+each threshold:
+
+![Examples: the stake of the largest validators against the four thresholds](../images/examples/coalitions.svg)
+
+The inequality indexes cannot tell 20 equal validators from 100: both are
+perfectly equal. The effective numbers and the Nakamoto Coefficients can: they
+grow with how many validators share the stake, from less than 3 to 100, and from
+a single validator able to threaten the consensus to dozens.
+
+The whale shows what the inequality indexes miss: with a Gini Index of 0.29 and
+an entropy equivalent of 36, its stake looks widely shared, yet a single
+validator is enough to veto an upgrade and to stall the consensus. The HHI
+equivalent, the top evenness and the Veto and Liveness Coefficients show it.
+
+The long tail shows the opposite blind spot: adding 80 small validators to 20
+large ones takes the Gini Index from 0 to 0.6, as if the stake had concentrated,
+while every count of validators grows. The [Snapshot](../data/snapshot.md)
+shows where the real network stands.
+
+![Examples: validators and their entropy and HHI equivalents](../images/examples/effective_numbers.svg)
 
 ## Account Participation Index
 

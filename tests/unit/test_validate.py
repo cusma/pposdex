@@ -46,7 +46,33 @@ def test_unknown_key_is_ignored(data_point: dict[str, object]) -> None:
     assert validate(data_point) == expected
 
 
-@pytest.mark.parametrize("key", ["ppos_dex_v3", "ppos_dex_v3_operators", "round"])
+@pytest.mark.parametrize(
+    ("legacy", "key"),
+    [
+        ("ppos_dex_v3", "ppos_dex_v3_liveness"),
+        ("ppos_dex_v3_operators", "ppos_dex_v3_liveness_operators"),
+    ],
+)
+def test_legacy_key_is_renamed(
+    data_point: dict[str, object], legacy: str, key: str
+) -> None:
+    # Published by 4.0.0, when v3 was the liveness coefficient alone
+    data_point[legacy] = 7
+    validated = validate(data_point)
+    assert validated[key] == 7  # type: ignore[literal-required]
+    assert legacy not in validated
+
+
+@pytest.mark.parametrize(
+    "key",
+    [
+        "ppos_dex_v3_veto",
+        "ppos_dex_v3_liveness_operators",
+        "ppos_dex_v3_nakamoto",
+        "ppos_dex_v3_upgrade_operators",
+        "round",
+    ],
+)
 def test_optional_count(data_point: dict[str, object], key: str) -> None:
     data_point[key] = 13
     assert validate(data_point)[key] == 13  # type: ignore[literal-required]

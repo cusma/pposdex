@@ -4,6 +4,7 @@ PPoS Dex insights: views derived from the published data, for the docs
 Run `python -m pposdex.insights` to save them in `./docs/images/insights`.
 """
 
+import itertools
 import math
 import statistics
 from collections.abc import Callable
@@ -23,6 +24,7 @@ from matplotlib.figure import Figure
 from matplotlib.ticker import (
     FuncFormatter,
     LogLocator,
+    MaxNLocator,
     NullFormatter,
     PercentFormatter,
 )
@@ -51,7 +53,10 @@ from pposdex.ppos_dex_data import (
     PPoSDexData,
     effective_validators,
     equal_stake_validators,
+    evenness,
     online_accounts,
+    top_evenness,
+    total_accounts,
 )
 from pposdex.theme import Theme, output, title
 
@@ -66,11 +71,6 @@ YEAR_TOLERANCE = timedelta(days=15)
 MAX_CHANGE = 0.2
 # Smaller yearly changes round to zero: shown as no change
 NO_CHANGE = 0.0005
-
-
-def total_accounts(data: PPoSDexData) -> float:
-    """Accounts holding at least the threshold"""
-    return data["accounts"]
 
 
 def circulating_algo(data: PPoSDexData) -> float:
@@ -100,6 +100,8 @@ class Indicator:
     # Whether a higher value means more decentralization
     higher_is_better: bool
     fmt: Format = decimal
+    # The same metric merging the accounts likely run by the same operator
+    operators: Metric | None = None
 
     def value(self, data: PPoSDexData) -> float:
         return Line(self.key, self.label).value(data)
@@ -107,28 +109,39 @@ class Indicator:
 
 # Absolute numbers: they grow with the network, ratios can hide that
 ABSOLUTE = (
-    Indicator(online_accounts, "Online Accounts", True, count),
     Indicator(online_algo, "Online Stake", True, billions),
-    Indicator(effective_validators, "Effective Validators", True, count),
+    Indicator(online_accounts, "Online Accounts", True, count),
+    Indicator(effective_validators, "Entropy Equivalent Validators", True, count),
 )
-# What the network grows with: holders and supply
-CONTEXT = (
-    Indicator(total_accounts, "Accounts", True, count),
-    Indicator(circulating_algo, "Circulating Supply", True, billions),
+# The holders the network grows with
+ACCOUNTS = Indicator(
+    total_accounts, f"Accounts > {cli.DEFAULT_ALGO_THRESHOLD:,} ALGO", True, count
 )
-INDICATORS = (
-    Indicator("ppos_dex_v3", "PPoS Dex V3", True, count),
-    Indicator("ppos_dex_v3_operators", "PPoS Dex V3 Operators", True, count),
-    Indicator("ppos_dex_v2", "PPoS Dex V2", True),
-    Indicator("ppos_dex", "PPoS Dex V1", True),
-    Indicator("algo_dynamics", "ALGO Supply", True, percent),
-    Indicator("ppos_gini", "Gini Index", False),
+# PPoS Dex v3 coefficients: by account, by likely operator, and their name
+V3_KEYS: tuple[tuple[Metric, Metric, str], ...] = (
+    ("ppos_dex_v3_veto", "ppos_dex_v3_veto_operators", "Veto"),
+    ("ppos_dex_v3_liveness", "ppos_dex_v3_liveness_operators", "Liveness"),
+    ("ppos_dex_v3_nakamoto", "ppos_dex_v3_nakamoto_operators", "Nakamoto"),
+    ("ppos_dex_v3_upgrade", "ppos_dex_v3_upgrade_operators", "Upgrade"),
+)
+V3 = tuple(
+    Indicator(accounts, f"PPoS Dex v3 {name}", True, count, operators)
+    for accounts, operators, name in V3_KEYS
+)
+DEX = (
+    Indicator("ppos_dex", "PPoS Dex v1", True),
+    Indicator("ppos_dex_v2", "PPoS Dex v2", True),
+)
+# At a glance, below the absolute numbers: the index components have their
+# own charts
+TILES = (*V3, *DEX)
+CONCENTRATION = (
     Indicator("ppos_hhi", "HHI", False),
-    Indicator("ppos_theil_l", "Theil L Index", False),
-    Indicator("ppos_theil_t", "Theil T Index", False),
     Indicator("algo_hhi", "ALGO HHI", False),
 )
-HEATMAP = (*ABSOLUTE, *CONTEXT, *INDICATORS)
+# Monthly changes, in groups: the network, the v3 coefficients, the indexes
+HEATMAP_GROUPS = ((*ABSOLUTE, ACCOUNTS), V3, (*DEX, *CONCENTRATION))
+HEATMAP = tuple(i for group in HEATMAP_GROUPS for i in group)
 
 TIMESERIES = (
     TimeseriesChart(
@@ -145,6 +158,20 @@ TIMESERIES = (
                 ),
                 fmt=count,
                 log=True,
+            ),
+        ),
+    ),
+    TimeseriesChart(
+        name="evenness",
+        title="Stake Evenness",
+        panels=(
+            TimeseriesPanel(
+                "1 = all the online accounts hold the same stake",
+                (
+                    Line(top_evenness, "Top Evenness"),
+                    Line(evenness, "Overall Evenness"),
+                ),
+                y_max=1,
             ),
         ),
     ),
@@ -167,7 +194,7 @@ TIMESERIES = (
         title="Effective Holders",
         panels=(
             TimeseriesPanel(
-                f"How many equal holders the ALGO of the accounts holding at least "
+                f"How many equal holders the ALGO of the accounts holding more than "
                 f"{cli.DEFAULT_ALGO_THRESHOLD:,} ALGO is worth (HHI equivalent)",
                 (Line(effective_holders, "Effective Holders"),),
                 fmt=count,
@@ -384,9 +411,9 @@ def trajectory_figure(ppos_dex_data: list[PPoSDexData], theme: Theme) -> Figure:
 
 
 def heatmap_figure(ppos_dex_data: list[PPoSDexData], theme: Theme) -> Figure:
-    absolute = with_data(ABSOLUTE, ppos_dex_data)
-    context = with_data(CONTEXT, ppos_dex_data)
-    indicators = (*absolute, *context, *with_data(INDICATORS, ppos_dex_data))
+    groups = [with_data(group, ppos_dex_data) for group in HEATMAP_GROUPS]
+    groups = [group for group in groups if group]
+    indicators = tuple(i for group in groups for i in group)
     months, rows = monthly_changes(ppos_dex_data, indicators)
     fig, ax = plt.subplots(
         figsize=(9, 1.8 + 0.34 * len(indicators)), layout="constrained"
@@ -413,8 +440,8 @@ def heatmap_figure(ppos_dex_data: list[PPoSDexData], theme: Theme) -> Figure:
             linewidth=0,
             zorder=0,
         )
-    # Separate the absolute numbers from the ratios and indexes
-    for row in (len(absolute), len(absolute) + len(context)):
+    # Separate the groups
+    for row in itertools.accumulate(len(group) for group in groups[:-1]):
         ax.axhline(row, color=theme.baseline, linewidth=0.8)
     ax.set_yticks(
         [row + 0.5 for row in range(len(indicators))],
@@ -440,22 +467,45 @@ def heatmap_figure(ppos_dex_data: list[PPoSDexData], theme: Theme) -> Figure:
     return fig
 
 
+def since_first(
+    ppos_dex_data: list[PPoSDexData], indicator: Indicator
+) -> list[PPoSDexData]:
+    """The data points from the first one with the indicator"""
+    for n, data in enumerate(ppos_dex_data):
+        if not math.isnan(indicator.value(data)):
+            return ppos_dex_data[n:]
+    return ppos_dex_data
+
+
 def _tile(
     ax: Axes, ppos_dex_data: list[PPoSDexData], indicator: Indicator, theme: Theme
 ) -> None:
     dates, values = series(ppos_dex_data, Line(indicator.key, ""))
     ax.plot(mdates.date2num(dates), values, color=theme.series[0], linewidth=1.2)
+    if indicator.operators:
+        # Operators as a lighter line under the accounts
+        _, operators = series(ppos_dex_data, Line(indicator.operators, ""))
+        ax.plot(
+            mdates.date2num(dates),
+            operators,
+            color=theme.series[0],
+            alpha=0.45,
+            linewidth=1,
+        )
     ax.set_title(indicator.label, fontsize=9, pad=22)
-    if not indicator.higher_is_better:
-        ax.invert_yaxis()
     ax.tick_params(axis="y", labelsize=7)
-    if indicator.fmt is percent:
-        ax.yaxis.set_major_formatter(PercentFormatter(1))
-    elif indicator.fmt is not decimal:
+    if indicator.fmt is not decimal:
         ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: indicator.fmt(v)))
-    ax.locator_params(axis="y", nbins=3)
+    if indicator.fmt is count:
+        # Steady counts still get whole number ticks
+        low, high = ax.get_ylim()
+        if high - low < 2:
+            ax.set_ylim((low + high) / 2 - 1, (low + high) / 2 + 1)
+        ax.yaxis.set_major_locator(MaxNLocator(3, integer=True))
+    else:
+        ax.locator_params(axis="y", nbins=3)
     value = indicator.value(ppos_dex_data[-1])
-    ax.annotate(
+    headline = ax.annotate(
         "—" if math.isnan(value) else indicator.fmt(value),
         (0, 1),
         xycoords="axes fraction",
@@ -465,6 +515,19 @@ def _tile(
         fontweight="bold",
         color=theme.ink,
     )
+    if indicator.operators:
+        operators_now = Line(indicator.operators, "").value(ppos_dex_data[-1])
+        if not math.isnan(operators_now):
+            ax.annotate(
+                f"· {indicator.fmt(operators_now)} "
+                f"{'operator' if operators_now == 1 else 'operators'}",
+                (1, 0),
+                xycoords=headline,
+                xytext=(4, 0),
+                textcoords="offset points",
+                fontsize=9,
+                color=theme.ink_secondary,
+            )
     delta = year_change(ppos_dex_data, indicator.value, indicator.higher_is_better)
     if delta is None:
         text, color = "no data a year ago", theme.muted
@@ -492,7 +555,7 @@ def _tile(
 def glance_figure(ppos_dex_data: list[PPoSDexData], theme: Theme) -> Figure:
     # The absolute numbers on a row of their own, the indicators in two columns
     absolute = with_data(ABSOLUTE, ppos_dex_data)
-    indicators = with_data(INDICATORS, ppos_dex_data)
+    indicators = with_data(TILES, ppos_dex_data)
     rows = 1 + math.ceil(len(indicators) / 2)
     fig = plt.figure(figsize=(9, 1.2 + 1.9 * rows), layout="constrained")
     grid = fig.add_gridspec(rows, 6)
@@ -500,8 +563,7 @@ def glance_figure(ppos_dex_data: list[PPoSDexData], theme: Theme) -> Figure:
     fig.text(
         0.01,
         1 - 0.55 / fig.get_figheight(),
-        f"Latest data {timestamp(ppos_dex_data[-1]):%-d %b %Y}, and change in one "
-        "year. Inverted axes for inequality: up always means more decentralized",
+        f"Latest data {timestamp(ppos_dex_data[-1]):%-d %b %Y}, and change in one year",
         color=theme.ink_secondary,
         fontsize=9,
     )
@@ -512,6 +574,11 @@ def glance_figure(ppos_dex_data: list[PPoSDexData], theme: Theme) -> Figure:
     ]
     first: Axes | None = None
     for cell, indicator in zip(cells, (*absolute, *indicators), strict=True):
+        data = since_first(ppos_dex_data, indicator)
+        # Metrics published in the last year get their own time axis
+        if timestamp(data[0]) > timestamp(ppos_dex_data[-1]) - YEAR:
+            _tile(fig.add_subplot(cell), data, indicator, theme)
+            continue
         ax = fig.add_subplot(cell, sharex=first)
         first = first or ax
         _tile(ax, ppos_dex_data, indicator, theme)
