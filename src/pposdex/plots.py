@@ -5,7 +5,7 @@ PPoS Dex plots
 import math
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from functools import partial
 from itertools import pairwise
 from pathlib import Path
@@ -22,12 +22,15 @@ from matplotlib.ticker import (
     PercentFormatter,
 )
 
+from pposdex import treemap
+from pposdex.helpers import Json
 from pposdex.ppos_dex_data import (
     Metric,
     PPoSDexData,
     effective_validators,
     equal_stake_validators,
     online_accounts,
+    operator_stakes,
     total_accounts,
 )
 from pposdex.theme import Theme, output, title
@@ -536,6 +539,63 @@ def timeseries(ppos_dex_data: list[PPoSDexData], save: bool = False) -> None:
     chronological = ppos_dex_data[::-1]
     for chart in TIMESERIES:
         plot_timeseries(chart, chronological, save)
+
+
+# Validators holding less than this share of the online stake are too small to
+# show: they are drawn together, as a single box
+SMALL_STAKE = 0.001
+# Gap between the validators of a treemap, as a fraction of its side
+TREEMAP_GAP = 0.004
+
+
+def stakes_figure(
+    online: list[Json], algo_threshold: int, date: datetime, theme: Theme
+) -> Figure:
+    fig, axes = plt.subplots(1, 2, figsize=(9, 5.4), layout="constrained")
+    title(fig, "Who Holds the Online Stake", theme)
+    fig.text(
+        0.01,
+        1 - 0.55 / fig.get_figheight(),
+        f"{date:%-d %b %Y}  ·  Online accounts holding more than "
+        f"{algo_threshold:,} ALGO: each rectangle is a validator, its area its stake",
+        color=theme.ink_secondary,
+        fontsize=10,
+    )
+    fig.get_layout_engine().set(rect=(0, 0, 1, 1 - 0.75 / fig.get_figheight()))  # type: ignore[union-attr,call-arg]
+    panels = (
+        ("By account", "accounts", [account["amount"] for account in online]),
+        ("By likely operator", "operators", operator_stakes(online)),
+    )
+    for ax, (label, noun, validators) in zip(axes, panels, strict=True):
+        ranked = sorted(validators, reverse=True)
+        total = sum(ranked)
+        large = [stake for stake in ranked if stake >= SMALL_STAKE * total]
+        small = ranked[len(large) :]
+        ax.set_title(f"{label}\n{len(ranked):,} {noun}")
+        treemap.draw(
+            ax,
+            [*large, *([sum(small)] if small else [])],
+            [theme.series[0]] * len(large) + [theme.muted] * bool(small),
+            TREEMAP_GAP,
+        )
+        if small:
+            ax.text(
+                0.5,
+                -0.03,
+                f"Gray: {len(small):,} {noun} under {SMALL_STAKE:.1%} each, "
+                f"together {sum(small) / total:.0%}",
+                transform=ax.transAxes,
+                ha="center",
+                va="top",
+                color=theme.ink_secondary,
+                fontsize=9,
+            )
+    return fig
+
+
+def stakes(online: list[Json], algo_threshold: int, save: bool = False) -> None:
+    figure = partial(stakes_figure, online, algo_threshold, datetime.now(UTC))
+    output(figure, SNAPSHOT_DIR / "stakes", save)
 
 
 def snapshot(ppos_dex_data: list[PPoSDexData], save: bool = False) -> None:

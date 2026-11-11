@@ -86,6 +86,7 @@ def get_publisher_account() -> Account:
 def get_algo_holders(
     indexer_client: IndexerClient,
     microalgo_min_balance: int | None = None,
+    online_only: bool = False,
 ) -> list[Json]:
     """
     Get Accounts holding a balance greater than `microalgo_min_balance`
@@ -93,6 +94,7 @@ def get_algo_holders(
     Args:
         indexer_client: Algorand Indexer Client
         microalgo_min_balance: microALGO minimum balance
+        online_only: Only the online accounts
 
     Returns:
         Accounts holding a balance greater than `microalgo_min_balance`
@@ -106,6 +108,7 @@ def get_algo_holders(
             next_page=nexttoken,
             min_balance=microalgo_min_balance,
             exclude="all",
+            online_only=online_only,
             limit=ACCOUNTS_PAGE_SIZE,
         )
 

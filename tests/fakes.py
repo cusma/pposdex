@@ -78,7 +78,12 @@ class FakeIndexer(IndexerClient):
 
     def accounts(self, *args: Any, **kwargs: Any) -> Json:
         min_balance = kwargs.get("min_balance") or 0
-        holders = [h for h in self.holders if h["amount"] > min_balance]
+        holders = [
+            h
+            for h in self.holders
+            if h["amount"] > min_balance
+            and (h["status"] == "Online" or not kwargs.get("online_only"))
+        ]
         result = self._page(holders, kwargs, default_limit=100)
         return {"accounts": result.pop("page")} | result
 

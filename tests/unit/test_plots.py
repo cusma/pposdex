@@ -215,3 +215,35 @@ def test_v3_snapshot_shows_the_published_coefficients(
     # Each bar is a track and its fill
     assert [len(fig.axes[0].patches) for fig in figures] == [0, 4, 16]
     plt.close("all")
+
+
+class TestStakes:
+    @staticmethod
+    def figure_texts(amounts: list[int]) -> tuple[int, list[str]]:
+        online = [
+            {"address": f"ACCOUNT{i}", "amount": amount, "status": "Online"}
+            for i, amount in enumerate(amounts)
+        ]
+        with use(LIGHT):
+            fig = plots.stakes_figure(online, 1000, datetime(2026, 11, 11), LIGHT)
+        account_axes = fig.axes[0]
+        boxes = len(account_axes.patches)
+        texts = [t.get_text() for t in account_axes.texts]
+        plt.close(fig)
+        return boxes, texts
+
+    def test_small_validators_are_drawn_together(self) -> None:
+        boxes, texts = self.figure_texts([10_000] * 9 + [1] * 50)
+        assert boxes == 10
+        assert texts == ["Gray: 50 accounts under 0.1% each, together 0%"]
+
+    def test_no_box_for_small_validators_when_none(self) -> None:
+        boxes, texts = self.figure_texts([1] * 20)
+        assert boxes == 20
+        assert texts == []
+
+    def test_save(self, images: Path) -> None:
+        plots.stakes([{"address": "A", "amount": 1, "status": "Online"}], 1000, True)
+        assert sorted(p.name for p in (images / "snapshot").iterdir()) == svgs(
+            ["stakes"]
+        )

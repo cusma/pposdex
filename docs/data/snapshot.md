@@ -14,6 +14,17 @@ by HHI.
 
 ![Snapshot Validators](../images/snapshot/validators.svg)
 
+### Online Stake
+
+Who holds the online stake, by account and by [likely
+operator](../project/ppos-dex.md#ppos-dex-v3): the same view as the
+[examples](../project/stake.md#examples), with the real validators.[^live]
+
+![Snapshot Online Stake](../images/snapshot/stakes.svg)
+
+[^live]: The published data has no stake of each account: this chart reads it
+    live from the Indexer when the docs are deployed.
+
 ## PPoS Dex
 
 ### PPoS Dex v3

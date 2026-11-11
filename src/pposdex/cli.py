@@ -8,9 +8,12 @@ import logging
 import sys
 from pprint import pprint
 
+from algosdk.constants import microalgos_to_algos_ratio
+from algosdk.v2client.indexer import IndexerClient
+
 from pposdex import plots
 from pposdex import ppos_dex_data as pposdex
-from pposdex.helpers import PPoSDexError, get_publisher_account
+from pposdex.helpers import PPoSDexError, get_algo_holders, get_publisher_account
 from pposdex.networks import (
     LOCALNET,
     MAINNET,
@@ -194,10 +197,14 @@ def run(args: argparse.Namespace) -> None:
             start_block=args.start_block,
             end_block=args.end_block,
         )
-        show_data(args, ppos_dex_data)
+        show_data(args, ppos_dex_data, indexer_client)
 
 
-def show_data(args: argparse.Namespace, ppos_dex_data: list[PPoSDexData]) -> None:
+def show_data(
+    args: argparse.Namespace,
+    ppos_dex_data: list[PPoSDexData],
+    indexer_client: IndexerClient,
+) -> None:
     if args.command == "timeseries":
         if args.save:
             print("💾 Saving timeseries in './docs/images/timeseries'...\n")
@@ -206,6 +213,14 @@ def show_data(args: argparse.Namespace, ppos_dex_data: list[PPoSDexData]) -> Non
         if args.save:
             print("💾 Saving snapshots in './docs/images/snapshot'...\n")
         plots.snapshot(ppos_dex_data, args.save)
+        # The published data has no stake of each account: read it live
+        holders = get_algo_holders(
+            indexer_client,
+            args.algo_threshold * microalgos_to_algos_ratio,
+            online_only=True,
+        )
+        online = [h for h in holders if h["status"] == "Online"]
+        plots.stakes(online, args.algo_threshold, args.save)
     elif args.command == "export":
         print("💾 Exporting PPoS Dex data to 'ppos_dex_data.csv'...\n")
         with open("ppos_dex_data.csv", "w", encoding="utf8", newline="") as f:

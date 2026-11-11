@@ -161,6 +161,13 @@ class TestCommands:
         main([command, "--save"])
         assert list((images / command).glob("*.svg"))
 
+    def test_snapshot_reads_the_online_stakes_live(
+        self, network: list[Network], indexer: FakeIndexer, images: Path
+    ) -> None:
+        main(["snapshot", "--save"])
+        assert any(request.get("online_only") for request in indexer.requests)
+        assert (images / "snapshot" / "stakes.svg").exists()
+
     @pytest.mark.parametrize("command", ["timeseries", "snapshot"])
     def test_plots_shown(
         self,
