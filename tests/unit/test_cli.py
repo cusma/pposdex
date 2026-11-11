@@ -144,14 +144,17 @@ class TestCommands:
         make_data_point: Callable[..., PPoSDexData],
     ) -> None:
         indexer.notes[DEFAULT_PUBLISHER] = [
-            msgpack.packb(make_data_point(ppos_dex_v3=13, round=66605064)),
+            msgpack.packb(make_data_point(ppos_dex_v3_nakamoto=13, round=66605064)),
+            # Published by 4.0.0, when v3 was the liveness coefficient alone
+            msgpack.packb(make_data_point(ppos_dex_v3=7)),
             msgpack.packb(make_data_point(timestamp="2025-11-03 00:00:00.0")),
         ]
         main(["export"])
         with Path("ppos_dex_data.csv").open(encoding="utf8") as f:
             rows = list(csv.DictReader(f))
-        assert [row["ppos_dex_v3"] for row in rows] == ["13", ""]
-        assert [row["round"] for row in rows] == ["66605064", ""]
+        assert [row["ppos_dex_v3_nakamoto"] for row in rows] == ["13", "", ""]
+        assert [row["ppos_dex_v3_liveness"] for row in rows] == ["", "7", ""]
+        assert [row["round"] for row in rows] == ["66605064", "", ""]
 
     @pytest.mark.parametrize("command", ["timeseries", "snapshot"])
     def test_plots(self, network: list[Network], images: Path, command: str) -> None:

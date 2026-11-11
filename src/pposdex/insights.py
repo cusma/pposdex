@@ -117,8 +117,8 @@ CONTEXT = (
     Indicator(circulating_algo, "Circulating Supply", True, billions),
 )
 INDICATORS = (
-    Indicator("ppos_dex_v3", "PPoS Dex V3", True, count),
-    Indicator("ppos_dex_v3_operators", "PPoS Dex V3 Operators", True, count),
+    Indicator("ppos_dex_v3_liveness", "PPoS Dex V3", True, count),
+    Indicator("ppos_dex_v3_liveness_operators", "PPoS Dex V3 Operators", True, count),
     Indicator("ppos_dex_v2", "PPoS Dex V2", True),
     Indicator("ppos_dex", "PPoS Dex V1", True),
     Indicator("algo_dynamics", "ALGO Supply", True, percent),

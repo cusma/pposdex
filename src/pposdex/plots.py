@@ -167,8 +167,8 @@ TIMESERIES = (
             TimeseriesPanel(
                 "Fewest online accounts holding more than 20% of the online stake",
                 (
-                    Line("ppos_dex_v3", "PPoS Dex V3"),
-                    Line("ppos_dex_v3_operators", "V3 Operators"),
+                    Line("ppos_dex_v3_liveness", "PPoS Dex V3"),
+                    Line("ppos_dex_v3_liveness_operators", "V3 Operators"),
                 ),
                 fmt=count,
             ),
@@ -225,9 +225,12 @@ SNAPSHOTS = (
             Bar("Online Accounts", online_accounts, online_accounts, count),
             Bar("Entropy Equivalent", effective_validators, online_accounts, count),
             Bar("HHI Equivalent", equal_stake_validators, online_accounts, count),
-            Bar("PPoS Dex V3", "ppos_dex_v3", online_accounts, count),
+            Bar("PPoS Dex V3", "ppos_dex_v3_liveness", online_accounts, count),
             Bar(
-                "PPoS Dex V3 Operators", "ppos_dex_v3_operators", online_accounts, count
+                "PPoS Dex V3 Operators",
+                "ppos_dex_v3_liveness_operators",
+                online_accounts,
+                count,
             ),
         ),
     ),

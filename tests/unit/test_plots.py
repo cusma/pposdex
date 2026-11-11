@@ -169,7 +169,7 @@ class TestPanelsWithData:
         chart = next(c for c in plots.TIMESERIES if c.name == "ppos_dex")
         with use(LIGHT):
             before = plots.timeseries_figure(chart, data[::-1], LIGHT)
-            data[0]["ppos_dex_v3"] = 7
+            data[0]["ppos_dex_v3_liveness"] = 7
             after = plots.timeseries_figure(chart, data[::-1], LIGHT)
         assert (len(before.axes), len(after.axes)) == (2, 3)
         plt.close("all")
@@ -191,7 +191,9 @@ def test_validators_snapshot_shows_v3_once_published(
     with use(LIGHT):
         before = plots.snapshot_figure(chart, make_data_point(), LIGHT)
         after = plots.snapshot_figure(
-            chart, make_data_point(ppos_dex_v3=7, ppos_dex_v3_operators=2), LIGHT
+            chart,
+            make_data_point(ppos_dex_v3_liveness=7, ppos_dex_v3_liveness_operators=2),
+            LIGHT,
         )
     # Each bar is a track and its fill
     assert (len(before.axes[0].patches), len(after.axes[0].patches)) == (6, 10)
