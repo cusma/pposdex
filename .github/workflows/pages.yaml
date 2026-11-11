@@ -53,6 +53,10 @@ jobs:
         continue-on-error: true
         run: uv run --no-sync python -m pposdex.insights
 
+      # The examples need no data: a failure is a bug, not an outage
+      - name: Render examples
+        run: uv run --no-sync python -m pposdex.examples
+
       - name: Keep online plots that failed to render
         env:
           SITE_URL: ${{ steps.pages.outputs.base_url }}

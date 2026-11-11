@@ -215,35 +215,58 @@ equal to the accounts one.
 
 ### Examples
 
-Four stake distributions, from a single dominant validator to 100 equal ones:
+Six stake distributions, from a single dominant validator to 100 equal ones:
 
 1. _One at 80%_: the largest validator holds 80% of the stake, the next 5 hold
    2% each, the remaining 10 hold 1% each;
 1. _Six at 15%_: the 6 largest validators hold 15% each, the remaining 10 hold
    1% each;
 1. _20 equal_: 20 validators hold 5% each;
+1. _One at 30%_: the largest validator holds 30% of the stake, the remaining 70
+   hold 1% each: a whale among many small validators;
+1. _20 large, 80 small_: 20 validators hold 4% each, 80 hold 0.25% each: a long
+   tail, the shape of real networks;
 1. _100 equal_: 100 validators hold 1% each.
+
+![Examples: who holds the stake, each validator a rectangle sized by its stake](../images/examples/stakes.svg)
 
 Compared by every metric:
 
-| Metric                       | 1. One at 80% | 2. Six at 15% | 3. 20 equal | 4. 100 equal |
-|------------------------------|--------------:|--------------:|------------:|-------------:|
-| Validators \\(N\\)           |            16 |            16 |          20 |          100 |
-| Gini \\(GI\\)                |         0.769 |         0.525 |           0 |            0 |
-| Theil L \\(T_L\\)            |          1.34 |          0.82 |           0 |            0 |
-| Theil T \\(T_T\\)            |          1.74 |          0.61 |           0 |            0 |
-| HHI                          |         0.643 |         0.136 |        0.05 |         0.01 |
-| Entropy equivalent \\(N_H\\) |           2.8 |           8.7 |          20 |          100 |
-| HHI equivalent \\(N_{HHI}\\) |           1.6 |           7.4 |          20 |          100 |
-| Veto \\(NC_{10\\%}\\)        |             1 |             1 |           3 |           11 |
-| Liveness \\(NC_{20\\%}\\)    |             1 |             2 |           5 |           21 |
-| Nakamoto \\(NC_{33\\%}\\)    |             1 |             3 |           7 |           34 |
-| Upgrade \\(NC_{90\\%}\\)     |             7 |             7 |          19 |           91 |
+| Metric                       | 1. One at 80% | 2. Six at 15% | 3. 20 equal | 4. One at 30% | 5. 20 large, 80 small | 6. 100 equal |
+|------------------------------|--------------:|--------------:|------------:|--------------:|----------------------:|-------------:|
+| Validators \\(N\\)           |            16 |            16 |          20 |            71 |                   100 |          100 |
+| Gini \\(GI\\)                |         0.769 |         0.525 |           0 |         0.286 |                 0.600 |            0 |
+| Theil L \\(T_L\\)            |          1.34 |          0.82 |           0 |          0.29 |                  0.83 |            0 |
+| Theil T \\(T_T\\)            |          1.74 |          0.61 |           0 |          0.68 |                  0.83 |            0 |
+| HHI                          |         0.643 |         0.136 |        0.05 |         0.097 |                0.0325 |         0.01 |
+| Entropy equivalent \\(N_H\\) |           2.8 |           8.7 |          20 |          36.0 |                  43.5 |          100 |
+| HHI equivalent \\(N_{HHI}\\) |           1.6 |           7.4 |          20 |          10.3 |                  30.8 |          100 |
+| Veto \\(NC_{10\\%}\\)        |             1 |             1 |           3 |             1 |                     3 |           11 |
+| Liveness \\(NC_{20\\%}\\)    |             1 |             2 |           5 |             1 |                     6 |           21 |
+| Nakamoto \\(NC_{33\\%}\\)    |             1 |             3 |           7 |             5 |                     9 |           34 |
+| Upgrade \\(NC_{90\\%}\\)     |             7 |             7 |          19 |            62 |                    61 |           91 |
+
+The Nakamoto Coefficients are where the stake of the largest validators crosses
+each threshold:
+
+![Examples: the stake of the largest validators against the four thresholds](../images/examples/coalitions.svg)
 
 The inequality indexes cannot tell 20 equal validators from 100: both are
 perfectly equal. The effective numbers and the Nakamoto Coefficients can: they
 grow with how many validators share the stake, from less than 3 to 100, and from
 a single validator able to threaten the consensus to dozens.
+
+The whale shows what the inequality indexes miss: with a Gini Index of 0.29 and
+an entropy equivalent of 36, its stake looks widely shared, yet a single
+validator is enough to veto an upgrade and to stall the consensus. The HHI
+equivalent and the Veto and Liveness Coefficients show it.
+
+The long tail shows the opposite blind spot: adding 80 small validators to 20
+large ones takes the Gini Index from 0 to 0.6, as if the stake had concentrated,
+while every count of validators grows. The [Snapshot](../data/snapshot.md)
+shows where the real network stands.
+
+![Examples: validators and their entropy and HHI equivalents](../images/examples/effective_numbers.svg)
 
 ## Account Participation Index
 
