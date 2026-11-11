@@ -197,6 +197,25 @@ def equal_stake_validators(data: PPoSDexData) -> float:
     return 1 / hhi if hhi else math.nan
 
 
+def evenness(data: PPoSDexData) -> float:
+    """Entropy equivalent validators as a share of the online accounts
+
+    1 when all the online accounts hold the same stake. It is exp(-T): small
+    validators joining lower it, as they raise Theil T.
+    """
+    return math.exp(-data["ppos_theil_t"])
+
+
+def top_evenness(data: PPoSDexData) -> float:
+    """HHI equivalent validators as a share of the entropy equivalent ones
+
+    1 when all the online accounts hold the same stake, lower the more the
+    largest validators outweigh the rest. Small validators change it less than
+    the overall evenness.
+    """
+    return equal_stake_validators(data) / effective_validators(data)
+
+
 def operator_stakes(online_accounts: list[Json]) -> list[int]:
     """
     Stakes of the likely operators of online accounts

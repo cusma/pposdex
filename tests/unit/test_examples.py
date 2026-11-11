@@ -16,6 +16,24 @@ TABLE = {
     "100 equal": (100, 100, 100, (11, 21, 34, 91)),
 }
 
+# The overall and top evenness
+EVENNESS = {
+    "One at 80%": (0.18, 0.56),
+    "Six at 15%": (0.55, 0.84),
+    "20 equal": (1, 1),
+    "One at 30%": (0.51, 0.29),
+    "20 large, 80 small": (0.44, 0.71),
+    "100 equal": (1, 1),
+}
+
+
+@pytest.mark.parametrize("example", examples.EXAMPLES, ids=lambda e: e.name)
+def test_evenness_matches_the_docs(example: examples.Example) -> None:
+    entropy, hhi = example.entropy_equivalent, example.hhi_equivalent
+    overall, top = EVENNESS[example.name]
+    assert round(entropy / example.validators, 2) == overall
+    assert round(hhi / entropy, 2) == top
+
 
 @pytest.mark.parametrize("example", examples.EXAMPLES, ids=lambda e: e.name)
 def test_values_match_the_docs(example: examples.Example) -> None:

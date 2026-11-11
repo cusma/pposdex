@@ -184,6 +184,36 @@ always the lowest of the three counts:
 > A participant can control many accounts: counting accounts, the effective
 > numbers are an upper bound for the participants behind them.
 
+#### Stake Evenness
+
+The effective numbers grow both with how many validators there are and with how
+evenly they share the stake. Their ratios keep the evenness alone: a network ten
+times larger, with stakes shared the same way, has the same ratios.
+
+The _overall evenness_ is the entropy equivalent as a share of the validators:
+
+\\[ E = \frac{N_H}{N} = e^{-T_T(S)} \\]
+
+so the entropy equivalent is the number of validators times their evenness,
+\\(N_H = N \cdot E\\). The _top evenness_ is the HHI equivalent as a share of the
+entropy equivalent:
+
+\\[ E_{top} = \frac{N_{HHI}}{N_H} \\]
+
+Both are 1 when all the validators hold the same stake, and lower the less even
+the stake is. Small validators joining lower the overall evenness, as they
+raise the Theil T index, and the top evenness less: the HHI weighs them little,
+so the top evenness tells how much the largest validators outweigh the rest. In
+ecology, where they measure the diversity of species, these ratios are the
+evenness of the Hill numbers.
+
+> [!IMPORTANT]
+> Evenness is not decentralization: it ignores how many validators there are.
+> 20 equal validators are as even as 100, and a single validator holding 80% of
+> the stake is more even at the top than one holding 30% among 70 small ones:
+> see the [examples](#examples). Read it next to the effective numbers, not as
+> a score.
+
 ### Nakamoto Coefficient
 
 The _Nakamoto Coefficient_ (\\(NC\\)) counts the fewest validators holding
@@ -241,6 +271,8 @@ Compared by every metric:
 | HHI                          |         0.643 |         0.136 |        0.05 |         0.097 |                0.0325 |         0.01 |
 | Entropy equivalent \\(N_H\\) |           2.8 |           8.7 |          20 |          36.0 |                  43.5 |          100 |
 | HHI equivalent \\(N_{HHI}\\) |           1.6 |           7.4 |          20 |          10.3 |                  30.8 |          100 |
+| Overall evenness \\(E\\)     |          0.18 |          0.55 |           1 |          0.51 |                  0.44 |            1 |
+| Top evenness \\(E_{top}\\)   |          0.56 |          0.84 |           1 |          0.29 |                  0.71 |            1 |
 | Veto \\(NC_{10\\%}\\)        |             1 |             1 |           3 |             1 |                     3 |           11 |
 | Liveness \\(NC_{20\\%}\\)    |             1 |             2 |           5 |             1 |                     6 |           21 |
 | Nakamoto \\(NC_{33\\%}\\)    |             1 |             3 |           7 |             5 |                     9 |           34 |
@@ -259,7 +291,7 @@ a single validator able to threaten the consensus to dozens.
 The whale shows what the inequality indexes miss: with a Gini Index of 0.29 and
 an entropy equivalent of 36, its stake looks widely shared, yet a single
 validator is enough to veto an upgrade and to stall the consensus. The HHI
-equivalent and the Veto and Liveness Coefficients show it.
+equivalent, the top evenness and the Veto and Liveness Coefficients show it.
 
 The long tail shows the opposite blind spot: adding 80 small validators to 20
 large ones takes the Gini Index from 0 to 0.6, as if the stake had concentrated,

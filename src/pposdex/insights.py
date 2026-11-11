@@ -53,7 +53,9 @@ from pposdex.ppos_dex_data import (
     PPoSDexData,
     effective_validators,
     equal_stake_validators,
+    evenness,
     online_accounts,
+    top_evenness,
     total_accounts,
 )
 from pposdex.theme import Theme, output, title
@@ -156,6 +158,20 @@ TIMESERIES = (
                 ),
                 fmt=count,
                 log=True,
+            ),
+        ),
+    ),
+    TimeseriesChart(
+        name="evenness",
+        title="Stake Evenness",
+        panels=(
+            TimeseriesPanel(
+                "1 = all the online accounts hold the same stake",
+                (
+                    Line(top_evenness, "Top Evenness"),
+                    Line(evenness, "Overall Evenness"),
+                ),
+                y_max=1,
             ),
         ),
     ),

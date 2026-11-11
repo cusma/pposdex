@@ -55,6 +55,16 @@ the further below the path runs, the more concentrated the stake is.
 
 ![Timeseries Decentralization Trajectory](../images/insights/trajectory.svg)
 
+### Stake Evenness
+
+The [stake evenness](../project/stake.md#stake-evenness) of the online accounts:
+how evenly they share the stake, whatever their number. The overall evenness is
+the share of the online accounts the effective validators amount to, the dashed
+lines of the trajectory; the top evenness tells how much the largest validators
+outweigh the rest.
+
+![Timeseries Stake Evenness](../images/insights/evenness.svg)
+
 ## PPoS Dex
 
 ### PPoS Dex v3

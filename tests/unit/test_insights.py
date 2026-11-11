@@ -15,6 +15,7 @@ CHARTS = [
     "at_a_glance",
     "effective_holders",
     "effective_validators",
+    "evenness",
     "monthly_change",
     "online_stake",
     "trajectory",
@@ -42,6 +43,9 @@ def data(make_data_point: Callable[..., PPoSDexData]) -> list[PPoSDexData]:
             ppos_dex=dex,
             accounts=accounts,
             ppos_online_accounts=0.1,
+            # Consistent: worth fewer validators by HHI than by entropy
+            ppos_theil_t=0.5,
+            ppos_hhi=0.2,
         )
         for day, dex, accounts in days
     ]
@@ -98,6 +102,19 @@ class TestDerivedMetrics:
         data = make_data_point()
         del data["ppos_hhi"]
         assert math.isnan(pposdex.equal_stake_validators(data))
+
+    def test_evenness(self, make_data_point: Callable[..., PPoSDexData]) -> None:
+        # 100 online accounts worth 25 by entropy and 20 by HHI
+        data = make_data_point(
+            accounts=100,
+            ppos_online_accounts=1,
+            ppos_theil_t=math.log(4),
+            ppos_hhi=0.05,
+        )
+        assert pposdex.evenness(data) == pytest.approx(0.25)
+        assert pposdex.top_evenness(data) == pytest.approx(0.8)
+        del data["ppos_hhi"]
+        assert math.isnan(pposdex.top_evenness(data))
 
     def test_effective_holders(
         self, make_data_point: Callable[..., PPoSDexData]
