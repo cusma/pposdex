@@ -107,11 +107,10 @@ thin ones the nodes to the relays.
 ### Finding the Relays
 
 By default, a node finds the relays in DNS records published under the
-network's bootstrap domain: 69 relays on MainNet, as of November 2026. This
-list is a default, not a permission. Any node configured to listen relays
-messages, and node operators can add relays to their own phonebook, or point
-their node to another bootstrap domain: relays run by third parties outside
-the list serve the network too.
+network's bootstrap domain. This list is a default, not a permission. Any node
+configured to listen relays messages, and node operators can add relays to their
+own phonebook, or point their node to another bootstrap domain: relays run by
+third parties outside the list serve the network too.
 
 The P2P network, built on [libp2p](https://libp2p.io/), also bootstraps from
 DNS, where the hybrid relays are listed. Nodes enabling it can then discover

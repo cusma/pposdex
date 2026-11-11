@@ -74,5 +74,11 @@ def test_nodes_hardware_matches_the_docs(nodes: int, expected: float) -> None:
 
 def test_observed_nodes_match_the_docs() -> None:
     low, high = examples.OBSERVED_NODES
+    first, last = examples.OBSERVED_YEARS
     assert round(examples.nodes_hardware(low), 2) == 0.01
     assert round(examples.nodes_hardware(high), 2) == 0.13
+    # The range and its years, as the Nodes page quotes them
+    nodes_page = (Path(__file__).parents[2] / "docs/project/nodes.md").read_text()
+    text = f"from about {low:,} to {high:,} full-time nodes between {first} and"
+    assert text in nodes_page
+    assert f"{first}\u2013{last}" in nodes_page

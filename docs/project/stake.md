@@ -44,7 +44,7 @@ How the circulating supply is measured depends on the Blockchain: see the
 [PPoS Dex](ppos-dex.md) for Algorand.
 
 > [!NOTE]
-> On Algorand, \\(S_{dyn}\\) has reached 0.98 and barely moves anymore: the
+> On Algorand, as of 2026, \\(S_{dyn}\\) has reached 0.98 and barely moves: the
 > stake participation \\(S_{p}\\) drives \\(S_P\\).
 
 ## Stake Inequality Index

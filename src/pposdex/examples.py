@@ -177,8 +177,9 @@ def effective_figure(theme: Theme) -> Figure:
 # Nodes Hardware Decentralization: speed of growth and inflection point
 NODES_K = 2
 NODES_LAMBDA = 10_000
-# Full-time node equivalents estimated by Nodely since 2024
+# Full-time node equivalents estimated by Nodely, over the years observed
 OBSERVED_NODES = (1_200, 3_700)
+OBSERVED_YEARS = (2024, 2026)
 
 
 def nodes_hardware(
@@ -196,9 +197,10 @@ def nodes_figure(theme: Theme) -> Figure:
     )
     nodes = [10 ** (2 + i / 100) for i in range(351)]
     low, high = OBSERVED_NODES
+    first, last = OBSERVED_YEARS
     ax.axvspan(low, high, color=theme.track, zorder=0)
     ax.annotate(
-        f"Algorand today\n{count(low)} to {count(high)} nodes",
+        f"Algorand, {first}\u2013{last}\n{count(low)} to {count(high)} nodes",
         (math.sqrt(low * high), 0.5),
         ha="center",
         va="center",
