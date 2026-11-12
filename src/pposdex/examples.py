@@ -8,11 +8,12 @@ import math
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial
-from itertools import accumulate
+from itertools import accumulate, combinations
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
+from matplotlib.patches import Circle, FancyBboxPatch, Patch
 from matplotlib.ticker import FuncFormatter, NullFormatter, PercentFormatter
 
 from pposdex import inequality_idx as idx
@@ -35,10 +36,19 @@ class Example:
         return len(self.stakes)
 
     @property
-    def entropy_equivalent(self) -> float:
+    def entropy(self) -> float:
+        """Shannon entropy of the stake shares, in nats"""
         total = sum(self.stakes)
-        entropy = -sum(s / total * math.log(s / total) for s in self.stakes)
-        return math.exp(entropy)
+        return -sum(s / total * math.log(s / total) for s in self.stakes)
+
+    @property
+    def entropy_equivalent(self) -> float:
+        return math.exp(self.entropy)
+
+    @property
+    def theil_t(self) -> float:
+        """The gap between the maximum entropy, ln N, and the entropy"""
+        return idx.theil_t(list(self.stakes))
 
     @property
     def hhi_equivalent(self) -> float:
@@ -174,6 +184,218 @@ def effective_figure(theme: Theme) -> Figure:
     return fig
 
 
+# The ALGO shared between two validators, to count the arrangements
+ALGO = (1, 2, 3, 4)
+# Radius of an ALGO coin, and the slots of the two validators, in coin widths
+COIN = 0.36
+SLOTS_A, SLOTS_B = 0.0, 4.6
+# Width of a case, its two validators side by side, and the gap to the next
+CASE = SLOTS_B + 4 + 1.6
+
+
+def arrangements(held: int) -> list[tuple[tuple[int, ...], tuple[int, ...]]]:
+    """Every way validator A holds `held` of the ALGO, B the rest"""
+    return [(a, tuple(c for c in ALGO if c not in a)) for a in combinations(ALGO, held)]
+
+
+def arrangements_figure(theme: Theme) -> Figure:
+    fig, ax = plt.subplots(figsize=(9, 3.4), layout="constrained")
+    title(fig, "Counting Arrangements", theme)
+    ax.set_title(
+        "Four ALGO, each with its own number and color, shared between "
+        "validators A and B: each row is one way"
+    )
+    rows = max(len(arrangements(held)) for held in (2, 3, 4))
+    # The three cases side by side, on the same scale
+    for case, held in enumerate((4, 3, 2)):
+        left = case * CASE
+        ways = arrangements(held)
+        plural = "s" if len(ways) > 1 else ""
+        ax.text(
+            left + (SLOTS_B + 4) / 2,
+            -2.0,
+            f"A holds {held}, B holds {len(ALGO) - held}",
+            ha="center",
+            va="bottom",
+            fontweight="bold",
+        )
+        ax.text(
+            left + (SLOTS_B + 4) / 2,
+            -1.95,
+            f"{len(ways)} arrangement{plural}",
+            ha="center",
+            va="top",
+            color=theme.ink_secondary,
+            fontsize=10,
+        )
+        for x, name in ((SLOTS_A, "A"), (SLOTS_B, "B")):
+            ax.text(
+                left + x + 2,
+                -0.75,
+                name,
+                ha="center",
+                color=theme.muted,
+                fontsize=9,
+            )
+        for row, (a, b) in enumerate(ways):
+            for x, coins in ((left + SLOTS_A, a), (left + SLOTS_B, b)):
+                ax.add_patch(
+                    FancyBboxPatch(
+                        (x + 0.08, row - 0.45),
+                        3.84,
+                        0.9,
+                        boxstyle="round,pad=0,rounding_size=0.2",
+                        color=theme.track,
+                        linewidth=0,
+                    )
+                )
+                for slot, coin in enumerate(coins):
+                    center = (x + 0.5 + slot, row)
+                    # Each ALGO keeps its color and number in every arrangement
+                    ax.add_patch(
+                        Circle(
+                            center,
+                            COIN,
+                            facecolor="none",
+                            edgecolor=theme.series[coin - 1],
+                            linewidth=2.4,
+                        )
+                    )
+                    ax.text(
+                        *center,
+                        str(coin),
+                        ha="center",
+                        va="center",
+                        fontsize=9,
+                        fontweight="bold",
+                    )
+    ax.set_xlim(-0.1, 2 * CASE + SLOTS_B + 4.1)
+    ax.set_ylim(rows - 0.4, -2.9)
+    ax.set_aspect("equal")
+    ax.axis("off")
+    return fig
+
+
+def two_validators_entropy(share: float) -> float:
+    """Entropy of the stake of two validators, the first holding `share` of it"""
+    return -sum(s * math.log(s) for s in (share, 1 - share) if s > 0)
+
+
+def two_validators_figure(theme: Theme) -> Figure:
+    fig, ax = plt.subplots(figsize=(9, 4.2), layout="constrained")
+    title(fig, "The Entropy of Two Validators", theme)
+    ax.set_title(
+        "By the share of the stake A holds, B holding the rest: "
+        "0 when one holds it all, the maximum when equal"
+    )
+    shares = [i / 400 for i in range(401)]
+    ax.plot(
+        shares,
+        [two_validators_entropy(s) for s in shares],
+        color=theme.series[0],
+        linewidth=2.2,
+        zorder=2,
+    )
+    maximum = math.log(2)
+    ax.axhline(maximum, color=theme.baseline, linewidth=1, linestyle=(0, (4, 3)))
+    ax.annotate(
+        "ln 2 ≈ 0.69",
+        (1, maximum),
+        xycoords=("axes fraction", "data"),
+        xytext=(6, 0),
+        textcoords="offset points",
+        va="center",
+        color=theme.ink_secondary,
+        fontsize=9,
+    )
+    # Labels clear of the curve: under it at the ends, above it at the top
+    for share, label, offset, align in (
+        (0, "B holds it all: 0", (8, 4), "left"),
+        (0.5, "Equal stakes: the maximum", (0, 9), "center"),
+        (1, "A holds it all: 0", (-8, 4), "right"),
+    ):
+        y = two_validators_entropy(share)
+        ax.plot(
+            [share],
+            [y],
+            "o",
+            color=theme.series[0],
+            markersize=6,
+            zorder=3,
+            clip_on=False,
+        )
+        ax.annotate(
+            label,
+            (share, y),
+            xytext=offset,
+            textcoords="offset points",
+            ha=align,
+            va="bottom",
+            color=theme.ink_secondary,
+            fontsize=9,
+        )
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 0.8)
+    ax.xaxis.set_major_formatter(PercentFormatter(1))
+    ax.set_xlabel("Share of the stake held by A")
+    ax.set_ylabel("Entropy, in nats")
+    return fig
+
+
+# Gap between the entropy and Theil's T segments of a bar, in nats
+SEGMENT_GAP = 0.02
+
+
+def entropy_figure(theme: Theme) -> Figure:
+    fig, ax = plt.subplots(figsize=(9, 4.8), layout="constrained")
+    title(fig, "Entropy and Its Maximum", theme)
+    ax.set_title(
+        "Each bar is the maximum, ln N: the entropy of the stake, then Theil's T, "
+        "lost to concentration"
+    )
+    rows = range(len(EXAMPLES))
+    for row, example in zip(rows, EXAMPLES, strict=True):
+        entropy, theil = example.entropy, example.theil_t
+        ax.barh(row, entropy, height=0.4, color=theme.series[0])
+        if theil > SEGMENT_GAP:
+            ax.barh(
+                row,
+                theil - SEGMENT_GAP,
+                left=entropy + SEGMENT_GAP,
+                height=0.4,
+                color=theme.series[1],
+            )
+        ax.annotate(
+            f"T = {theil:.2f}" if round(theil, 2) else "T = 0",
+            (entropy + theil, row),
+            xytext=(6, 0),
+            textcoords="offset points",
+            va="center",
+            color=theme.ink_secondary,
+            fontsize=9,
+        )
+    ax.set_yticks(
+        list(rows), [f"{e.name}\n{e.validators} validators" for e in EXAMPLES]
+    )
+    ax.invert_yaxis()
+    ax.set_xlim(0, 5.4)
+    ax.grid(True, axis="x")
+    ax.grid(False, axis="y")
+    ax.tick_params(axis="y", length=0)
+    ax.set_xlabel("Entropy, in nats")
+    ax.legend(
+        handles=[
+            Patch(color=theme.series[0], label="Entropy H"),
+            Patch(color=theme.series[1], label="Theil's T, lost to concentration"),
+        ],
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.16),
+        ncols=2,
+        frameon=False,
+    )
+    return fig
+
+
 # Nodes Hardware Decentralization: speed of growth and inflection point
 NODES_K = 2
 NODES_LAMBDA = 10_000
@@ -246,6 +468,9 @@ FIGURES: tuple[tuple[str, Callable[[Theme], Figure]], ...] = (
     ("stakes", treemap_figure),
     ("coalitions", coalition_figure),
     ("effective_numbers", effective_figure),
+    ("arrangements", arrangements_figure),
+    ("two_validators", two_validators_figure),
+    ("entropy", entropy_figure),
     ("nodes_hardware", nodes_figure),
 )
 

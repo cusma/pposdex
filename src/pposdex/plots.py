@@ -286,17 +286,27 @@ SNAPSHOTS = (
             Bar("HHI Equivalent", equal_stake_validators, online_accounts, count),
         ),
     ),
+    # By account and by likely operator apart, on the same scale
     SnapshotChart(
         name="ppos_dex_v3",
         title="PPoS Dex v3",
         subtitle=(
-            "Fewest online accounts holding more than each share of the online "
-            "stake, by account and by likely operator"
+            "Fewest online accounts holding more than each share of the online stake"
         ),
         bars=tuple(
-            Bar(f"{label}{by}", key, online_accounts, count)
-            for accounts, operators, label in V3_COEFFICIENTS
-            for key, by in ((accounts, ""), (operators, ", operators"))
+            Bar(label, accounts, online_accounts, count)
+            for accounts, _, label in V3_COEFFICIENTS
+        ),
+    ),
+    SnapshotChart(
+        name="ppos_dex_v3_operators",
+        title="PPoS Dex v3 by Operator",
+        subtitle=(
+            "The same, merging the online accounts likely run by the same operator"
+        ),
+        bars=tuple(
+            Bar(label, operators, online_accounts, count)
+            for _, operators, label in V3_COEFFICIENTS
         ),
     ),
 )

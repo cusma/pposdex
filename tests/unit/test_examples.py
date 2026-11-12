@@ -1,3 +1,4 @@
+import math
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -25,6 +26,43 @@ EVENNESS = {
     "20 large, 80 small": (0.44, 0.71),
     "100 equal": (1, 1),
 }
+
+
+# The entropy and the Theil T index
+ENTROPY = {
+    "One at 80%": (1.03, 1.74),
+    "Six at 15%": (2.17, 0.60),
+    "20 equal": (3.00, 0),
+    "One at 30%": (3.58, 0.68),
+    "20 large, 80 small": (3.77, 0.83),
+    "100 equal": (4.61, 0),
+}
+
+
+@pytest.mark.parametrize("example", examples.EXAMPLES, ids=lambda e: e.name)
+def test_entropy_matches_the_docs(example: examples.Example) -> None:
+    entropy, theil = ENTROPY[example.name]
+    assert round(example.entropy, 2) == entropy
+    assert round(example.theil_t, 2) == theil
+    # Theil's T is the gap between the maximum entropy, ln N, and the entropy
+    maximum = math.log(example.validators)
+    assert example.entropy + example.theil_t == pytest.approx(maximum)
+
+
+def test_arrangements_match_the_docs() -> None:
+    assert [len(examples.arrangements(held)) for held in (4, 3, 2)] == [1, 4, 6]
+    # Every arrangement shares out all the ALGO, once
+    for a, b in examples.arrangements(2):
+        assert sorted(a + b) == list(examples.ALGO)
+
+
+def test_two_validators_entropy() -> None:
+    assert examples.two_validators_entropy(0) == 0
+    assert examples.two_validators_entropy(1) == 0
+    assert examples.two_validators_entropy(0.5) == pytest.approx(math.log(2))
+    assert examples.two_validators_entropy(0.8) == pytest.approx(
+        examples.two_validators_entropy(0.2)
+    )
 
 
 @pytest.mark.parametrize("example", examples.EXAMPLES, ids=lambda e: e.name)

@@ -26,6 +26,7 @@ SNAPSHOT = [
     "algo_dynamics",
     "ppos_dex",
     "ppos_dex_v3",
+    "ppos_dex_v3_operators",
     "ppos_inequality",
     "validators",
 ]
@@ -203,18 +204,19 @@ class TestPanelsWithData:
 def test_v3_snapshot_shows_the_published_coefficients(
     make_data_point: Callable[..., PPoSDexData],
 ) -> None:
-    chart = next(c for c in plots.SNAPSHOTS if c.name == "ppos_dex_v3")
     # Published by 4.0.0, the liveness coefficient alone
     legacy = make_data_point(ppos_dex_v3_liveness=7, ppos_dex_v3_liveness_operators=2)
     coefficients = {key: 7 for key in SCHEMA if key.startswith("ppos_dex_v3")}
-    with use(LIGHT):
-        figures = [
-            plots.snapshot_figure(chart, data, LIGHT)
-            for data in (make_data_point(), legacy, make_data_point(**coefficients))
-        ]
-    # Each bar is a track and its fill
-    assert [len(fig.axes[0].patches) for fig in figures] == [0, 4, 16]
-    plt.close("all")
+    for name in ("ppos_dex_v3", "ppos_dex_v3_operators"):
+        chart = next(c for c in plots.SNAPSHOTS if c.name == name)
+        with use(LIGHT):
+            figures = [
+                plots.snapshot_figure(chart, data, LIGHT)
+                for data in (make_data_point(), legacy, make_data_point(**coefficients))
+            ]
+        # Each bar is a track and its fill: one chart by account, one by operator
+        assert [len(fig.axes[0].patches) for fig in figures] == [0, 2, 8]
+        plt.close("all")
 
 
 class TestStakes:
