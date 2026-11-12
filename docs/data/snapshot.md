@@ -31,10 +31,15 @@ same stake by named operator and staking solution.
 
 ### PPoS Dex v3
 
-The four [PPoS Dex v3](../project/ppos-dex.md#ppos-dex-v3) coefficients, by
-account and by likely operator, on the scale of the online accounts.
+The four [PPoS Dex v3](../project/ppos-dex.md#ppos-dex-v3) coefficients, on
+the scale of the online accounts: first by account, then merging the accounts
+likely run by the same
+[operator](../project/stake.md#nakamoto-coefficient). Merged, the operators
+can only be fewer, so their coefficients are lower or equal.
 
 ![Snapshot PPoS Dex v3](../images/snapshot/ppos_dex_v3.svg)
+
+![Snapshot PPoS Dex v3 by operator](../images/snapshot/ppos_dex_v3_operators.svg)
 
 ### PPoS Dex v1 and v2
 
