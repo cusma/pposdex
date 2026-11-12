@@ -100,10 +100,10 @@ be close to \\(d_N = 1\\).
 
 Algorand nodes are pseudonymous: anyone can run one, and no registry lists
 them. They can only be observed, from the relays they connect to: as of 2025,
-each node keeps a connection to four relays at a time, and regularly swaps the
-slowest for a random one. Counting the distinct IP addresses a few relays see
-is no longer reliable: home nodes change address, and short-lived bots connect
-and leave.
+each node keeps a connection to four relays at a time, and swaps the slowest
+for a random one every four minutes: nearly twenty relays in an hour. Counting
+the distinct IP addresses a few relays see is no longer reliable: home nodes
+change address, and short-lived bots connect and leave.
 
 [Nodely](https://nodely.io/blog/algorand-node-counting/) estimates instead the
 _full-time node equivalents_: a node online half of the time counts as half a
@@ -114,28 +114,64 @@ the _Chao-1_ estimator infers from it how many nodes no relay saw.
 
 Ecologists face the same problem when counting the species of an environment:
 some are too rare to be found in a sample. Anne Chao's estimator uses the
-rarest ones found to estimate those missed. Given the \\(S_{obs}\\) nodes
-observed, of which \\(F_1\\) were seen by a single relay and \\(F_2\\) by
-exactly two:
+rarest ones found to estimate those missed.
+
+The relays recording the nodes, the observers, are only a few of those a node
+connects to in an hour: chance decides whether a node meets several observers,
+one, or none. A node seen by a single observer was nearly missed: one encounter
+less, and no observer would have seen it.
+
+- **Many near misses**, compared with the nodes seen by two observers, mean the
+  nodes rarely meet an observer: the chance that left many of them with a
+  single observer left others with none.
+- **Few near misses** mean most nodes meet several observers: to be missed, a
+  node must avoid them all, and few do.
+
+Chao-1 turns this into a number. Given the \\(S_{obs}\\) nodes observed, of
+which \\(F_1\\) were seen by a single observer and \\(F_2\\) by exactly two:
 
 \\[ S_{Chao1} = S_{obs} + \frac{F_1^2}{2 F_2} \\]
 
-Many nodes seen by a single relay mean many more were likely seen by none: the
-estimate grows. Few of them mean the relays saw almost every node: it stays
-close to \\(S_{obs}\\). For example, 2,000 nodes observed in an hour, 300 by a
-single relay and 200 by two, estimate:
+For example, the observers see 2,000 nodes in an hour:
 
-\\[ S_{Chao1} = 2000 + \frac{300^2}{2 \cdot 200} = 2225 \\]
+| Seen by | No observer | 1 observer | 2 observers | 3 or more |
+| ------- | ----------- | ---------- | ----------- | --------- |
+| Nodes   | ?           | 300        | 200         | 1,500     |
 
-The estimate is a lower bound, and does not depend on how many relays observe.
-Nodely averages the hourly estimates over 7 days, to smooth out the hours of
-the day.
+\\[ S_{Chao1} = 2000 + \frac{300^2}{2 \cdot 200} = 2000 + 225 = 2225 \\]
+
+The 1,500 nodes seen by three observers or more count in \\(S_{obs}\\), but
+tell little about the missed ones: the nodes no observer saw were the hardest
+to see, like the 500 seen by one or two. With 50 nodes seen by a single
+observer instead of 300, the missed would be just
+\\(50^2 / (2 \cdot 200) \approx 6\\).
+
+The formula comes from a simple model. If every node met the observers at the
+same rate, \\(\lambda\\) times an hour on average, the shares of nodes seen by
+none, one and two observers would be \\(e^{-\lambda}\\),
+\\(\lambda e^{-\lambda}\\) and \\(\frac{\lambda^2}{2} e^{-\lambda}\\): a
+Poisson distribution. The nodes seen by one and two observers then reveal the
+rate, and the nodes seen by none, \\(F_0\\), follow:
+
+\\[ \lambda = \frac{2 F_2}{F_1}, \qquad
+F_0 = \frac{F_1}{\lambda} = \frac{F_1^2}{2 F_2} \\]
+
+In the example, \\(\lambda = 2 \cdot 200 / 300 = 4/3\\): for every four nodes
+seen once, three were seen by none, 225 in all.
+
+Nodes do not all meet the observers at the same rate, though: one online for a
+few minutes meets fewer relays. The missed nodes meet them even less than those
+seen once or twice, so more are missed than the model infers: the estimate is
+a lower bound. It also makes up for having few observers: with fewer of them,
+fewer nodes are seen, but more by a single observer, which raises the estimate
+of the missed ones. Nodely averages the hourly estimates over 7 days, to smooth
+out the hours of the day.
 
 > [!NOTE]
 > The estimate counts IP addresses, not machines: nodes sharing an address
 > (behind NAT) count as one, and nodes changing it within the hour as many.
-> Nodes connected only to private relays are missed, and the relays observing
-> may not be representative of the whole network.
+> Nodes connected only to private relays are missed, and the observers may not
+> be representative of the whole network.
 
 ### Which Nodes Count
 
