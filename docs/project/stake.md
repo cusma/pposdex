@@ -31,10 +31,10 @@ PoS validation. It can be quantified as:
 
 Where:
 
-* _Stake Dynamics_ \\(S_{dyn}\\): is the fraction of _circulating supply_ (\\(S_c\\))
+- _Stake Dynamics_ \\(S_{dyn}\\): is the fraction of _circulating supply_ (\\(S_c\\))
 over the _genesis supply_ (\\( S_g\\)). It only applies to fixed genesis supply
 Blockchains;
-* _Stake Participation_ \\(S_{p}\\): is the fraction of _validation supply_ (\\(S_v\\))
+- _Stake Participation_ \\(S_{p}\\): is the fraction of _validation supply_ (\\(S_v\\))
 over the _circulating supply_ (\\( S_c\\)).
 
 \\(S_P\\) can theoretically range from 0 (no participation in PoS validation)
@@ -81,41 +81,132 @@ index.
 > and the [effective number of validators](#effective-number-of-validators)
 > tripled.
 
+### Entropy
+
+Theil's Indexes, the entropy equivalent and the evenness below build on one
+concept, borrowed from physics and information theory: _entropy_. Picture
+picking a single ALGO at random from the stake, and guessing who holds it.
+Entropy asks: _"How uncertain am I about who owns a randomly selected unit of
+stake?"_
+
+If a single validator holds all the stake, there is nothing to guess. If 16
+validators hold the same stake, each of them is as likely as the others. If
+one of them holds 80%, betting on it is right 4 times out of 5: there is some
+uncertainty, but little.
+
+#### Counting Arrangements
+
+The word comes from physics. In 1865 Rudolf Clausius named _entropy_, from the
+Greek for _transformation_, a quantity that never decreases as heat spreads.
+Ludwig Boltzmann explained it by counting: the entropy of a gas measures how
+many arrangements of its molecules look the same from outside,
+\\(S = k \ln W\\). A gas spread across a box can be arranged in far more ways
+than one squeezed in a corner, and, left alone, a gas spreads: toward its
+maximum entropy.
+
+The stake can be counted the same way. Label four ALGO from 1 to 4, and share
+them between two validators, A and B:
+
+![Four ALGO shared between two validators: 1 arrangement when A holds all four, 4 when A holds three, 6 when they hold two each](../images/examples/arrangements.svg)
+
+A can hold all four in a single way; three in four ways, as the one left to B
+can be any of the four; two each in six. The more evenly the stake is shared,
+the more arrangements match it, and the less its shares tell about who owns a
+given ALGO.
+
+#### Counting Questions
+
+In 1948 Claude Shannon measured information by the uncertainty it removes. His
+formula had the very form of the entropy of statistical physics, and took its
+name: John von Neumann reportedly advised it, since nobody really knows what
+entropy is, and Shannon would win any debate.
+
+Shannon counted information in _bits_: the yes/no questions it takes to find
+the answer. With 16 validators holding the same stake, finding the owner of a
+random ALGO takes 4 questions, halving the candidates each time: from 16 to 8,
+4, 2 and 1. If one of them holds 80%, the first question, _"is it the
+largest?"_, is enough 4 times out of 5: fewer than 2 questions on average.
+Less uncertainty, lower entropy.
+
+Given the stake shares \\(s_i\\) of the \\(N\\) validators, the entropy of the
+stake is:
+
+\\[ H(S) = - \sum_{i=1}^{N} s_i \ln s_i \\]
+
+Each validator adds the _surprise_ of finding it the owner, \\(-\ln s_i\\),
+weighted by how often it is the owner: little for a validator holding 80%,
+\\(-\ln 0.8 \approx 0.22\\), much more for one holding 1%,
+\\(-\ln 0.01 \approx 4.6\\). The entropy is the average surprise. With many
+ALGO, it is also Boltzmann's count: the logarithm of the arrangements, per
+ALGO. The two views agree.
+
+PPoS Dex uses the natural logarithm, as physics does: entropy is then measured
+in _nats_, and a nat is about 1.44 bits. The unit changes the numbers, not the
+comparisons.
+
+#### Minimum and Maximum
+
+The entropy of \\(N\\) validators ranges between two extremes:
+
+- **Minimum, 0**: a single validator holds all the stake. Its share is 1, and
+  \\(\ln 1 = 0\\): a single arrangement, no question to ask.
+- **Maximum, \\(\ln N\\)**: the validators hold the same stake, \\(1/N\\)
+  each: the most arrangements, and no owner likelier than another.
+
+Every other distribution lies in between: the more concentrated the stake, the
+lower. The maximum grows with the validators, but slowly: doubling them adds
+one bit, a single question more. With two validators, the entropy rises from
+0, when one holds all the stake, to its maximum, \\(\ln 2\\), when they hold
+half each:
+
+![Two validators: the entropy of their stake, from 0 when one holds it all to the maximum when they hold half each](../images/examples/two_validators.svg)
+
+In 1967 the economist Henri Theil borrowed entropy to measure inequality by its
+shortfall from the maximum: the uncertainty lost to concentration.
+
 ### Theil Indexes
 
-_Theil's Indexes_, called _Theil's L_ and _Theil's T_, measure the inequality of
-a stake distribution \\(S\\) over a set of \\(N\\) validators, with different
-sensitivities:
+_Theil's Indexes_, called _Theil's T_ and _Theil's L_, measure the inequality
+of a stake distribution \\(S\\) over a set of \\(N\\) validators from its
+[entropy](#entropy).
 
-* _Theil's L_ is more sensitive to differences at the lower end of the distribution
-(small stakes):
+Theil's T asks: _"How much of that uncertainty have we lost because the stake
+is concentrated?"_ It is the gap between the maximum entropy and the entropy
+of the stake, as the [examples](#examples) show:
+
+\\[ T_T = \ln N - H(S) = \frac{1}{N} \sum_{i=1}^{N} \frac{y_i}{\mu}
+\ln{\left(\frac{y_i}{\mu} \right)} \\]
+
+Theil's L asks the mirror question, picking a validator instead of a unit of
+stake: _"How far below an equal share does its stake fall?"_ On a logarithmic
+scale, the smallest stakes fall the furthest:
 
 \\[ T_L = \frac{1}{N} \sum_{i=1}^{N} \ln{\left(\frac{\mu}{y_i}\right)} \\]
 
-* _Theil's T_ is more sensitive to differences at the top of the distribution (large
-stakes):
-
-\\[ T_T = \frac{1}{N} \sum_{i=1}^{N} \frac{y_i}{\mu} \ln{\left(\frac{y_i}{\mu}
-\right)} \\]
-
-where \\(y_i\\) is the validator's stake and \\(\mu\\) is the mean stake:
+where \\(y_i\\) is the validator's stake and \\(\mu\\) is the mean stake, the
+equal share:
 
 \\[ \mu = \frac{1}{N} \sum_{i=1}^{N} y_i\\]
 
-Both \\(T_L\\) and \\(T_T\\) can theoretically range from 0 (_complete equality_)
-to \\( +\infty \\) (_complete inequality_) and represent two different evaluations
-of inequality, depending on what we tend to consider worse: having even a few small
-stakes among many large ones or having even a few large stakes among many small
-ones.
+Weighing each validator by its stake, Theil's T is more sensitive to
+differences at the top of the distribution (large stakes); weighing them all
+the same, Theil's L at the lower end (small stakes).
+
+Both \\(T_T\\) and \\(T_L\\) are 0 with _complete equality_, and grow with
+inequality: \\(T_T\\) up to \\(\ln N\\), when a single validator holds all the
+stake, \\(T_L\\) without bound, as the smallest stakes shrink. They represent
+two different evaluations of inequality, depending on what we tend to consider
+worse: having even a few small stakes among many large ones or having even a
+few large stakes among many small ones.
 
 > [!NOTE]
-> _Theil’s Indexes_ are not upper bounded, so are not good candidates for the \\(DEX\\)
-> index. For sake of completeness we will evaluate them separately.
+> _Theil’s Indexes_ have no fixed upper bound, so are not good candidates for
+> the \\(DEX\\) index. For sake of completeness we will evaluate them
+> separately.
 >
-> Theil's T is the gap between the maximum entropy, \\(\ln N\\), and the entropy
-> of the stake: it grows with the number of validators, even when the stake
-> spreads across more of them. The [entropy equivalent](#entropy-equivalent)
-> turns it into a count that does not.
+> Theil's T measures the gap to a maximum, \\(\ln N\\), that grows with the
+> validators: it can grow even when the stake spreads across more of them. The
+> [entropy equivalent](#entropy-equivalent) turns it into a count that does not.
 
 ### Herfindahl–Hirschman Index
 
@@ -130,9 +221,28 @@ index can be calculated as:
 where \\(s_i\\) is the stake share of validator \\(i\\) in the total validating
 stake \\(S\\).
 
-\\(HHI\\) can theoretically range from 0 (_perfectly competitive market_) to 1
-(_monopoly_), therefore it _one’s complement_ \\((1 - HHI)\\) is a good candidate
-for the \\(DEX\\) index.
+The \\(HHI\\) asks: _"How likely is it that two randomly selected units of
+stake have the same owner?"_ Both land on validator \\(i\\) with chance
+\\(s_i \cdot s_i\\), so the squares add up to the chance they share an owner.
+Squaring weighs the largest validators the most: one holding 80% adds 0.64, one
+holding 1% adds 0.0001.
+
+Read another way, \\(HHI = \sum s_i \cdot s_i\\) is the average share of the
+owner of a randomly selected unit of stake: the same random pick as the
+[entropy](#entropy), which averages the surprise \\(-\ln s_i\\) instead of the
+share itself. Its logarithm, \\(-\ln HHI\\), is an entropy too, which weighs
+the largest validators more than \\(H\\) does.
+
+The \\(HHI\\) of \\(N\\) validators ranges between the same two extremes as the
+entropy, the other way round:
+
+- **Minimum, \\(1/N\\)**: the validators hold the same stake. It tends to 0,
+  a _perfectly competitive market_, as the validators grow.
+- **Maximum, 1**: a single validator holds all the stake, a _monopoly_.
+
+In the [examples](#examples), it falls from 0.643 with one validator at 80% to
+0.01 with 100 equal ones. Its _one’s complement_ \\((1 - HHI)\\) is therefore a
+good candidate for the \\(DEX\\) index.
 
 > [!NOTE]
 > The \\(HHI\\) implicitly considers both the stake distribution among the validators
@@ -156,16 +266,12 @@ as the stake concentrates, down to 1 when a single validator holds it all.
 
 #### Entropy Equivalent
 
-The entropy of the stake measures how uncertain it is which validator holds a
-randomly picked unit of stake. Given the stake shares \\(s_i\\) of the \\(N\\)
-validators:
-
-\\[ H(S) = - \sum_{i=1}^{N} s_i \ln s_i \\]
-
-With \\(n\\) equal stakes the entropy is \\(\ln n\\), so a distribution with
-entropy \\(H\\) is as diverse as \\(e^H\\) equal validators: its _entropy
-equivalent_. Since the Theil T index is how far the entropy is from its maximum,
-\\(T_T(S) = \ln N - H(S)\\), it can be computed as:
+The entropy equivalent asks: _"How many validators, holding the same stake,
+would leave me just as uncertain?"_ The [entropy](#entropy) of \\(n\\) equal
+stakes is \\(\ln n\\), so a distribution with entropy \\(H\\) is as uncertain
+as \\(e^H\\) equal validators: its _entropy equivalent_. Since the Theil T index
+is how far the entropy is from its maximum, \\(T_T(S) = \ln N - H(S)\\), it can
+be computed as:
 
 \\[ N_{H} = e^{H(S)} = N \cdot e^{-T_T(S)} \\]
 
@@ -275,8 +381,9 @@ Compared by every metric:
 |------------------------------|--------------:|--------------:|------------:|--------------:|----------------------:|-------------:|
 | Validators \\(N\\)           |            16 |            16 |          20 |            71 |                   100 |          100 |
 | Gini \\(GI\\)                |         0.769 |         0.525 |           0 |         0.286 |                 0.600 |            0 |
+| Entropy \\(H\\)              |          1.03 |          2.17 |        3.00 |          3.58 |                  3.77 |         4.61 |
 | Theil L \\(T_L\\)            |          1.34 |          0.82 |           0 |          0.29 |                  0.83 |            0 |
-| Theil T \\(T_T\\)            |          1.74 |          0.61 |           0 |          0.68 |                  0.83 |            0 |
+| Theil T \\(T_T\\)            |          1.74 |          0.60 |           0 |          0.68 |                  0.83 |            0 |
 | HHI                          |         0.643 |         0.136 |        0.05 |         0.097 |                0.0325 |         0.01 |
 | Entropy equivalent \\(N_H\\) |           2.8 |           8.7 |          20 |          36.0 |                  43.5 |          100 |
 | HHI equivalent \\(N_{HHI}\\) |           1.6 |           7.4 |          20 |          10.3 |                  30.8 |          100 |
@@ -286,6 +393,12 @@ Compared by every metric:
 | Liveness \\(NC_{20\\%}\\)    |             1 |             2 |           5 |             1 |                     6 |           21 |
 | Nakamoto \\(NC_{33\\%}\\)    |             1 |             3 |           7 |             5 |                     9 |           34 |
 | Upgrade \\(NC_{90\\%}\\)     |             7 |             7 |          19 |            62 |                    61 |           91 |
+
+The entropy of each example against the maximum its validators allow,
+\\(\ln N\\): the equal ones reach it, the others fall short by their Theil T
+index.
+
+![Examples: the entropy of the stake, and its shortfall from the maximum, Theil's T](../images/examples/entropy.svg)
 
 The Nakamoto Coefficients are where the stake of the largest validators crosses
 each threshold:
