@@ -326,8 +326,7 @@ def series(
 ) -> tuple[list[datetime], list[float]]:
     """Dates and values of a metric, broken where data is missing
 
-    With `recomputed`, only the values recomputed from the ledger, or only the
-    published ones.
+    With `recomputed`, only the recomputed values, or only the published ones.
     """
     dates: list[datetime] = []
     values: list[float] = []
@@ -342,9 +341,9 @@ def series(
     return dates, values
 
 
-# Values recomputed from the ledger, rather than published, are dashed
+# Values recomputed, rather than published, are dashed
 RECOMPUTED_STYLE = {"linestyle": (0, (2, 1.5))}
-RECOMPUTED_NOTE = "dashed: recomputed from the ledger"
+RECOMPUTED_NOTE = "dashed: recomputed, not published"
 
 
 def plot_series(

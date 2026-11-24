@@ -150,7 +150,9 @@ class TestWithRecomputed:
     @staticmethod
     def write(path: Path, rows: list[dict[str, object]]) -> Path:
         with path.open("w", encoding="utf8", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=["timestamp", *pposdex.V3_METRICS])
+            writer = csv.DictWriter(
+                f, fieldnames=["timestamp", *pposdex.RECOMPUTED_METRICS]
+            )
             writer.writeheader()
             writer.writerows(rows)
         return path
@@ -176,8 +178,37 @@ class TestWithRecomputed:
         # The published points are left as they are
         assert "recomputed" not in v4
 
+    def test_hhi_and_v2(
+        self, tmp_path: Path, make_data_point: Callable[..., PPoSDexData]
+    ) -> None:
+        first = make_data_point(timestamp="2021-01-16 00:00:00.0")
+        before_v2 = make_data_point(timestamp="2021-02-15 00:00:00.0")
+        for data in (first, before_v2):
+            del data["ppos_dex_v2"]
+        del first["ppos_hhi"]
+        path = self.write(
+            tmp_path / "recomputed.csv",
+            [
+                {"timestamp": d["timestamp"], "ppos_hhi": 0.1}
+                for d in (first, before_v2)
+            ],
+        )
+        filled = pposdex.with_recomputed([before_v2, first], path)
+        # The HHI of the first points from the ledger, published since
+        assert filled[1].get("ppos_hhi") == 0.1
+        assert filled[0].get("ppos_hhi") == 0.02
+        # v2 from the ALGO supply, the online stake and the HHI of the point
+        assert filled[1].get("ppos_dex_v2") == pytest.approx(0.7 * 0.5 * 0.9)
+        assert filled[0].get("ppos_dex_v2") == pytest.approx(0.7 * 0.5 * 0.98)
+        assert filled[1].get("recomputed") == ["ppos_hhi", "ppos_dex_v2"]
+        assert filled[0].get("recomputed") == ["ppos_dex_v2"]
+
     def test_without_the_file(
         self, tmp_path: Path, make_data_point: Callable[..., PPoSDexData]
     ) -> None:
-        data = [make_data_point()]
-        assert pposdex.with_recomputed(data, tmp_path / "missing.csv") is data
+        published = make_data_point()
+        before_v2 = make_data_point()
+        del before_v2["ppos_dex_v2"]
+        filled = pposdex.with_recomputed([published, before_v2], tmp_path / "x.csv")
+        assert filled[0] is published
+        assert pposdex.is_recomputed(filled[1], "ppos_dex_v2")

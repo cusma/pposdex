@@ -7,10 +7,10 @@ from collections.abc import Callable, Iterator
 from pathlib import Path
 from typing import Any
 
-import backfill_v3 as backfill
+import backfill
 import msgpack
 import pytest
-from backfill_v3 import Cache, Candidates, Client, State
+from backfill import Cache, Candidates, Client, State
 
 from pposdex.helpers import Json
 from pposdex.ppos_dex_data import PPoSDexData
@@ -127,7 +127,7 @@ class TestClient:
     def client(
         self, cache: Cache, monkeypatch: pytest.MonkeyPatch
     ) -> Callable[[list[Any]], Client]:
-        monkeypatch.setattr("backfill_v3.time.sleep", lambda _: None)
+        monkeypatch.setattr("backfill.time.sleep", lambda _: None)
 
         def make(answers: list[Any]) -> Client:
             def urlopen(request: Any, timeout: float) -> io.StringIO:
@@ -136,7 +136,7 @@ class TestClient:
                     raise answer
                 return io.StringIO(json.dumps(answer))
 
-            monkeypatch.setattr("backfill_v3.urllib.request.urlopen", urlopen)
+            monkeypatch.setattr("backfill.urllib.request.urlopen", urlopen)
             return Client(cache)
 
         return make
@@ -259,6 +259,8 @@ def test_run(
     assert first["ppos_dex_v3_nakamoto"] == "1"
     assert first["ppos_dex_v3_upgrade"] == "2"
     assert first["online_accounts"] == "2"
+    # (6000² + 2000²) / 8000²
+    assert float(first["ppos_hhi"]) == 0.625
     assert first["online_accounts_diff"] == "0"
     assert float(first["online_stake_gap"]) == 0
     # GONE is offline at 100: not asked again at 200
@@ -271,3 +273,10 @@ def test_run(
     assert all(
         "/v2/accounts/" not in c or "transactions" in c for c in fake.calls[calls:]
     )
+
+
+def test_run_with_other_columns(tmp_path: Path) -> None:
+    output = tmp_path / "backfill.csv"
+    output.write_text("timestamp,round\n")
+    with pytest.raises(ValueError, match="other columns"):
+        backfill.written_rounds(output)

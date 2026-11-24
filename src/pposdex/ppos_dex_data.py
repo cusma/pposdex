@@ -68,7 +68,7 @@ class PPoSDexData(TypedDict):
     ppos_dex_v3_upgrade_operators: NotRequired[int]
     round: NotRequired[int]
     timestamp: str
-    # Never published: the metrics of the point recomputed from the ledger
+    # Never published: the metrics of the point recomputed later
     recomputed: NotRequired[list[str]]
 
 
@@ -106,9 +106,11 @@ V3_METRICS: tuple[Metric, ...] = (
     "ppos_dex_v3_upgrade_operators",
 )
 
-# The v3 of the points published before it, recomputed from the ledger state
-# at their round by `scripts/backfill_v3.py`
-RECOMPUTED_PATH = Path("./data/ppos_dex_v3_backfill.csv")
+# Metrics added after the first data points: recomputed for the points
+# published before, from the ledger state at their round, by
+# `scripts/backfill.py`
+RECOMPUTED_METRICS: tuple[Metric, ...] = (*V3_METRICS, "ppos_hhi")
+RECOMPUTED_PATH = Path("./data/ppos_dex_backfill.csv")
 
 
 class InvalidDataError(ValueError):
@@ -200,24 +202,34 @@ def total_accounts(data: PPoSDexData) -> float:
 def with_recomputed(
     ppos_dex_data: list[PPoSDexData], path: Path = RECOMPUTED_PATH
 ) -> list[PPoSDexData]:
-    """The data points, with the v3 metrics they lack recomputed from the ledger
+    """The data points, with the metrics they lack recomputed
 
-    Published values are kept: only the missing ones are filled, and listed in
-    the `recomputed` field of the point.
+    The v3 coefficients and the online HHI come from the ledger, and the PPoS
+    Dex v2 from the metrics of the point. Published values are kept: only the
+    missing ones are filled, and listed in the `recomputed` field of the point.
     """
-    if not path.exists():
-        return ppos_dex_data
-    with path.open(encoding="utf8") as f:
-        rows = {row["timestamp"]: row for row in csv.DictReader(f)}
+    rows: dict[str, dict[str, str]] = {}
+    if path.exists():
+        with path.open(encoding="utf8") as f:
+            rows = {row["timestamp"]: row for row in csv.DictReader(f)}
     filled = []
     for data in ppos_dex_data:
-        row = rows.get(data["timestamp"])
-        missing = [m for m in V3_METRICS if m not in data and row and row.get(m)]
-        if row is None or not missing:
+        row = rows.get(data["timestamp"], {})
+        values: dict[str, float] = {
+            m: SCHEMA[m].type(row[m])
+            for m in RECOMPUTED_METRICS
+            if m not in data and row.get(m)
+        }
+        hhi = values.get("ppos_hhi", data.get("ppos_hhi"))
+        if "ppos_dex_v2" not in data and hhi is not None:
+            values["ppos_dex_v2"] = ppos_dex_v2(
+                data["algo_dynamics"], data["ppos_online_stake"], hhi
+            )
+        if not values:
             filled.append(data)
             continue
-        point = cast(PPoSDexData, {**data, **{m: int(row[m]) for m in missing}})
-        point["recomputed"] = [str(m) for m in missing]
+        point = cast(PPoSDexData, {**data, **values})
+        point["recomputed"] = list(values)
         filled.append(point)
     return filled
 
@@ -306,6 +318,11 @@ def operator_stakes(online_accounts: list[Json]) -> list[int]:
     return list(stakes.values())
 
 
+def ppos_dex_v2(algo_dynamics: float, online_stake: float, ppos_hhi: float) -> float:
+    """PPoS Dex v2, from the ALGO supply, the online stake and its HHI"""
+    return d_N * d_T * algo_dynamics * online_stake * (1 - ppos_hhi)
+
+
 def post_ppos_dex_data(
     algod_client: AlgodClient,
     indexer_client: IndexerClient,
@@ -347,7 +364,7 @@ def post_ppos_dex_data(
     ppos_theil_t = idx.theil_t(online_stakes)
     ppos_hhi = idx.herfindahl_hirschman(online_stakes)
     ppos_dex_v1 = d_N * d_T * algo_dyn * algo_prt * accounts_prt * (1 - ppos_gini)
-    ppos_dex_v2 = d_N * d_T * algo_dyn * algo_prt * (1 - ppos_hhi)
+    dex_v2 = ppos_dex_v2(algo_dyn, algo_prt, ppos_hhi)
     operators = operator_stakes(online)
     # Each coefficient by account, and by likely operator
     v3 = {
@@ -370,7 +387,7 @@ def post_ppos_dex_data(
         "ppos_theil_t": ppos_theil_t,
         "ppos_hhi": ppos_hhi,
         "ppos_dex": ppos_dex_v1,
-        "ppos_dex_v2": ppos_dex_v2,
+        "ppos_dex_v2": dex_v2,
         "ppos_dex_v3_veto": v3["veto"][0],
         "ppos_dex_v3_veto_operators": v3["veto"][1],
         "ppos_dex_v3_liveness": v3["liveness"][0],

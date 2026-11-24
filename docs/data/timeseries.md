@@ -83,6 +83,8 @@ The [PPoS Dex](../project/ppos-dex.md) v1 and v2: how far the stake is from a
 platonic ideal of decentralization, where every ALGO and every account takes
 part in consensus with equal stakes. Real networks only tend to that ideal, so
 these trends read as a direction rather than as a distance to cover.
+The v2 values before its publication are [recomputed](../project/ppos-dex.md#recomputed-history)
+from the published metrics, and dashed.
 
 ![Timeseries PPoS Dex](../images/timeseries/ppos_dex.svg)
 
@@ -125,7 +127,9 @@ How unequally the online stake is spread across the validators: the
 #### PPoS Inequality (Bounded)
 
 The [Gini Index](../project/stake.md#gini-index) and the
-[HHI](../project/stake.md#herfindahlhirschman-index) of the online stake.
+[HHI](../project/stake.md#herfindahlhirschman-index) of the online stake. The
+HHI of the first month is [recomputed from the
+ledger](../project/ppos-dex.md#recomputed-history), and dashed.
 
 > [!TIP]
 > The Gini Index rises when small validators join, even as the stake spreads
