@@ -1,6 +1,6 @@
 import math
 from collections.abc import Callable
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -10,6 +10,7 @@ from pposdex import insights, plots
 from pposdex import ppos_dex_data as pposdex
 from pposdex.insights import Indicator
 from pposdex.ppos_dex_data import PPoSDexData
+from pposdex.theme import LIGHT, use
 
 CHARTS = [
     "at_a_glance",
@@ -236,3 +237,46 @@ def test_render_v3_with_operators(data: list[PPoSDexData], images: Path) -> None
     assert not any("Operators" in label for label in labels)
     assert len(rows) == len(insights.HEATMAP) == 12
     assert (images / "insights" / "at_a_glance.svg").exists()
+
+
+class TestRecomputed:
+    @pytest.fixture
+    def recomputed(
+        self, make_data_point: Callable[..., PPoSDexData]
+    ) -> list[PPoSDexData]:
+        """Two years, oldest first: v3 recomputed the first year, published since"""
+        points = []
+        for day in range(0, 730, 10):
+            date = datetime(2025, 1, 1) + timedelta(days=day)
+            data = make_data_point(
+                timestamp=f"{date:%Y-%m-%d} 00:00:00.000000",
+                ppos_theil_t=0.5,
+                ppos_hhi=0.2,
+                **dict.fromkeys(pposdex.V3_METRICS, 5 + day // 100),
+            )
+            if day < 365:
+                data["recomputed"] = list(pposdex.V3_METRICS)
+            points.append(data)
+        return points
+
+    def test_heatmap_cells(self, recomputed: list[PPoSDexData]) -> None:
+        indicators = (*insights.V3, insights.DEX[0])
+        months, _ = insights.monthly_changes(recomputed, indicators)
+        cells = insights.recomputed_cells(recomputed, indicators, months)
+        rows = {row for row, _ in cells}
+        assert rows == set(range(len(insights.V3)))
+        # Up to the first change from a recomputed month to a published one
+        assert max(n for _, n in cells) == months.index(datetime(2026, 1, 1))
+
+    def test_figures_mark_them(
+        self, recomputed: list[PPoSDexData], monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        with use(LIGHT):
+            heatmap = insights.heatmap_figure(recomputed, LIGHT)
+            glance = insights.glance_figure(recomputed, LIGHT)
+        assert "Hatched" in heatmap.axes[0].get_title("left")
+        notes = [t.get_text() for t in glance.texts]
+        assert any("* compared with a value recomputed" in n for n in notes)
+        tiles = [t.get_text() for ax in glance.axes for t in ax.texts]
+        assert any(t.endswith(" *") for t in tiles)
+        plt.close("all")

@@ -105,6 +105,7 @@ def test_not_a_mapping(data: object) -> None:
 
 
 def test_schema_matches_typed_dict() -> None:
-    assert SCHEMA.keys() == PPoSDexData.__annotations__.keys()
+    # Recomputed metrics are marked when reading, never published
+    assert SCHEMA.keys() == PPoSDexData.__annotations__.keys() - {"recomputed"}
     required = {key for key, spec in SCHEMA.items() if spec.required}
     assert required == PPoSDexData.__required_keys__

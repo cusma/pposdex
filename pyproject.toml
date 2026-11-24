@@ -46,8 +46,8 @@ python_version = "3.12"
 strict = true
 # py-algorand-sdk ships type hints, but many of its functions are unannotated
 untyped_calls_exclude = ["algosdk", "matplotlib.dates"]
-# Test folders are not packages: name their modules from these roots
-mypy_path = ["src", "tests"]
+# Scripts and test folders are not packages: name their modules from these roots
+mypy_path = ["src", "scripts", "tests"]
 explicit_package_bases = true
 
 [[tool.mypy.overrides]]
@@ -57,8 +57,8 @@ ignore_missing_imports = true
 [tool.pytest]
 minversion = "9.0"
 testpaths = ["tests"]
-# Shared test helpers, like the fake clients in tests/fakes.py
-pythonpath = ["tests"]
+# Shared test helpers, like the fake clients in tests/fakes.py, and the scripts
+pythonpath = ["tests", "scripts"]
 # Integration tests need a running LocalNet: run them with `pytest -m integration`
 addopts = ["-ra", "--import-mode=importlib", "-m", "not integration", "--cov=pposdex"]
 strict = true

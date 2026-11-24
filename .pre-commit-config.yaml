@@ -35,7 +35,7 @@ repos:
       entry: uv run --locked mypy
       language: system
       types_or: [python, pyi]
-      args: [src, tests]
+      args: [src, scripts, tests]
       pass_filenames: false
 
 # Markdown

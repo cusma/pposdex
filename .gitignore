@@ -19,3 +19,7 @@ docs/images/insights/
 docs/images/examples/
 docs/images/diagrams/
 *.csv
+# Except the data kept in the repository
+!data/*.csv
+# Backfill cache of the past ledger state
+.backfill/
