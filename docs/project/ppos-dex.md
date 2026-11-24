@@ -74,25 +74,31 @@ operator, are published alongside them.
 
 ### Recomputed History
 
-The v3 coefficients are published since the CLI 4.0.0 (liveness) and 4.1.0 (all
-four). For the data points published before, they are recomputed from the
-ledger: the state of every online account at the round of each point, as
-[Nodely Time Travel](https://nodely.io/docs/access/time-travel/) answers it.
+Some metrics were added after the first data points: the v3 coefficients,
+published since the CLI 4.0.0 (liveness) and 4.1.0 (all four), the HHI of the
+online stake, since 15 February 2021, and the PPoS Dex v2, since 9 September
+2023. For the data points published before, they are recomputed.
 
+The v3 coefficients and the HHI are recomputed from the ledger: the state of
+every online account at the round of each point, as
+[Nodely Time Travel](https://nodely.io/docs/access/time-travel/) answers it.
 Only a key registration takes an account online, so the accounts that ever
 registered their keys, and those online from genesis, are the candidates.
 Each recomputed point is checked against the ledger and the published data:
 
 - the online stake of the recomputed accounts equals the ledger online stake at
   the round;
-- the online accounts, and their Gini Index, match the published ones, but for
-  the accounts changing in the few rounds between the reading of the publisher
-  and its note.
+- the online accounts, their Gini Index and their HHI match the published ones,
+  but for the accounts changing in the few rounds between the reading of the
+  publisher and its note.
+
+The PPoS Dex v2 needs no ledger: it is computed from the ALGO supply, the online
+stake and its HHI, published with every point, as the published v2 is.
 
 Recomputed values are not published on-chain: the charts draw them dashed,
 the monthly change hatched. The
-[script](https://github.com/cusma/pposdex/blob/main/scripts/backfill_v3.py)
-and the [data](https://github.com/cusma/pposdex/blob/main/data/ppos_dex_v3_backfill.csv),
+[script](https://github.com/cusma/pposdex/blob/main/scripts/backfill.py)
+and the [data](https://github.com/cusma/pposdex/blob/main/data/ppos_dex_backfill.csv),
 with the checks of each point, are in the repository.
 
 ## Metrics summary

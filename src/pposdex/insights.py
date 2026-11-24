@@ -51,7 +51,6 @@ from pposdex.plots import (
     timestamp,
 )
 from pposdex.ppos_dex_data import (
-    V3_METRICS,
     Metric,
     PPoSDexData,
     effective_validators,
@@ -475,7 +474,7 @@ def heatmap_figure(ppos_dex_data: list[PPoSDexData], theme: Theme) -> Figure:
         )
     if hatched:
         ax.set_title(
-            f"{ax.get_title('left')}\nHatched: from values recomputed from the ledger",
+            f"{ax.get_title('left')}\nHatched: from recomputed values",
             linespacing=1.6,
         )
     for start, end in no_data_periods([timestamp(d) for d in ppos_dex_data]):
@@ -637,7 +636,7 @@ def glance_figure(ppos_dex_data: list[PPoSDexData], theme: Theme) -> Figure:
         ax = fig.add_subplot(cell, sharex=first)
         first = first or ax
         starred |= _tile(ax, ppos_dex_data, indicator, theme)
-    if any(is_recomputed(d, k) for d in ppos_dex_data for k in V3_METRICS):
+    if any(is_recomputed(d, i.key) for d in ppos_dex_data for i in indicators):
         note = f"{RECOMPUTED_NOTE.capitalize()}"
         if starred:
             note += "; * compared with a value recomputed a year ago"

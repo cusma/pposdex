@@ -67,15 +67,18 @@ uv run python -m pposdex.diagrams
 Each chart and diagram is saved as SVG in a light and a dark variant: the docs
 show the one matching the selected theme.
 
-## PPoS Dex v3 Backfill
+## PPoS Dex Backfill
 
-The v3 of the data points published before it is recomputed from the past
-ledger state by `scripts/backfill_v3.py`, into `data/ppos_dex_v3_backfill.csv`.
+The v3 of the data points published before it, and the online HHI of the first
+ones, are recomputed from the past ledger state by `scripts/backfill.py`,
+into `data/ppos_dex_backfill.csv`.
 It reads Nodely Time Travel, free on MainNet until the end of 2026, within a
 daily budget of requests: run it once a day until it has recomputed every point.
+When its columns change, move the CSV away and run it again: the cache in
+`.backfill` already holds every point written, so it costs no requests.
 
 ```bash
-uv run python scripts/backfill_v3.py
+uv run python scripts/backfill.py
 ```
 
 Every answer is cached in `.backfill/cache.sqlite`, so each run resumes where

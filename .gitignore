@@ -23,3 +23,6 @@ docs/images/diagrams/
 !data/*.csv
 # Backfill cache of the past ledger state
 .backfill/
+
+# macOS folder metadata
+.DS_Store

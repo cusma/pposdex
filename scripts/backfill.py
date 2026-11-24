@@ -1,9 +1,10 @@
 """
-PPoS Dex v3 backfill: the v3 coefficients of the data points published before
-them, recomputed from the ledger state at the round of each point.
+PPoS Dex backfill: the v3 coefficients of the data points published before
+them, and the online HHI of the first ones, recomputed from the ledger state at
+the round of each point.
 
-Run `uv run python scripts/backfill_v3.py` to update
-`./data/ppos_dex_v3_backfill.csv`.
+Run `uv run python scripts/backfill.py` to update
+`./data/ppos_dex_backfill.csv`.
 The past ledger state comes from Nodely Time Travel, cached in `./.backfill`:
 a run resumes where the last one stopped, and calls the API only for what is
 not cached yet.
@@ -65,6 +66,7 @@ COLUMNS = [
     "timestamp",
     "round",
     *V3_FIELDS,
+    "ppos_hhi",
     "online_accounts",
     # Checks against the ledger and the published data point
     "online_stake_gap",
@@ -395,7 +397,7 @@ def fetch_round(
 
 
 def rebuild(point: Point, states: dict[str, State], online_money: int | None) -> Json:
-    """The v3 coefficients at the point, and their checks"""
+    """The v3 coefficients and the online HHI at the point, and their checks"""
     data = point.data
     threshold = data["algo_threshold"] * MICROALGOS
     online = {a: s for a, s in states.items() if s.online}
@@ -416,10 +418,10 @@ def rebuild(point: Point, states: dict[str, State], online_money: int | None) ->
     row["online_stake_gap"] = f"{1 - total / online_money:.2e}" if online_money else ""
     row["online_accounts_diff"] = round(len(stakes) - online_accounts(data))
     row["ppos_gini_diff"] = f"{idx.gini(stakes) - data['ppos_gini']:.2e}"
-    hhi = data.get("ppos_hhi")
-    row["ppos_hhi_diff"] = (
-        "" if hhi is None else f"{idx.herfindahl_hirschman(stakes) - hhi:.2e}"
-    )
+    hhi = idx.herfindahl_hirschman(stakes)
+    row["ppos_hhi"] = hhi
+    published = data.get("ppos_hhi")
+    row["ppos_hhi_diff"] = "" if published is None else f"{hhi - published:.2e}"
     row["ppos_dex_v3_liveness_published"] = data.get("ppos_dex_v3_liveness", "")
     return row
 
@@ -428,7 +430,11 @@ def written_rounds(path: Path) -> set[int]:
     if not path.exists():
         return set()
     with path.open(encoding="utf8") as f:
-        return {int(row["round"]) for row in csv.DictReader(f)}
+        reader = csv.DictReader(f)
+        if reader.fieldnames != COLUMNS:
+            # The cache has every point written: a new file costs no calls
+            raise ValueError(f"{path} has other columns: move it to write it again")
+        return {int(row["round"]) for row in reader}
 
 
 def run(
