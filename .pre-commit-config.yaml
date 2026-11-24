@@ -40,7 +40,7 @@ repos:
 
 # Markdown
 - repo: https://github.com/rvben/rumdl-pre-commit
-  rev: b0cff962ee693b9e612c097d22e71e0cba127447  # frozen: v0.3.2
+  rev: df5a947a3af0dba56640e644c6b9316184749168  # frozen: v0.3.4
   hooks:
     - id: rumdl-check
       args: ["--fix"]
