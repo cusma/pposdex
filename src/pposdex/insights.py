@@ -48,7 +48,6 @@ from pposdex.plots import (
     percent,
     plot_series,
     plot_timeseries,
-    timestamp,
 )
 from pposdex.ppos_dex_data import (
     Metric,
@@ -58,6 +57,7 @@ from pposdex.ppos_dex_data import (
     evenness,
     is_recomputed,
     online_accounts,
+    timestamp,
     top_evenness,
     total_accounts,
 )

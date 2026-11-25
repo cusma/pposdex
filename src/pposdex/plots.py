@@ -32,6 +32,7 @@ from pposdex.ppos_dex_data import (
     is_recomputed,
     online_accounts,
     operator_stakes,
+    timestamp,
     total_accounts,
 )
 from pposdex.theme import Theme, output, title
@@ -313,10 +314,6 @@ SNAPSHOTS = (
 )
 
 
-def timestamp(data: PPoSDexData) -> datetime:
-    return datetime.fromisoformat(data["timestamp"])
-
-
 def no_data_periods(dates: list[datetime]) -> list[tuple[datetime, datetime]]:
     return [(a, b) for a, b in pairwise(dates) if b - a > NO_DATA]
 
@@ -485,15 +482,21 @@ def timeseries_figure(
         layout="constrained",
     )
     title(fig, chart.title, theme)
-    dates = [timestamp(d) for d in ppos_dex_data]
     for ax, panel in zip(axes[:, 0], panels, strict=True):
-        shade_no_data(ax, dates, theme)
+        # Points without the panel's metrics, like v1 where only the ledger was
+        # recomputed, are no data for it
+        panel_data = [
+            data
+            for data in ppos_dex_data
+            if any(not math.isnan(line.value(data)) for line in panel.lines)
+        ] or ppos_dex_data
+        shade_no_data(ax, [timestamp(d) for d in panel_data], theme)
         ends: list[tuple[str, float, str]] = []
         values: list[float] = []
         recomputed = False
         for line, color in zip(panel.lines, theme.series, strict=False):
-            recomputed |= plot_series(ax, ppos_dex_data, line, color=color)
-            _, y = series(ppos_dex_data, line)
+            recomputed |= plot_series(ax, panel_data, line, color=color)
+            _, y = series(panel_data, line)
             values += y
             last = next((v for v in reversed(y) if not math.isnan(v)), None)
             if last is not None:

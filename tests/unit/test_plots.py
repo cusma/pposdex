@@ -270,3 +270,24 @@ def test_recomputed_values_are_dashed(
     plt.close(fig)
     assert {"-", "--"} <= styles
     assert plots.RECOMPUTED_NOTE.capitalize() in title
+
+
+def test_no_data_for_metrics_not_recomputed(
+    make_data_point: Callable[..., PPoSDexData],
+) -> None:
+    """Ledger points in a gap fill v2, but are no data for v1"""
+    first = make_data_point(timestamp="2026-01-01 00:00:00.000000")
+    last = make_data_point(timestamp="2026-03-01 00:00:00.000000")
+    gap = []
+    for day in ("2026-01-21", "2026-02-10"):
+        point = make_data_point(timestamp=f"{day} 00:00:00.000000")
+        point.pop("ppos_dex")  # type: ignore[misc]
+        point["recomputed"] = ["ppos_dex_v2"]
+        gap.append(point)
+    chart = next(c for c in plots.TIMESERIES if c.name == "ppos_dex")
+    with use(LIGHT):
+        fig = plots.timeseries_figure(chart, [first, *gap, last], LIGHT)
+    v1, v2 = ([t.get_text() for t in ax.texts] for ax in fig.axes[:2])
+    plt.close(fig)
+    assert "No data" in v1
+    assert "No data" not in v2

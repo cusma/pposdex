@@ -1,6 +1,9 @@
 # PPoS Timeseries
 
 The PPoS Dex data published daily, and views derived from it, refreshed daily.
+Where the Oracle published no data point, most of all from March 2022 to
+September 2023, the metrics the ledger alone gives are
+[recomputed](../project/ppos-dex.md#recomputed-history), and dashed.
 
 ## Overview
 

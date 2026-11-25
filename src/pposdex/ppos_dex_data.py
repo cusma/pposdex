@@ -5,7 +5,7 @@ import math
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Literal, NotRequired, TypedDict, cast
+from typing import Literal, NotRequired, TypedDict, cast, get_args
 
 import msgpack
 from algosdk.constants import microalgos_to_algos_ratio
@@ -106,10 +106,19 @@ V3_METRICS: tuple[Metric, ...] = (
     "ppos_dex_v3_upgrade_operators",
 )
 
-# Metrics added after the first data points: recomputed for the points
-# published before, from the ledger state at their round, by
-# `scripts/backfill.py`
-RECOMPUTED_METRICS: tuple[Metric, ...] = (*V3_METRICS, "ppos_hhi")
+METRICS: tuple[Metric, ...] = get_args(Metric)
+# Metrics recomputed from the ledger state at the round of a data point by
+# `scripts/backfill.py`: those added after the first data points, and all those
+# the ledger state alone gives, where the Oracle published no data point
+RECOMPUTED_METRICS: tuple[Metric, ...] = (
+    "algo_dynamics",
+    "ppos_online_stake",
+    "ppos_gini",
+    "ppos_theil_l",
+    "ppos_theil_t",
+    "ppos_hhi",
+    *V3_METRICS,
+)
 RECOMPUTED_PATH = Path("./data/ppos_dex_backfill.csv")
 
 
@@ -196,52 +205,81 @@ def validate(data: object) -> PPoSDexData:
 
 def total_accounts(data: PPoSDexData) -> float:
     """Accounts holding more than the threshold"""
-    return data["accounts"]
+    return data.get("accounts", math.nan)
+
+
+def timestamp(data: PPoSDexData) -> datetime:
+    return datetime.fromisoformat(data["timestamp"])
 
 
 def with_recomputed(
     ppos_dex_data: list[PPoSDexData], path: Path = RECOMPUTED_PATH
 ) -> list[PPoSDexData]:
-    """The data points, with the metrics they lack recomputed
+    """The data points, newest first, with the metrics they lack recomputed
 
-    The v3 coefficients and the online HHI come from the ledger, and the PPoS
-    Dex v2 from the metrics of the point. Published values are kept: only the
-    missing ones are filled, and listed in the `recomputed` field of the point.
+    The metrics come from the ledger, and the PPoS Dex v2 from the metrics of
+    the point. Published values are kept: only the missing ones are filled, and
+    listed in the `recomputed` field of the point. Where the Oracle published
+    no data point, within the data points given, the ledger alone gives one.
     """
-    rows: dict[str, dict[str, str]] = {}
+    rows: list[dict[str, str]] = []
     if path.exists():
         with path.open(encoding="utf8") as f:
-            rows = {row["timestamp"]: row for row in csv.DictReader(f)}
-    filled = []
-    for data in ppos_dex_data:
-        row = rows.get(data["timestamp"], {})
-        values: dict[str, float] = {
-            m: SCHEMA[m].type(row[m])
-            for m in RECOMPUTED_METRICS
-            if m not in data and row.get(m)
-        }
-        hhi = values.get("ppos_hhi", data.get("ppos_hhi"))
-        if "ppos_dex_v2" not in data and hhi is not None:
-            values["ppos_dex_v2"] = ppos_dex_v2(
-                data["algo_dynamics"], data["ppos_online_stake"], hhi
-            )
-        if not values:
-            filled.append(data)
-            continue
-        point = cast(PPoSDexData, {**data, **values})
-        point["recomputed"] = list(values)
-        filled.append(point)
-    return filled
+            rows = list(csv.DictReader(f))
+    published = {row["timestamp"]: row for row in rows if row["published"] == "1"}
+    filled = [
+        _filled(data, published.get(data["timestamp"], {})) for data in ppos_dex_data
+    ]
+    if not filled:
+        return filled
+    first, last = min(map(timestamp, filled)), max(map(timestamp, filled))
+    for row in rows:
+        if (
+            row["published"] == "0"
+            and first < datetime.fromisoformat(row["timestamp"]) < last
+        ):
+            point = {
+                "algo_threshold": int(row["algo_threshold"]),
+                "round": int(row["round"]),
+                "timestamp": row["timestamp"],
+            }
+            filled.append(_filled(cast(PPoSDexData, point), row))
+    return sorted(filled, key=timestamp, reverse=True)
+
+
+def _filled(data: PPoSDexData, row: dict[str, str]) -> PPoSDexData:
+    """The data point, with the metrics it lacks from the row"""
+    values: dict[str, float] = {
+        m: SCHEMA[m].type(row[m])
+        for m in RECOMPUTED_METRICS
+        if m not in data and row.get(m)
+    }
+    known = cast(dict[str, float], data) | values
+    if "ppos_dex_v2" not in data and "ppos_hhi" in known:
+        values["ppos_dex_v2"] = ppos_dex_v2(
+            known["algo_dynamics"], known["ppos_online_stake"], known["ppos_hhi"]
+        )
+    if not values:
+        return data
+    point = cast(PPoSDexData, {**data, **values})
+    point["recomputed"] = list(values)
+    return point
 
 
 def is_recomputed(data: PPoSDexData, key: object) -> bool:
-    """Whether the metric of the point was recomputed, not published"""
-    return key in data.get("recomputed", ())
+    """Whether the metric of the point was recomputed, not published
+
+    A value derived from the point is recomputed when all its metrics are.
+    """
+    recomputed = data.get("recomputed", ())
+    if callable(key):
+        return bool(recomputed) and all(m in recomputed for m in METRICS if m in data)
+    return key in recomputed
 
 
 def online_accounts(data: PPoSDexData) -> float:
     """Online accounts holding more than the threshold"""
-    return data["accounts"] * data["ppos_online_accounts"]
+    return data.get("accounts", math.nan) * data.get("ppos_online_accounts", math.nan)
 
 
 def effective_validators(data: PPoSDexData) -> float:

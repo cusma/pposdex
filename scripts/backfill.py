@@ -1,7 +1,7 @@
 """
-PPoS Dex backfill: the v3 coefficients of the data points published before
-them, and the online HHI of the first ones, recomputed from the ledger state at
-the round of each point.
+PPoS Dex backfill: the metrics the published data points lack, and those of
+daily points where the Oracle published none, recomputed from the ledger state
+at the round of each point.
 
 Run `uv run python scripts/backfill.py` to update
 `./data/ppos_dex_backfill.csv`.
@@ -23,7 +23,8 @@ from collections import defaultdict
 from collections.abc import Iterable, Iterator
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
+from itertools import pairwise
 from pathlib import Path
 
 import msgpack
@@ -32,6 +33,8 @@ from pposdex import inequality_idx as idx
 from pposdex.cli import DEFAULT_PUBLISHER
 from pposdex.helpers import Json
 from pposdex.ppos_dex_data import (
+    MICROALGO_TOTAL_SUPPLY,
+    RECOMPUTED_METRICS,
     RECOMPUTED_PATH,
     V3_SHARES,
     InvalidDataError,
@@ -59,14 +62,18 @@ OUTPUT = RECOMPUTED_PATH
 MICROALGOS = 10**6
 FOREVER = 2**63
 
-V3_FIELDS = [
-    f"ppos_dex_v3_{name}{suffix}" for name in V3_SHARES for suffix in ("", "_operators")
-]
+# Where the Oracle published no data point for longer than this, the ledger
+# gives one a day, at 00:00 UTC
+GAP = timedelta(days=1.5)
+STEP = timedelta(days=1)
+
 COLUMNS = [
     "timestamp",
     "round",
-    *V3_FIELDS,
-    "ppos_hhi",
+    # Whether the Oracle published the data point, or the ledger alone gives it
+    "published",
+    "algo_threshold",
+    *RECOMPUTED_METRICS,
     "online_accounts",
     # Checks against the ledger and the published data point
     "online_stake_gap",
@@ -174,6 +181,9 @@ class Cache:
             CREATE TABLE IF NOT EXISTS supply (
                 round INTEGER PRIMARY KEY, online_money INTEGER
             );
+            CREATE TABLE IF NOT EXISTS blocks (
+                round INTEGER PRIMARY KEY, timestamp INTEGER
+            );
             CREATE TABLE IF NOT EXISTS keyregs (
                 round INTEGER, intra INTEGER, address TEXT, online INTEGER,
                 PRIMARY KEY (round, intra, address)
@@ -181,6 +191,10 @@ class Cache:
             CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
             """
         )
+        # Cached before the total money was needed: asked again
+        columns = [c[1] for c in self.db.execute("PRAGMA table_info(supply)")]
+        if "total_money" not in columns:
+            self.db.execute("ALTER TABLE supply ADD COLUMN total_money INTEGER")
 
     def close(self) -> None:
         self.db.close()
@@ -237,17 +251,36 @@ class Cache:
                 ],
             )
 
-    def supply(self, round_: int) -> tuple[bool, int | None]:
-        """Whether the online money at the round is cached, and its value"""
+    def supply(self, round_: int) -> tuple[bool, int | None, int | None]:
+        """Whether the supply at the round is cached, its online and total money"""
         with self.lock:
             row = self.db.execute(
-                "SELECT online_money FROM supply WHERE round = ?", (round_,)
+                "SELECT online_money, total_money FROM supply WHERE round = ?",
+                (round_,),
             ).fetchone()
-        return (False, None) if row is None else (True, row[0])
+        if row is None or (row[0] is not None and row[1] is None):
+            return False, None, None
+        return True, row[0], row[1]
 
-    def add_supply(self, round_: int, online_money: int | None) -> None:
+    def add_supply(
+        self, round_: int, online_money: int | None, total_money: int | None
+    ) -> None:
         with self.lock, self.db:
-            self.db.execute("REPLACE INTO supply VALUES (?, ?)", (round_, online_money))
+            self.db.execute(
+                "REPLACE INTO supply VALUES (?, ?, ?)",
+                (round_, online_money, total_money),
+            )
+
+    def block_time(self, round_: int) -> int | None:
+        with self.lock:
+            row = self.db.execute(
+                "SELECT timestamp FROM blocks WHERE round = ?", (round_,)
+            ).fetchone()
+        return None if row is None else int(row[0])
+
+    def add_block_time(self, round_: int, timestamp: int) -> None:
+        with self.lock, self.db:
+            self.db.execute("REPLACE INTO blocks VALUES (?, ?)", (round_, timestamp))
 
     def keyregs(self) -> list[tuple[int, str, bool]]:
         with self.lock:
@@ -312,7 +345,9 @@ def genesis_online(client: Client) -> list[str]:
 @dataclass(frozen=True)
 class Point:
     round: int
-    data: PPoSDexData
+    timestamp: str
+    # None where the Oracle published no data point
+    data: PPoSDexData | None
 
 
 def published_points(client: Client, publisher: str, threshold: int) -> list[Point]:
@@ -332,9 +367,59 @@ def published_points(client: Client, publisher: str, threshold: int) -> list[Poi
             except (KeyError, InvalidDataError, ValueError, msgpack.ExtraData):
                 continue
             if data["algo_threshold"] == threshold:
-                points.append(Point(txn["confirmed-round"], data))
+                points.append(Point(txn["confirmed-round"], data["timestamp"], data))
         token = page["next-token"]
     return sorted(points, key=lambda p: p.round)
+
+
+def block_time(client: Client, cache: Cache, round_: int) -> int:
+    """The Unix time of the block"""
+    cached = cache.block_time(round_)
+    if cached is not None:
+        return cached
+    block = client.get(f"{INDEXER_URL}/v2/blocks/{round_}?header-only=true")
+    assert block is not None
+    cache.add_block_time(round_, block["timestamp"])
+    return int(block["timestamp"])
+
+
+def round_at(client: Client, cache: Cache, when: int, low: int, high: int) -> int:
+    """A round within a minute after the Unix time, between two rounds around it
+
+    Blocks come at a nearly steady pace: their times interpolate the round.
+    """
+    t_low, t_high = block_time(client, cache, low), block_time(client, cache, high)
+    while t_high - when > 60 and high - low > 1:
+        guess = low + (when - t_low) * (high - low) // (t_high - t_low)
+        guess = min(max(guess, low + 1), high - 1)
+        t = block_time(client, cache, guess)
+        if t < when:
+            low, t_low = guess, t
+        else:
+            high, t_high = guess, t
+    return high
+
+
+def gap_points(client: Client, cache: Cache, published: list[Point]) -> list[Point]:
+    """A point a day, at 00:00 UTC, where the Oracle published none"""
+    points = []
+    for a, b in pairwise(published):
+        silence = datetime.fromisoformat(b.timestamp) - datetime.fromisoformat(
+            a.timestamp
+        )
+        if silence <= GAP:
+            continue
+        start = block_time(client, cache, a.round) + 43_200
+        end = block_time(client, cache, b.round) - 43_200
+        day = datetime.fromtimestamp(start, UTC).replace(hour=0, minute=0, second=0)
+        day += STEP
+        low = a.round
+        while day.timestamp() < end:
+            low = round_at(client, cache, int(day.timestamp()), low, b.round)
+            when = datetime.fromtimestamp(block_time(client, cache, low), UTC)
+            points.append(Point(low, str(when.replace(tzinfo=None)), None))
+            day += STEP
+    return points
 
 
 class Candidates:
@@ -392,21 +477,40 @@ def fetch_round(
         states |= fetched
     if not cache.supply(round_)[0]:
         supply = client.get(f"{ALGOD_URL}/v2/ledger/supply?round={round_}")
-        cache.add_supply(round_, None if supply is None else supply["online-money"])
+        if supply is None:
+            cache.add_supply(round_, None, None)
+        else:
+            cache.add_supply(round_, supply["online-money"], supply["total-money"])
     return {a: states[a] for a in addresses}
 
 
-def rebuild(point: Point, states: dict[str, State], online_money: int | None) -> Json:
-    """The v3 coefficients and the online HHI at the point, and their checks"""
-    data = point.data
-    threshold = data["algo_threshold"] * MICROALGOS
+def rebuild(
+    point: Point,
+    states: dict[str, State],
+    supply: tuple[int | None, int | None],
+    threshold: int,
+) -> Json:
+    """The metrics at the point, and their checks"""
     online = {a: s for a, s in states.items() if s.online}
-    accounts = [s.as_account(a) for a, s in online.items() if s.amount > threshold]
+    accounts = [
+        s.as_account(a) for a, s in online.items() if s.amount > threshold * MICROALGOS
+    ]
     stakes = sorted(account["amount"] for account in accounts)
     operators = sorted(operator_stakes(accounts))
+    online_money, total_money = supply
     row: Json = {
-        "timestamp": data["timestamp"],
+        "timestamp": point.timestamp,
         "round": point.round,
+        "published": int(point.data is not None),
+        "algo_threshold": threshold,
+        "algo_dynamics": total_money / MICROALGO_TOTAL_SUPPLY if total_money else "",
+        "ppos_online_stake": (
+            online_money / total_money if online_money and total_money else ""
+        ),
+        "ppos_gini": idx.gini(stakes),
+        "ppos_theil_l": idx.theil_l(stakes),
+        "ppos_theil_t": idx.theil_t(stakes),
+        "ppos_hhi": idx.herfindahl_hirschman(stakes),
         "online_accounts": len(stakes),
     }
     for name, share in V3_SHARES.items():
@@ -416,12 +520,15 @@ def rebuild(point: Point, states: dict[str, State], online_money: int | None) ->
         )
     total = sum(s.amount for s in online.values())
     row["online_stake_gap"] = f"{1 - total / online_money:.2e}" if online_money else ""
+    data = point.data
+    if data is None:
+        return row
     row["online_accounts_diff"] = round(len(stakes) - online_accounts(data))
-    row["ppos_gini_diff"] = f"{idx.gini(stakes) - data['ppos_gini']:.2e}"
-    hhi = idx.herfindahl_hirschman(stakes)
-    row["ppos_hhi"] = hhi
+    row["ppos_gini_diff"] = f"{row['ppos_gini'] - data['ppos_gini']:.2e}"
     published = data.get("ppos_hhi")
-    row["ppos_hhi_diff"] = "" if published is None else f"{hhi - published:.2e}"
+    row["ppos_hhi_diff"] = (
+        "" if published is None else f"{row['ppos_hhi'] - published:.2e}"
+    )
     row["ppos_dex_v3_liveness_published"] = data.get("ppos_dex_v3_liveness", "")
     return row
 
@@ -437,6 +544,56 @@ def written_rounds(path: Path) -> set[int]:
         return {int(row["round"]) for row in reader}
 
 
+def write_points(
+    client: Client,
+    cache: Cache,
+    candidates: Candidates,
+    points: list[Point],
+    output: Path,
+    threshold: int,
+    max_points: int | None,
+) -> int | None:
+    """Write the points not written yet, oldest first, at most `max_points`:
+    how many more may be written"""
+    done = written_rounds(output)
+    with output.open("a", encoding="utf8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=COLUMNS)
+        for n, point in enumerate(points, 1):
+            new = point.round not in done
+            if new and max_points is not None:
+                if max_points <= 0:
+                    break
+                max_points -= 1
+            # Points already written are read again from the cache: the
+            # candidates of the next ones depend on them
+            states = fetch_round(client, cache, point.round, candidates.at(point.round))
+            candidates.observe(point.round, states)
+            if not new:
+                continue
+            _, online_money, total_money = cache.supply(point.round)
+            supply = (online_money, total_money)
+            writer.writerow(rebuild(point, states, supply, threshold))
+            f.flush()
+            logger.info(
+                "%d/%d round %d: %d candidates",
+                n,
+                len(points),
+                point.round,
+                len(states),
+            )
+    return max_points
+
+
+def sort_rows(path: Path) -> None:
+    """Sort the written points by round"""
+    with path.open(encoding="utf8") as f:
+        rows = sorted(csv.DictReader(f), key=lambda row: int(row["round"]))
+    with path.open("w", encoding="utf8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+
+
 def run(
     publisher: str,
     threshold: int = 1000,
@@ -444,47 +601,46 @@ def run(
     output: Path = OUTPUT,
     max_points: int | None = None,
 ) -> None:
-    """Rebuild the published points not written yet, at most `max_points`"""
+    """Rebuild the points not written yet, at most `max_points`: the published
+    ones first, then those where the Oracle published none"""
     cache = Cache(cache_path)
     try:
         client = Client(cache)
         if cache.meta("keyregs:done") is None:
             fetch_keyregs(client, cache)
             cache.set_meta("keyregs:done", "1")
-        candidates = Candidates(cache.keyregs(), genesis_online(client))
-        points = published_points(client, publisher, threshold)
-        done = written_rounds(output)
-        output.parent.mkdir(parents=True, exist_ok=True)
-        new_file = not output.exists()
-        with output.open("a", encoding="utf8", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=COLUMNS)
-            if new_file:
-                writer.writeheader()
-            for n, point in enumerate(points, 1):
-                new = point.round not in done
-                if new and max_points is not None:
-                    if max_points <= 0:
-                        break
-                    max_points -= 1
-                # Points already written are read again from the cache: the
-                # candidates of the next ones depend on them
-                states = fetch_round(
-                    client, cache, point.round, candidates.at(point.round)
-                )
-                candidates.observe(point.round, states)
-                if not new:
-                    continue
-                _, online_money = cache.supply(point.round)
-                writer.writerow(rebuild(point, states, online_money))
-                f.flush()
-                logger.info(
-                    "%d/%d round %d: %d candidates",
-                    n,
-                    len(points),
-                    point.round,
-                    len(states),
-                )
-
+        genesis = genesis_online(client)
+        published = published_points(client, publisher, threshold)
+        written_rounds(output)
+        if not output.exists():
+            output.parent.mkdir(parents=True, exist_ok=True)
+            with output.open("w", encoding="utf8", newline="") as f:
+                csv.DictWriter(f, fieldnames=COLUMNS).writeheader()
+        try:
+            # The candidates of the published points are cached from the runs
+            # before: those points cost no more than their new rounds
+            max_points = write_points(
+                client,
+                cache,
+                Candidates(cache.keyregs(), genesis),
+                published,
+                output,
+                threshold,
+                max_points,
+            )
+            # Then every point in order, as each depends on the ones before
+            points = published + gap_points(client, cache, published)
+            write_points(
+                client,
+                cache,
+                Candidates(cache.keyregs(), genesis),
+                sorted(points, key=lambda p: p.round),
+                output,
+                threshold,
+                max_points,
+            )
+        finally:
+            sort_rows(output)
     finally:
         cache.close()
 

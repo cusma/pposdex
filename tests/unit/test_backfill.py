@@ -2,8 +2,10 @@ import base64
 import csv
 import io
 import json
+import sqlite3
 import urllib.error
 from collections.abc import Callable, Iterator
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -114,9 +116,29 @@ class TestCache:
         assert cache.states(8) == {}
 
     def test_supply(self, cache: Cache) -> None:
-        assert cache.supply(7) == (False, None)
-        cache.add_supply(7, None)
-        assert cache.supply(7) == (True, None)
+        assert cache.supply(7) == (False, None, None)
+        cache.add_supply(7, 5, 10)
+        assert cache.supply(7) == (True, 5, 10)
+        # Not recorded at the round
+        cache.add_supply(8, None, None)
+        assert cache.supply(8) == (True, None, None)
+
+    def test_supply_without_total_money(self, tmp_path: Path) -> None:
+        path = tmp_path / "cache.sqlite"
+        db = sqlite3.connect(path)
+        with db:
+            db.execute("CREATE TABLE supply (round INTEGER PRIMARY KEY, online_money)")
+            db.execute("INSERT INTO supply VALUES (7, 5)")
+        db.close()
+        cache = Cache(path)
+        # Cached before the total money was: asked again
+        assert cache.supply(7) == (False, None, None)
+        cache.close()
+
+    def test_block_time(self, cache: Cache) -> None:
+        assert cache.block_time(7) is None
+        cache.add_block_time(7, 1_700_000_000)
+        assert cache.block_time(7) == 1_700_000_000
 
     def test_counts_the_calls(self, cache: Cache) -> None:
         assert [cache.count_call() for _ in range(3)] == [1, 2, 3]
@@ -170,6 +192,12 @@ class TestClient:
             client([TimeoutError()] * backfill.ATTEMPTS).get(URL)
 
 
+# Round 100 is published on 1 Nov 2026 at 00:30 UTC, then a round every 2,592
+# seconds: round 200 on 4 Nov, after three days without data points
+ROUND_100 = int(datetime(2026, 11, 1, 0, 30, tzinfo=UTC).timestamp())
+ROUND_TIME = 2_592
+
+
 class FakeNodely:
     """Answers the backfill calls from memory: accounts by round"""
 
@@ -190,6 +218,9 @@ class FakeNodely:
                 "SMALL": account(2000),
                 "GONE": account(2000, online=False),
             },
+            # The first rounds of 2 and 3 Nov
+            133: {"BIG": account(6000), "SMALL": account(3000)},
+            166: {"BIG": account(6000), "SMALL": account(4000)},
             200: {"BIG": account(5000), "SMALL": account(5000)},
         }
         self.calls: list[str] = []
@@ -204,6 +235,9 @@ class FakeNodely:
             return {"alloc": [{"addr": "GENESIS", "state": {"onl": 1}}]}
         if "/transactions?" in path:
             return self.published(path)
+        if path.startswith("/v2/blocks/"):
+            round_ = int(path.split("/")[3].split("?")[0])
+            return {"timestamp": ROUND_100 + (round_ - 100) * ROUND_TIME}
         return self.ledger(path)
 
     def published(self, path: str) -> Json:
@@ -223,7 +257,8 @@ class FakeNodely:
             if round_ == 200:  # Not recorded
                 return None
             online = [a for a in accounts.values() if a["status"] == "Online"]
-            return {"online-money": sum(a["amount"] for a in online)}
+            online_money = sum(a["amount"] for a in online)
+            return {"online-money": online_money, "total-money": 4 * online_money}
         return accounts.get(path.split("/v2/accounts/")[1].split("?", maxsplit=1)[0])
 
 
@@ -236,10 +271,15 @@ def test_run(
         (
             r,
             msgpack.packb(
-                make_data_point(accounts=20, ppos_online_accounts=0.1, **extra)
+                make_data_point(
+                    accounts=20,
+                    ppos_online_accounts=0.1,
+                    timestamp=f"2026-11-0{day} 00:30:00.000000",
+                    **extra,
+                )
             ),
         )
-        for r, extra in ((200, {"ppos_dex_v3_liveness": 1}), (100, {}))
+        for r, day, extra in ((200, 4, {"ppos_dex_v3_liveness": 1}), (100, 1, {}))
     ]
     fake = FakeNodely(notes)
     monkeypatch.setattr(Client, "get", lambda self, url: fake.get(url))
@@ -249,12 +289,16 @@ def test_run(
     backfill.run("PUBLISHER", cache_path=cache, output=output, max_points=1)
     with output.open() as f:
         assert [row["round"] for row in csv.DictReader(f)] == ["100"]
+    # The published points first, then those between them
+    backfill.run("PUBLISHER", cache_path=cache, output=output, max_points=1)
+    with output.open() as f:
+        assert [row["round"] for row in csv.DictReader(f)] == ["100", "200"]
 
     backfill.run("PUBLISHER", cache_path=cache, output=output)
     with output.open() as f:
         rows = list(csv.DictReader(f))
-    assert [row["round"] for row in rows] == ["100", "200"]
-    first, second = rows
+    assert [row["round"] for row in rows] == ["100", "133", "166", "200"]
+    first, *gap, second = rows
     # 6000 and 2000 ALGO online: the larger alone holds more than 1/3
     assert first["ppos_dex_v3_nakamoto"] == "1"
     assert first["ppos_dex_v3_upgrade"] == "2"
@@ -265,8 +309,19 @@ def test_run(
     assert float(first["online_stake_gap"]) == 0
     # GONE is offline at 100: not asked again at 200
     assert not any("GONE?round=200" in c for c in fake.calls)
+    assert first["published"] == second["published"] == "1"
+    assert float(first["algo_dynamics"]) == 4 * 8000 * ALGO / 10**16
+    assert float(first["ppos_online_stake"]) == 0.25
     assert second["ppos_dex_v3_liveness_published"] == "1"
-    assert second["online_stake_gap"] == ""
+    assert second["online_stake_gap"] == second["algo_dynamics"] == ""
+    # A point a day, at the first round of the day, without a published one
+    assert [row["timestamp"] for row in gap] == [
+        "2026-11-02 00:15:36",
+        "2026-11-03 00:01:12",
+    ]
+    assert [row["published"] for row in gap] == ["0", "0"]
+    assert [row["online_accounts_diff"] for row in gap] == ["", ""]
+    assert gap[1]["ppos_dex_v3_nakamoto"] == "1"
     # A run with all points written asks only for what is not cached
     calls = len(fake.calls)
     backfill.run("PUBLISHER", cache_path=cache, output=output)
