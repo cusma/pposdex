@@ -69,9 +69,9 @@ show the one matching the selected theme.
 
 ## PPoS Dex Backfill
 
-The v3 of the data points published before it, and the online HHI of the first
-ones, are recomputed from the past ledger state by `scripts/backfill.py`,
-into `data/ppos_dex_backfill.csv`.
+The metrics the published data points lack, and those of a daily point where the
+Oracle published none, are recomputed from the past ledger state by
+`scripts/backfill.py`, into `data/ppos_dex_backfill.csv`.
 It reads Nodely Time Travel, free on MainNet until the end of 2026, within a
 daily budget of requests: run it once a day until it has recomputed every point.
 When its columns change, move the CSV away and run it again: the cache in

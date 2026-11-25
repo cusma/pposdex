@@ -95,6 +95,14 @@ Each recomputed point is checked against the ledger and the published data:
 The PPoS Dex v2 needs no ledger: it is computed from the ALGO supply, the online
 stake and its HHI, published with every point, as the published v2 is.
 
+Where the Oracle published no data point for more than a day and a half, most
+of all from March 2022 to September 2023, the ledger gives one a day, at 00:00
+UTC: the ALGO supply, the online stake, its inequality indexes, the PPoS Dex v2
+and v3. The accounts holding more than the threshold, online or not, are not
+recomputed: they would take the balance of every account at the round. Neither
+are the metrics that count them: the Account Participation Index, the ALGO HHI
+and the PPoS Dex v1.
+
 Recomputed values are not published on-chain: the charts draw them dashed,
 the monthly change hatched. The
 [script](https://github.com/cusma/pposdex/blob/main/scripts/backfill.py)

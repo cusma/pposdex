@@ -1,6 +1,7 @@
 import base64
 import csv
 import logging
+import math
 from collections.abc import Callable
 from pathlib import Path
 
@@ -149,12 +150,13 @@ class TestGet:
 class TestWithRecomputed:
     @staticmethod
     def write(path: Path, rows: list[dict[str, object]]) -> Path:
+        columns = ["timestamp", "round", "published", "algo_threshold"]
         with path.open("w", encoding="utf8", newline="") as f:
             writer = csv.DictWriter(
-                f, fieldnames=["timestamp", *pposdex.RECOMPUTED_METRICS]
+                f, fieldnames=[*columns, *pposdex.RECOMPUTED_METRICS]
             )
             writer.writeheader()
-            writer.writerows(rows)
+            writer.writerows({"published": 1} | row for row in rows)
         return path
 
     def test_fills_only_the_missing_metrics(
@@ -202,6 +204,50 @@ class TestWithRecomputed:
         assert filled[0].get("ppos_dex_v2") == pytest.approx(0.7 * 0.5 * 0.98)
         assert filled[1].get("recomputed") == ["ppos_hhi", "ppos_dex_v2"]
         assert filled[0].get("recomputed") == ["ppos_dex_v2"]
+
+    def test_points_without_published_ones(
+        self, tmp_path: Path, make_data_point: Callable[..., PPoSDexData]
+    ) -> None:
+        old = make_data_point(timestamp="2022-03-29 00:00:00.0")
+        new = make_data_point(timestamp="2023-09-03 00:00:00.0")
+        ledger = dict.fromkeys(pposdex.RECOMPUTED_METRICS, 1) | {
+            "algo_dynamics": 0.7,
+            "ppos_online_stake": 0.5,
+            "ppos_hhi": 0.1,
+            "round": 7,
+            "published": 0,
+            "algo_threshold": 1000,
+        }
+        path = self.write(
+            tmp_path / "recomputed.csv",
+            [
+                ledger | {"timestamp": t}
+                for t in ("2022-03-30 00:00:00", "2023-09-04 00:00:00")
+            ],
+        )
+        filled = pposdex.with_recomputed([new, old], path)
+        # Within the data points given, newest first
+        assert [d["timestamp"] for d in filled] == [
+            "2023-09-03 00:00:00.0",
+            "2022-03-30 00:00:00",
+            "2022-03-29 00:00:00.0",
+        ]
+        point = filled[1]
+        assert point.get("round") == 7
+        assert point.get("ppos_dex_v2") == pytest.approx(0.7 * 0.5 * 0.9)
+        assert set(point.get("recomputed", [])) == {
+            *pposdex.RECOMPUTED_METRICS,
+            "ppos_dex_v2",
+        }
+        # Not published, nor recomputed: the accounts of all the ALGO
+        assert math.isnan(pposdex.online_accounts(point))
+        assert math.isnan(pposdex.total_accounts(point))
+        # Values derived from the point are recomputed when all its metrics are
+        assert pposdex.is_recomputed(point, pposdex.evenness)
+        assert not pposdex.is_recomputed(filled[0], pposdex.evenness)
+
+    def test_nothing_to_fill(self, tmp_path: Path) -> None:
+        assert pposdex.with_recomputed([], tmp_path / "x.csv") == []
 
     def test_without_the_file(
         self, tmp_path: Path, make_data_point: Callable[..., PPoSDexData]
